@@ -1,0 +1,62 @@
+.card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.iconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.body p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.body strong {
+  color: #0f172a;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.body span {
+  color: #475569;
+  font-size: 12px;
+}
+
+.tone_cyan .iconWrap {
+  background: #e0f2fe;
+  color: #0c4a6e;
+}
+
+.tone_emerald .iconWrap {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.tone_amber .iconWrap {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tone_slate .iconWrap {
+  background: #e2e8f0;
+  color: #334155;
+}

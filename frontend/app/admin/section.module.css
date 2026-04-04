@@ -1,0 +1,27 @@
+.page {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.page h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.page p {
+  margin: 8px 0 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.hint {
+  margin-top: 10px;
+  border: 1px dashed #93c5fd;
+  border-radius: 10px;
+  background: #eff6ff;
+  padding: 10px;
+  color: #0c4a6e;
+  font-size: 13px;
+}

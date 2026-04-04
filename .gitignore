@@ -1,0 +1,37 @@
+# Ignore metadata
+.idea/
+.vscode/
+*.iml
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Demo/Temporary artifacts
+demo/target/
+*.code-workspace
+*.resolved
+BAO_CAO_HE_THONG.md
+BAO_CAO_TOURISTA.md
+SYSTEM_ANALYSIS.md
+
+# Build output
+target/
+build/
+node_modules/
+.next/
+out/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env*
+.vercel
+
+# Other
+*.pem
+

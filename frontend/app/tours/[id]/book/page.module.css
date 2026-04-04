@@ -1,0 +1,591 @@
+/* ============================================================
+   Tour Booking Page — Premium redesign
+   ============================================================ */
+
+/* ── PAGE WRAPPER ─────────────────────────────────────────── */
+.pageWrapper {
+  background: #f1f5f9;
+  min-height: 100vh;
+}
+
+/* ── BREADCRUMB STRIP ─────────────────────────────────────── */
+.breadcrumb {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 24px;
+}
+
+.breadcrumbInner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.backButton:hover {
+  border-color: #0077b6;
+  color: #0077b6;
+  background: #f0f9ff;
+}
+
+.breadcrumbSep {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+.breadcrumbCurrent {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ── PROGRESS ─────────────────────────────────────────────── */
+.progressBar {
+  background: #ffffff;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.progressInner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.progressStep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.progressStepCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  border: 2px solid #e2e8f0;
+  color: #94a3b8;
+  background: #f8fafc;
+}
+
+.progressStepCircleDone {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.progressStepCircleActive {
+  border-color: #0077b6;
+  color: #0077b6;
+  background: #e0f2fe;
+}
+
+.progressStepLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.progressStepLabelActive {
+  color: #0077b6;
+}
+
+.progressLine {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 4px;
+  max-width: 80px;
+}
+
+.progressLineDone {
+  background: linear-gradient(90deg, #0077b6, #00a8a8);
+}
+
+/* ── PAGE LAYOUT ──────────────────────────────────────────── */
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── CARD BLOCK ───────────────────────────────────────────── */
+.block {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,50,100,0.05);
+}
+
+.blockHeader {
+  padding: 16px 22px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.blockIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0,119,182,0.12), rgba(0,168,168,0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.blockBody {
+  padding: 18px 22px;
+}
+
+/* ── TOUR SUMMARY CARD ────────────────────────────────────── */
+.tourSummaryCard {
+  background: linear-gradient(135deg, #0f2044 0%, #0a3d5e 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,50,100,0.18);
+}
+
+.tourSummaryImg {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  opacity: 0.85;
+}
+
+.tourSummaryBody {
+  padding: 20px 22px;
+}
+
+.tourTitle {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.tourCity {
+  margin: 0 0 14px;
+  color: rgba(255,255,255,0.65);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+}
+
+.tourCityIcon {
+  color: #00d8a8;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.85);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+/* ── INFO GRID ────────────────────────────────────────────── */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.infoCell {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.infoCellLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.infoCellValue {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ── POLICY LIST ──────────────────────────────────────────── */
+.policyList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.policyList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+.policyIcon {
+  color: #16a34a;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ── SUMMARY (RIGHT TOP) ──────────────────────────────────── */
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.88rem;
+  color: #475569;
+}
+
+.summaryRow:last-of-type {
+  border-bottom: none;
+}
+
+.summaryRowLabel {
+  color: #64748b;
+}
+
+.summaryRowValue {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0 0;
+  margin-top: 4px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.totalLabel {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.totalAmount {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #0077b6;
+  letter-spacing: -0.03em;
+}
+
+/* ── FORM FIELDS ──────────────────────────────────────────── */
+.formGroup {
+  margin-bottom: 14px;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #0077b6;
+  box-shadow: 0 0 0 3px rgba(0,119,182,0.1);
+  background: #ffffff;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ── PAYMENT METHODS ──────────────────────────────────────── */
+.methodList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.methodItem {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  background: #f8fafc;
+  transition: all 0.16s ease;
+}
+
+.methodItem:hover:not(.methodDisabled) {
+  border-color: #0077b6;
+  background: #f0f9ff;
+}
+
+.methodItemActive {
+  border-color: #0077b6 !important;
+  background: #e0f2fe !important;
+  box-shadow: 0 0 0 3px rgba(0,119,182,0.1);
+}
+
+.methodItemDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.methodEmoji {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.methodInfo {
+  flex: 1;
+}
+
+.methodTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 2px;
+}
+
+.methodSub {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.methodRadio {
+  width: 18px;
+  height: 18px;
+  accent-color: #0077b6;
+  flex-shrink: 0;
+}
+
+/* ── AGREE ROW ────────────────────────────────────────────── */
+.agreeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.agreeRow:hover {
+  border-color: #0077b6;
+  background: #f0f9ff;
+}
+
+.agreeCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #0077b6;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.agreeText {
+  font-size: 0.84rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.agreeLink {
+  color: #0077b6;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── SUBMIT BUTTON ────────────────────────────────────────── */
+.submitBtn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  font-weight: 900;
+  font-size: 1rem;
+  padding: 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0,119,182,0.35);
+  transition: transform 0.16s ease, box-shadow 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,119,182,0.45);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #94a3b8;
+  box-shadow: none;
+  transform: none;
+}
+
+.secureNote {
+  margin: 10px 0 0;
+  font-size: 0.76rem;
+  color: #94a3b8;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+/* ── STATUS BOXES ─────────────────────────────────────────── */
+.statusBox {
+  max-width: 600px;
+  margin: 60px auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 40px 32px;
+  text-align: center;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+.statusBoxError {
+  max-width: 600px;
+  margin: 60px auto;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 20px;
+  padding: 36px 32px;
+  text-align: center;
+  color: #9f1239;
+  font-weight: 600;
+}
+
+.backBtn {
+  margin-top: 14px;
+  border: none;
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  border-radius: 10px;
+  padding: 11px 22px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px 14px 48px;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .progressStep .progressStepLabel {
+    display: none;
+  }
+
+  .progressLine {
+    max-width: 40px;
+  }
+}

@@ -1,0 +1,477 @@
+/* ── Hero Banner Container ── */
+.heroBanner {
+  position: relative;
+  min-height: 620px;
+  display: flex;
+  align-items: flex-end;
+  overflow: visible;
+}
+
+.heroBannerCompact {
+  min-height: auto;
+  background: #1a237e;
+  align-items: center;
+}
+
+.heroBannerCompact .heroContent {
+  min-height: auto;
+  padding: 16px 0 18px;
+}
+
+.heroBannerCompact .searchBox {
+  margin: 0;
+}
+
+/* ── Slideshow ── */
+.slideshowWrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  will-change: opacity;
+}
+
+.slideActive {
+  opacity: 1;
+}
+
+/* Dark overlay trên ảnh */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+  z-index: 1;
+}
+
+/* ── Arrow Controls ── */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  color: white;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+  backdrop-filter: blur(6px);
+}
+
+.arrow:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.arrowLeft {
+  left: 20px;
+}
+.arrowRight {
+  right: 20px;
+}
+
+/* ── Dot Indicators ── */
+.dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.3s,
+    transform 0.3s;
+  padding: 0;
+}
+
+.dotActive {
+  background: white;
+  transform: scale(1.4);
+}
+
+/* ── Content layer ── */
+.heroContent {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 60px 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 620px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Hero Text ── */
+.heroText {
+  margin-bottom: auto;
+  padding-bottom: 32px;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 6px 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00d8a8;
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.4);
+  }
+}
+
+.heroSubtitle {
+  margin: 0 0 18px;
+  color: #ffffff;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  max-width: 700px;
+  transition: opacity 0.4s;
+}
+
+.heroSubtitle span {
+  background: linear-gradient(90deg, #00d8a8, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.heroDesc {
+  margin: 0 0 36px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1.05rem;
+  max-width: 540px;
+  line-height: 1.65;
+  transition: opacity 0.4s;
+}
+
+/* ── HERO STATS ─────────────────────────────────────────── */
+.heroStats {
+  display: flex;
+  gap: 32px;
+  margin-top: 36px;
+  flex-wrap: wrap;
+}
+
+.heroStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroStatNum {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.heroStatLabel {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+}
+
+/* ── SEARCH BOX FLOATING CARD ───────────────────────────── */
+.searchBox {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 1040px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.22),
+    0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  position: relative;
+  z-index: 10;
+  margin: 0;
+  transform: translateY(50%);
+}
+
+.searchCardTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0077b6;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 0 0 16px;
+}
+
+.searchForm {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.5fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.fieldWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fieldLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fieldInput,
+.guestSelect,
+.dateInput {
+  height: 48px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  outline: none;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.fieldInput:focus,
+.guestSelect:focus,
+.dateInput:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.dateRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guestRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateSep {
+  color: #94a3b8;
+}
+
+.searchButton {
+  height: 48px;
+  padding: 0 28px;
+  border-radius: 10px;
+  background: #00a8a8;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.searchButton:hover {
+  background: #008787;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 168, 168, 0.25);
+}
+
+.autocompleteWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.suggestionList {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  box-shadow: 0 12px 24px rgba(13, 38, 76, 0.14);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.suggestionItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.suggestionItem:hover,
+.suggestionItemActive {
+  background: #eef5ff;
+}
+
+.suggestionMain {
+  color: #1f2a44;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.suggestionType {
+  color: #5f6f8a;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .searchBox {
+    transform: translateY(40%);
+  }
+
+  .searchForm {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .searchButton {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 576px) {
+  .searchBox {
+    transform: translateY(0);
+    margin-top: 16px;
+    padding: 20px;
+  }
+
+  .searchForm {
+    grid-template-columns: 1fr;
+  }
+
+  .heroContent {
+    padding: 40px 0 44px;
+  }
+
+  .heroSubtitle {
+    font-size: 28px;
+  }
+
+  .heroDesc {
+    font-size: 15px;
+  }
+
+  .heroStats {
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+  .dots {
+    bottom: 70px;
+  }
+}
+
+@media (max-width: 576px) {
+  .searchBox {
+    transform: translateY(0);
+    margin-top: 8px;
+  }
+
+  .heroSubtitle {
+    font-size: 22px;
+  }
+  .heroContent {
+    padding: 40px 0 44px;
+  }
+  .searchField {
+    flex: 1 1 100%;
+  }
+  .arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+  .dots {
+    bottom: 70px;
+  }
+}

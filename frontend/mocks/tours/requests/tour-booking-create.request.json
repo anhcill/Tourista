@@ -1,0 +1,10 @@
+{
+  "tourId": 2001,
+  "departureId": 91001,
+  "adults": 2,
+  "children": 1,
+  "guestName": "Nguyen Van A",
+  "guestEmail": "a@example.com",
+  "guestPhone": "0909123456",
+  "specialRequests": "Can ghe em be"
+}

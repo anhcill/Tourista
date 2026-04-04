@@ -1,0 +1,484 @@
+/* ============================================================
+   Tour Search Page — Premium redesign
+   ============================================================ */
+
+/* ── PAGE WRAPPER ───────────────────────────────────────── */
+.pageWrapper {
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+/* ── HERO BANNER STRIP ──────────────────────────────────── */
+.heroBanner {
+  background: linear-gradient(135deg, #0f2044 0%, #0a3d5e 50%, #0e6b6b 100%);
+  padding: 36px 24px 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroBanner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 50% 80% at 10% 50%, rgba(0,168,168,0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 60% at 90% 20%, rgba(0,119,182,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.heroBannerInner {
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.heroBannerTitle {
+  color: #ffffff;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.heroBannerSub {
+  color: rgba(255,255,255,0.65);
+  font-size: 0.92rem;
+  margin: 0 0 24px;
+}
+
+/* ── INLINE SEARCH BAR IN BANNER ────────────────────────── */
+.inlineSearch {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
+  padding: 10px 10px 10px 16px;
+  backdrop-filter: blur(10px);
+  max-width: 760px;
+  flex-wrap: wrap;
+}
+
+.inlineField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 130px;
+}
+
+.inlineIcon {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.inlineInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  width: 100%;
+  min-width: 80px;
+}
+
+.inlineInput::placeholder {
+  color: rgba(255,255,255,0.45);
+}
+
+.inlineDivider {
+  width: 1px;
+  height: 30px;
+  background: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.inlineSearchBtn {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 22px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.16s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(0,119,182,0.4);
+  flex-shrink: 0;
+}
+
+.inlineSearchBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0,119,182,0.5);
+}
+
+/* ── MAIN CONTENT ───────────────────────────────────────── */
+.mainContent {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+}
+
+/* ── RESULTS LAYOUT ─────────────────────────────────────── */
+.resultsLayout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── FILTER SIDEBAR ─────────────────────────────────────── */
+.sidebar {
+  width: 272px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 12px rgba(0,50,100,0.06);
+  overflow: hidden;
+  position: sticky;
+  top: 24px;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sidebarTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebarTitleIcon {
+  font-size: 1rem;
+}
+
+.resetBtn {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #0077b6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.resetBtn:hover {
+  text-decoration: underline;
+}
+
+/* Filter section */
+.filterSection {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.filterSection:last-child {
+  border-bottom: none;
+}
+
+.filterSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 14px 20px;
+  font-size: 0.87rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: left;
+}
+
+.filterSectionHeader:hover {
+  background: #f8fafc;
+}
+
+.filterChevron {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.filterChevronOpen {
+  transform: rotate(180deg);
+}
+
+.filterBody {
+  padding: 4px 20px 16px;
+}
+
+/* Price range */
+.priceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.priceField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.priceFieldLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.priceInput {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.84rem;
+  color: #0f172a;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.priceInput:focus {
+  outline: none;
+  border-color: #0077b6;
+  box-shadow: 0 0 0 3px rgba(0,119,182,0.1);
+}
+
+/* Difficulty pills */
+.difficultyPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diffPill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.diffPill:hover {
+  border-color: #0077b6;
+  color: #0077b6;
+  background: #e0f2fe;
+}
+
+.diffPillActive {
+  border-color: #0077b6 !important;
+  background: linear-gradient(135deg, #0077b6, #00a8a8) !important;
+  color: #ffffff !important;
+}
+
+/* Duration slider text */
+.durationRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.durationInput {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.84rem;
+  color: #0f172a;
+  width: 60px;
+  text-align: center;
+}
+
+.durationInput:focus {
+  outline: none;
+  border-color: #0077b6;
+}
+
+.durationSep {
+  color: #94a3b8;
+  font-size: 0.84rem;
+}
+
+/* ── RESULTS SIDE ───────────────────────────────────────── */
+.resultsList {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Results header bar */
+.resultsHeader {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.resultsInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resultsCity {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.resultsCount {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.resultsCount strong {
+  color: #0077b6;
+}
+
+.sortRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sortLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.sortSelect {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  color: #0f172a;
+  font-weight: 600;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.sortSelect:focus {
+  outline: none;
+  border-color: #0077b6;
+}
+
+/* card list */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── STATUS BOXES ───────────────────────────────────────── */
+.statusBox {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 48px 32px;
+  text-align: center;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.statusBoxIcon {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+}
+
+.statusBoxTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.statusBoxSub {
+  font-size: 0.84rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.statusBoxError {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  color: #9f1239;
+  font-weight: 600;
+}
+
+.statusBoxError p {
+  margin: 0 0 12px;
+}
+
+.retryBtn {
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #be123c, #9f1239);
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .resultsLayout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    position: static;
+  }
+
+  .inlineSearch {
+    padding: 8px;
+  }
+
+  .inlineDivider {
+    display: none;
+  }
+
+  .inlineField {
+    min-width: 100%;
+  }
+}

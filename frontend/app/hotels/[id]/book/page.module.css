@@ -1,0 +1,592 @@
+.pageWrapper {
+  background: #f1f5f9;
+  min-height: 100vh;
+}
+
+.breadcrumb {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 24px;
+}
+
+.breadcrumbInner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 22px 18px 48px;
+}
+
+.backButton {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 10px;
+  color: #475569;
+  font-weight: 700;
+  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.backButton:hover {
+  border-color: #0284c7;
+  color: #0369a1;
+  background: #f0f9ff;
+}
+
+.breadcrumbSep {
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.breadcrumbCurrent {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.progressBar {
+  background: #ffffff;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.progressInner {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.progressStep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.progressStepCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  border: 2px solid #e2e8f0;
+  color: #94a3b8;
+  background: #f8fafc;
+}
+
+.progressStepCircleDone {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.progressStepCircleActive {
+  border-color: #0077b6;
+  color: #0077b6;
+  background: #e0f2fe;
+}
+
+.progressStepLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.progressStepLabelActive {
+  color: #0077b6;
+}
+
+.progressLine {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 4px;
+  max-width: 80px;
+}
+
+.progressLineDone {
+  background: linear-gradient(90deg, #0077b6, #00a8a8);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.block,
+.hotelCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.hotelTop {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.hotelThumb {
+  width: 86px;
+  height: 86px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.hotelName {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.15;
+  color: #111827;
+}
+
+.hotelAddress {
+  margin: 8px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.rating {
+  margin: 0;
+  color: #0369a1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.locationBlock h3 {
+  margin: 16px 0 8px;
+  font-size: 22px;
+  color: #111827;
+}
+
+.locationBlock ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.amenitiesList {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.amenitiesList div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #111827;
+}
+
+.block h2 {
+  margin: 0 0 10px;
+  font-size: 34px;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.block h2 span {
+  font-weight: 600;
+}
+
+.dateGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.dateGrid strong {
+  font-size: 18px;
+}
+
+.dateGrid p {
+  margin: 6px 0 0;
+  color: #334155;
+  font-size: 13px;
+}
+
+.metaList {
+  margin: 12px 0 0;
+  padding-left: 16px;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.roomMeta {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #1f2937;
+}
+
+.tagGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tagGrid span {
+  border: 1px solid #86efac;
+  color: #166534;
+  background: #f0fdf4;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.summaryLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.discount {
+  color: #e11d48;
+}
+
+.total {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.subTitle {
+  font-size: 24px;
+  margin: 16px 0 8px;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.switchRow {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #d1d5db;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.switchRow p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.switchRow input {
+  margin-top: 3px;
+}
+
+.topAction {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.topAction strong {
+  font-size: 16px;
+}
+
+.topAction p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.topAction button {
+  border: 1px solid #0ea5e9;
+  color: #0369a1;
+  background: #f0f9ff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.helperText {
+  margin: 0 0 12px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.inputGrid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.inputGrid2 {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.block label {
+  display: block;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.block input,
+.block select,
+.block textarea {
+  margin-top: 5px;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.checkboxRow {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.checkboxRow input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.textAreaLabel {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr;
+  gap: 10px;
+}
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.methodCard {
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #f8fbff;
+  padding: 10px 12px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.methodCard:hover {
+  border-color: #93c5fd;
+  background: #f0f7ff;
+}
+
+.methodCardActive {
+  border-color: #0ea5e9;
+  background: #e0f2fe;
+  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.3);
+}
+
+.methodCardDisabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: #d1d5db;
+  background: #f3f4f6;
+}
+
+.methodCardDisabled:hover {
+  border-color: #d1d5db;
+  background: #f3f4f6;
+}
+
+.methodIcon {
+  color: #0369a1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.methodBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.methodBody strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.methodBody small {
+  font-size: 12px;
+  color: #475569;
+}
+
+.methodBadge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0c4a6e;
+  background: #dbeafe;
+  padding: 4px 8px;
+}
+
+.noticeBox {
+  margin-bottom: 12px;
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+  color: #0c4a6e;
+}
+
+.paymentBtn {
+  margin-top: 14px;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #0369a1;
+  color: #fff;
+  font-weight: 800;
+  padding: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.paymentBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.status,
+.statusError {
+  max-width: 760px;
+  margin: 40px auto;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.statusError {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+.backBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: #be123c;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 1180px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hotelName,
+  .block h2 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 768px) {
+  .breadcrumb,
+  .progressBar {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .progressStep .progressStepLabel {
+    display: none;
+  }
+
+  .progressLine {
+    max-width: 34px;
+  }
+
+  .amenitiesList,
+  .tagGrid,
+  .cardGrid,
+  .inputGrid3,
+  .inputGrid2 {
+    grid-template-columns: 1fr;
+  }
+
+  .dateGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .topAction {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

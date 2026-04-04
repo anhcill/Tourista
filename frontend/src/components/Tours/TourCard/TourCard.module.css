@@ -1,0 +1,286 @@
+/* ============================================================
+   TourCard — Premium horizontal card inspired by Klook/Booking
+   ============================================================ */
+
+.card {
+  display: flex;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 119, 182, 0.1);
+  box-shadow:
+    0 2px 12px rgba(0, 50, 100, 0.07),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.22s ease,
+    border-color 0.2s ease;
+  min-height: 210px;
+}
+
+.card:hover {
+  box-shadow:
+    0 16px 48px rgba(0, 50, 120, 0.14),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-3px);
+  border-color: rgba(0, 119, 182, 0.24);
+}
+
+/* ── IMAGE SIDE ─────────────────────────────── */
+
+.imagePart {
+  width: 260px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+}
+
+.tourImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .tourImage {
+  transform: scale(1.06);
+}
+
+/* gradient overlay at bottom of image */
+.imagePart::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    transparent 60%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
+  pointer-events: none;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  min-height: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #ede9fe 100%);
+}
+
+/* ── BADGES ON IMAGE ────────────────────────── */
+
+.urgencyBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  z-index: 2;
+}
+
+/* ── CONTENT SIDE ───────────────────────────── */
+
+.content {
+  flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.titleBlock {
+  flex: 1;
+  min-width: 0;
+}
+
+.tourTitle {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.locationRow {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.locationIcon {
+  color: #0077b6;
+  flex-shrink: 0;
+}
+
+/* ── RATING BOX ─────────────────────────────── */
+
+.ratingBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.ratingScore {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  border-radius: 10px 10px 10px 2px;
+  padding: 6px 11px;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.ratingInfo {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+/* ── META BADGES ────────────────────────────── */
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.metaDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #0077b6;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ── BOTTOM ROW ─────────────────────────────── */
+
+.bottomRow {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.priceCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.priceLabel {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.priceAdult {
+  color: #0d47a1;
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.priceSub {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.priceChild {
+  color: #475569;
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ── CTA BUTTON ─────────────────────────────── */
+
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 11px 22px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 119, 182, 0.3);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.2s ease,
+    filter 0.16s ease;
+  flex-shrink: 0;
+}
+
+.ctaBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 119, 182, 0.4);
+  filter: brightness(1.06);
+}
+
+.ctaBtn:active {
+  transform: translateY(0);
+}

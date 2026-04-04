@@ -1,0 +1,1 @@
+GET /api/tours/search?city=Da%20Nang&departureDate=2026-04-02&adults=2&children=1&categoryId=2&minPrice=1500000&maxPrice=4000000&durationMin=2&durationMax=4&difficulty=EASY&minRating=8&sort=RECOMMENDED

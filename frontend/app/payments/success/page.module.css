@@ -1,0 +1,223 @@
+.page {
+  min-height: calc(100vh - 160px);
+  padding: 16px 24px 32px;
+  background:
+    radial-gradient(circle at 15% 20%, #dcfce7 0%, #f8fafc 45%),
+    radial-gradient(circle at 90% 10%, #dbeafe 0%, #f8fafc 42%);
+}
+
+.progressBar {
+  max-width: 980px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.progressInner {
+  display: flex;
+  align-items: center;
+}
+
+.progressStep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.progressStepCircle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  border: 2px solid #e2e8f0;
+  color: #94a3b8;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.progressStepCircleDone {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.progressStepCircleActive {
+  border-color: #0077b6;
+  color: #0077b6;
+  background: #e0f2fe;
+}
+
+.progressStepLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.progressStepLabelActive {
+  color: #0077b6;
+}
+
+.progressLine {
+  flex: 1;
+  height: 2px;
+  max-width: 80px;
+  margin: 0 4px;
+  background: #e2e8f0;
+}
+
+.progressLineDone {
+  background: linear-gradient(90deg, #0077b6, #00a8a8);
+}
+
+.card {
+  width: 100%;
+  max-width: 780px;
+  border: 1px solid #d1fae5;
+  border-radius: 18px;
+  padding: 24px;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1);
+  margin: 16px auto 0;
+}
+
+.head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.successIcon {
+  font-size: 44px;
+  color: #16a34a;
+}
+
+.head h1 {
+  margin: 10px 0 6px;
+  font-size: 32px;
+  color: #065f46;
+}
+
+.head p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.methodBox {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.methodIcon {
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.methodBox strong {
+  color: #0f172a;
+}
+
+.methodBox p {
+  margin: 3px 0 0;
+  color: #334155;
+  font-size: 13px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.detailItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.detailItem span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.detailItem strong {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: #166534;
+  color: #ffffff;
+}
+
+.secondaryBtn {
+  background: #dbeafe;
+  color: #0f172a;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 12px;
+  }
+
+  .progressBar {
+    padding: 12px;
+  }
+
+  .progressStep .progressStepLabel {
+    display: none;
+  }
+
+  .progressLine {
+    max-width: 34px;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    width: 100%;
+  }
+}

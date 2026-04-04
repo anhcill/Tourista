@@ -1,0 +1,249 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.hero p {
+  margin: 8px 0 0;
+  color: #475569;
+}
+
+.dataBadge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.dataBadgeLive {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.dataBadgeMock {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.panelGrid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr;
+  gap: 12px;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.panelHeader p {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+}
+
+.chartWrap {
+  min-height: 250px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.chartItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.chartTrack {
+  width: 34px;
+  height: 150px;
+  border-radius: 999px;
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.chartFill {
+  display: block;
+  width: 100%;
+  background: linear-gradient(180deg, #38bdf8, #0284c7);
+  border-radius: 999px;
+}
+
+.level1 {
+  height: 10%;
+}
+.level2 {
+  height: 20%;
+}
+.level3 {
+  height: 30%;
+}
+.level4 {
+  height: 40%;
+}
+.level5 {
+  height: 50%;
+}
+.level6 {
+  height: 60%;
+}
+.level7 {
+  height: 70%;
+}
+.level8 {
+  height: 80%;
+}
+.level9 {
+  height: 90%;
+}
+.level10 {
+  height: 100%;
+}
+
+.chartItem strong {
+  font-size: 12px;
+  color: #0f172a;
+}
+
+.chartItem small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 8px;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table th {
+  color: #475569;
+  font-weight: 700;
+}
+
+.table td {
+  color: #0f172a;
+}
+
+.alignRight {
+  text-align: right !important;
+}
+
+.statusBadge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 8px;
+}
+
+.statusPending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusConfirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusCompleted {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.statusCancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 1100px) {
+  .statGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panelGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .statGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chartWrap {
+    gap: 8px;
+  }
+
+  .chartTrack {
+    width: 28px;
+  }
+}

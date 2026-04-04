@@ -1,0 +1,74 @@
+{
+  "success": true,
+  "message": "Lay chi tiet tour thanh cong",
+  "data": {
+    "id": 2001,
+    "title": "Ha Noi - Sa Pa 3N2D",
+    "slug": "ha-noi-sa-pa-3n2d",
+    "city": "Lao Cai",
+    "categoryName": "Nghi duong nui",
+    "description": "Hanh trinh kham pha Sa Pa voi canh dep Tay Bac, ban Cat Cat va Fansipan.",
+    "highlights": [
+      "Check-in dinh deo O Quy Ho",
+      "Tham quan ban Cat Cat",
+      "Tron bo xe khach + khach san + HDV"
+    ],
+    "includes": [
+      "Xe dua don",
+      "2 dem khach san",
+      "2 bua sang + 2 bua trua",
+      "Huong dan vien"
+    ],
+    "excludes": [
+      "Do uong ngoai chuong trinh",
+      "Chi phi ca nhan"
+    ],
+    "durationDays": 3,
+    "durationNights": 2,
+    "difficulty": "EASY",
+    "maxGroupSize": 25,
+    "minGroupSize": 2,
+    "avgRating": 8.8,
+    "reviewCount": 241,
+    "coverImage": "https://images.unsplash.com/photo-1528127269322-539801943592?w=1200&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1528127269322-539801943592?w=1200&q=80",
+      "https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=1200&q=80",
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&q=80"
+    ],
+    "pricePerAdult": 2890000,
+    "pricePerChild": 1890000,
+    "itinerary": [
+      {
+        "dayNumber": 1,
+        "title": "Ha Noi - Sa Pa - Cat Cat",
+        "description": "Khoi hanh buoi sang, den Sa Pa buoi trua va tham quan ban Cat Cat."
+      },
+      {
+        "dayNumber": 2,
+        "title": "Fansipan - O Quy Ho",
+        "description": "Chinh phuc Fansipan bang cap treo, ngam canh nui rung Tay Bac."
+      },
+      {
+        "dayNumber": 3,
+        "title": "Mua sam - Ve Ha Noi",
+        "description": "Tu do mua sam dac san, len xe ve Ha Noi chieu toi."
+      }
+    ],
+    "departures": [
+      {
+        "departureId": 91001,
+        "departureDate": "2026-04-05",
+        "availableSlots": 4,
+        "priceOverride": null
+      },
+      {
+        "departureId": 91002,
+        "departureDate": "2026-04-12",
+        "availableSlots": 12,
+        "priceOverride": 2790000
+      }
+    ]
+  },
+  "timestamp": "2026-03-28T14:05:10"
+}

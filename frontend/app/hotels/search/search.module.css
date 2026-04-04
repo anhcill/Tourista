@@ -1,0 +1,192 @@
+.pageWrapper {
+  min-height: 100vh;
+  background: #f7f8fc;
+  position: relative;
+}
+
+.bannerWrapper {
+  background: #1a237e;
+}
+
+.mainContent {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+/* Map */
+.mapBox {
+  width: 100%;
+  height: 240px;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.09);
+}
+
+.mapInner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #c8e6c9 0%, #bbdefb 50%, #b3e5fc 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+
+.mapPin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mapPinIcon {
+  font-size: 2.5rem;
+  color: #e53935;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.22));
+}
+
+.mapPinLabel {
+  background: #fff;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.mapHint {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.45);
+  margin: 0;
+}
+
+/* Results layout */
+.resultsLayout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* Cards list */
+.resultsList {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.statusBox {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #334155;
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.statusBoxError {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.statusBoxError p {
+  margin: 0 0 10px 0;
+}
+
+.retryBtn {
+  border: none;
+  border-radius: 8px;
+  background: #be123c;
+  color: #fff;
+  font-weight: 700;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+
+/* Load more */
+.loadMore {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.loadMoreBtn {
+  background: #fff;
+  border: 2px solid #0d47a1;
+  color: #0d47a1;
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 12px 32px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.loadMoreBtn:hover {
+  background: #0d47a1;
+  color: #fff;
+}
+
+/* VIP Gifts badge */
+.vipGiftsBadge {
+  position: fixed;
+  bottom: 36px;
+  right: 36px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45);
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform 0.2s;
+  width: 70px;
+  height: 70px;
+  justify-content: center;
+}
+
+.vipGiftsBadge:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.giftIcon {
+  font-size: 1.5rem;
+}
+
+.vipGiftsBadge span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  .resultsLayout {
+    flex-direction: column;
+  }
+
+  .mapBox {
+    height: 180px;
+  }
+}

@@ -1,0 +1,244 @@
+/* ═══════════════════════════════════════════════════════════
+   CompareOffers.module.css
+   ─────────────────────────────────────────────────────────── */
+
+.section {
+    padding: 80px 0 80px;
+    background: white;
+    border-top: 1px solid #f1f5f9;
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ── Header ── */
+.header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.sectionLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #f093fb22, #f5576c22);
+    border: 1px solid #f5576c44;
+    color: #e85d75;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.compareIcon {
+    font-size: 16px;
+}
+
+.title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #1a202c;
+    line-height: 1.2;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* ── Grid 4 × 2 ── */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 48px;
+}
+
+@media (max-width: 1100px) {
+    .grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .title { font-size: 26px; }
+}
+@media (max-width: 480px) {
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+
+/* ── Card ── */
+.card {
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: white;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 48px rgba(0,0,0,0.15);
+}
+
+/* ── Image ── */
+.imageWrap {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.imageZoom {
+    transform: scale(1.1);
+}
+
+.imageMask {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.45) 100%);
+}
+
+/* Offer count chip — top left */
+.offerChip {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a202c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Discount badge — top right */
+.discountBadge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* ── Card Footer ── */
+.cardFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #f8fafc;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.cardFooterActive {
+    color: white;
+}
+
+.footerLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.catIcon {
+    font-size: 16px;
+    color: inherit;
+    opacity: 0.9;
+}
+
+.catLabel {
+    font-size: 14px;
+    font-weight: 700;
+    color: inherit;
+}
+
+.cardFooter:not(.cardFooterActive) .catLabel {
+    color: #1a202c;
+}
+
+.cardFooter:not(.cardFooterActive) .catIcon {
+    color: #667eea;
+}
+
+.footerRight {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.starIcon {
+    color: #f59e0b;
+    font-size: 13px;
+}
+
+.cardFooterActive .starIcon {
+    color: #fde68a;
+}
+
+.rating {
+    font-size: 13px;
+    font-weight: 700;
+    color: inherit;
+}
+
+.cardFooter:not(.cardFooterActive) .rating {
+    color: #374151;
+}
+
+/* ── View All ── */
+.viewAllWrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.viewAllBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 40px;
+    border-radius: 100px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(102,126,234,0.35);
+    transition: all 0.25s ease;
+    letter-spacing: 0.2px;
+}
+
+.viewAllBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(102,126,234,0.5);
+}
+
+.arrowIcon {
+    transition: transform 0.25s ease;
+}
+
+.viewAllBtn:hover .arrowIcon {
+    transform: translateX(4px);
+}

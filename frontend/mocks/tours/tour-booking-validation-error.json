@@ -1,0 +1,9 @@
+{
+  "success": false,
+  "message": "Du lieu khong hop le",
+  "errors": {
+    "adults": "So nguoi lon phai lon hon hoac bang 1",
+    "guestEmail": "Email khong dung dinh dang"
+  },
+  "timestamp": "2026-03-28T14:05:10"
+}

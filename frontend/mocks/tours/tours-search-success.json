@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "message": "Lay danh sach tours thanh cong",
+  "data": [
+    {
+      "id": 2001,
+      "title": "Ha Noi - Sa Pa 3N2D",
+      "slug": "ha-noi-sa-pa-3n2d",
+      "city": "Lao Cai",
+      "categoryName": "Nghi duong nui",
+      "durationDays": 3,
+      "durationNights": 2,
+      "difficulty": "EASY",
+      "avgRating": 8.8,
+      "reviewCount": 241,
+      "coverImage": "https://images.unsplash.com/photo-1528127269322-539801943592?w=1200&q=80",
+      "pricePerAdult": 2890000,
+      "pricePerChild": 1890000,
+      "nearestDepartureDate": "2026-04-05",
+      "availableSlots": 4
+    },
+    {
+      "id": 2002,
+      "title": "Da Nang - Hoi An 2N1D",
+      "slug": "da-nang-hoi-an-2n1d",
+      "city": "Da Nang",
+      "categoryName": "Van hoa",
+      "durationDays": 2,
+      "durationNights": 1,
+      "difficulty": "EASY",
+      "avgRating": 9.1,
+      "reviewCount": 412,
+      "coverImage": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80",
+      "pricePerAdult": 1990000,
+      "pricePerChild": 1290000,
+      "nearestDepartureDate": "2026-04-02",
+      "availableSlots": 18
+    }
+  ],
+  "timestamp": "2026-03-28T14:05:10"
+}

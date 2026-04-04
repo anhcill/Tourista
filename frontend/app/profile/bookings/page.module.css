@@ -1,0 +1,299 @@
+.page {
+  min-height: calc(100vh - 140px);
+  padding: 24px;
+  background:
+    radial-gradient(circle at 12% 10%, #e0f2fe 0%, #f8fafc 42%),
+    radial-gradient(circle at 92% 0%, #dcfce7 0%, #f8fafc 40%);
+}
+
+.hero {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  padding: 18px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 34px;
+  color: #0f172a;
+}
+
+.hero p {
+  margin: 8px 0 0;
+  color: #334155;
+}
+
+.statGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.statGrid article {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8fbff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statGrid strong {
+  color: #1d4ed8;
+  font-size: 24px;
+}
+
+.statGrid span {
+  color: #475569;
+  font-size: 13px;
+}
+
+.list {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.flowNotice {
+  max-width: 1180px;
+  margin: 0 auto 12px;
+  border: 1px solid #bbf7d0;
+  background: linear-gradient(90deg, #ecfdf5 0%, #f0fdf4 55%, #f8fafc 100%);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.flowNoticeBadge {
+  border-radius: 999px;
+  background: #166534;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.flowNotice h2 {
+  margin: 0;
+  color: #14532d;
+  font-size: 18px;
+}
+
+.flowNotice p {
+  margin: 6px 0 0;
+  color: #166534;
+  font-size: 13px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 14px;
+  align-items: start;
+}
+
+.cardMain {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.badgeGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typeBadge {
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0c4a6e;
+  border: 1px solid #bae6fd;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
+}
+
+.cardHead h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 24px;
+}
+
+.cardHead p {
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.badge {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+}
+
+.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.completed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.metaGrid div {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 9px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e293b;
+  font-size: 13px;
+}
+
+.createdAt {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.qrBox {
+  border: 1px dashed #93c5fd;
+  border-radius: 12px;
+  background: #eff6ff;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.qrTitle {
+  width: 100%;
+  font-weight: 700;
+  color: #1d4ed8;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.qrImage {
+  width: 170px;
+  height: 170px;
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+  background: #ffffff;
+}
+
+.qrBox small {
+  color: #475569;
+  text-align: center;
+  font-size: 12px;
+}
+
+.emptyBox,
+.statusPage {
+  max-width: 720px;
+  margin: 30px auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+}
+
+.emptyBox h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.emptyBox p {
+  color: #475569;
+}
+
+.emptyBox button,
+.statusPage button {
+  margin-top: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #0f766e;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .qrBox {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 16px;
+  }
+
+  .flowNotice {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+  }
+
+  .statGrid,
+  .metaGrid {
+    grid-template-columns: 1fr;
+  }
+}

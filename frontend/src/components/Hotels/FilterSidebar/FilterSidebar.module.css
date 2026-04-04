@@ -1,0 +1,151 @@
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebarTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.section {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 0;
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.sectionHeader:hover {
+  color: #0d47a1;
+}
+
+.sectionBody {
+  margin-top: 10px;
+}
+
+/* Budget */
+.budgetRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.budgetLabel {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.budgetInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.budgetInput {
+  width: 72px;
+  padding: 5px 8px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #1a1a2e;
+  text-align: center;
+}
+
+.budgetInput:focus {
+  outline: none;
+  border-color: #0d47a1;
+}
+
+.budgetDash {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.rangeSlider {
+  width: 100%;
+  accent-color: #0d47a1;
+  cursor: pointer;
+}
+
+/* Checkbox list */
+.checkList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkLabel:hover .checkText {
+  color: #0d47a1;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #0d47a1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkText {
+  font-size: 0.84rem;
+  color: #444;
+}
+
+.starText {
+  font-size: 0.9rem;
+  color: #f4a826;
+  letter-spacing: 1px;
+}
+
+.showMore {
+  background: none;
+  border: none;
+  color: #0d47a1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0 0 0;
+  text-decoration: underline;
+}
+
+.showMore:hover {
+  color: #1565c0;
+}

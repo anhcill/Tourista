@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "message": "Tao booking tour thanh cong",
+  "data": {
+    "bookingId": 550012,
+    "bookingCode": "TRS-20260328-73642",
+    "status": "PENDING",
+    "totalAmount": 7670000,
+    "currency": "VND",
+    "tourId": 2001,
+    "tourTitle": "Ha Noi - Sa Pa 3N2D",
+    "departureId": 91001,
+    "departureDate": "2026-04-05",
+    "adults": 2,
+    "children": 1,
+    "createdAt": "2026-03-28T14:05:10"
+  },
+  "timestamp": "2026-03-28T14:05:10"
+}
