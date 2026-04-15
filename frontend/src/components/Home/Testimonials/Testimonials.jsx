@@ -43,7 +43,7 @@ export default function Testimonials() {
         <section className={styles.section}>
             {/* Background image */}
             <div className={styles.bgWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80"
                     alt="Beach background"
                     className={styles.bgImage}
@@ -96,7 +96,7 @@ function ReviewCard({ review }) {
             <p className={styles.target}>{review.targetName || '-'}</p>
 
             <div className={styles.authorRow}>
-                <img src={review.authorAvatar} alt={review.authorName} className={styles.avatar} />
+                <img loading="lazy" decoding="async" src={review.authorAvatar} alt={review.authorName} className={styles.avatar} />
                 <div>
                     <div className={styles.authorName}>
                         {review.authorName}

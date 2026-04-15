@@ -419,6 +419,44 @@ CREATE TABLE booking_tour_details (
 ) ENGINE=InnoDB COMMENT='Chi tiết booking tour';
 
 -- ============================================================
+-- 7.1 CHAT (Bot + Partner)
+-- ============================================================
+
+CREATE TABLE conversations (
+    id              BIGINT UNSIGNED     NOT NULL AUTO_INCREMENT,
+    type            VARCHAR(10)         NOT NULL,                -- BOT / P2P_TOUR / P2P_HOTEL
+    client_id       BIGINT UNSIGNED     NOT NULL,
+    partner_id      BIGINT UNSIGNED,
+    reference_id    BIGINT UNSIGNED,
+    booking_id      BIGINT UNSIGNED,
+    created_at      DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_conv_client  (client_id),
+    INDEX idx_conv_partner (partner_id),
+    INDEX idx_conv_updated (updated_at),
+    CONSTRAINT fk_conv_client  FOREIGN KEY (client_id)  REFERENCES users(id),
+    CONSTRAINT fk_conv_partner FOREIGN KEY (partner_id) REFERENCES users(id),
+    CONSTRAINT fk_conv_booking FOREIGN KEY (booking_id) REFERENCES bookings(id)
+) ENGINE=InnoDB COMMENT='Phiên chat giữa khách-bot hoặc khách-đối tác';
+
+CREATE TABLE chat_messages (
+    id              BIGINT UNSIGNED     NOT NULL AUTO_INCREMENT,
+    conversation_id BIGINT UNSIGNED     NOT NULL,
+    sender_id       BIGINT UNSIGNED,
+    content_type    VARCHAR(20)         NOT NULL DEFAULT 'TEXT', -- TEXT / IMAGE / BOOKING_DETAILS / SYSTEM_LOG
+    content         TEXT,
+    metadata        TEXT,
+    is_read         BOOLEAN             NOT NULL DEFAULT FALSE,
+    created_at      DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_msg_conversation (conversation_id),
+    INDEX idx_msg_created      (created_at),
+    CONSTRAINT fk_msg_conversation FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_msg_sender       FOREIGN KEY (sender_id)       REFERENCES users(id)
+) ENGINE=InnoDB COMMENT='Tin nhắn trong phiên chat';
+
+-- ============================================================
 -- 8. PROMOTIONS & DISCOUNT CODES
 -- ============================================================
 
@@ -675,11 +713,13 @@ CREATE TABLE forum_post_likes (
 CREATE TABLE audit_logs (
     id          BIGINT UNSIGNED     NOT NULL AUTO_INCREMENT,
     user_id     BIGINT UNSIGNED,
+    actor_email VARCHAR(255),
     action      VARCHAR(80)         NOT NULL,   -- CREATE_HOTEL, CANCEL_BOOKING, ...
     entity_type VARCHAR(50)         NOT NULL,   -- hotels, bookings, users ...
     entity_id   BIGINT UNSIGNED,
     old_value   JSON,
     new_value   JSON,
+    reason      VARCHAR(500),
     ip_address  VARCHAR(45),
     user_agent  VARCHAR(255),
     created_at  DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,

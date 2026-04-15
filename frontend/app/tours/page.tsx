@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import tourApi from '@/api/tourApi';
 import TourCard from '@/components/Tours/TourCard/TourCard';

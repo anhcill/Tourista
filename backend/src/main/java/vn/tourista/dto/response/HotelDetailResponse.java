@@ -19,6 +19,9 @@ public class HotelDetailResponse {
     private String name;
     private String address;
     private String city;
+    private Long partnerId;
+    private Long ownerId;
+    private String ownerName;
     private Integer starRating;
     private BigDecimal avgRating;
     private Integer reviewCount;

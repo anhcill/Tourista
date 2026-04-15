@@ -96,4 +96,22 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
             @Param("checkIn") LocalDate checkIn,
             @Param("checkOut") LocalDate checkOut,
             @Param("adults") Integer adults);
+
+        @Query(value = """
+            SELECT rt.hotel_id, MIN(rt.base_price_per_night)
+            FROM room_types rt
+            WHERE rt.hotel_id IN :hotelIds
+              AND rt.is_active = TRUE
+            GROUP BY rt.hotel_id
+            """, nativeQuery = true)
+        List<Object[]> findMinBasePricesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
+
+        @Query(value = """
+            SELECT rt.hotel_id, COUNT(rt.id)
+            FROM room_types rt
+            WHERE rt.hotel_id IN :hotelIds
+              AND rt.is_active = TRUE
+            GROUP BY rt.hotel_id
+            """, nativeQuery = true)
+        List<Object[]> countActiveRoomTypesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
 }

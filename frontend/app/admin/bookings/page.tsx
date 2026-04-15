@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   FaCalendarAlt,
   FaCheckCircle,
@@ -9,6 +9,7 @@ import {
   FaSearch,
   FaSyncAlt,
 } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import adminApi from '@/api/adminApi';
 import type {
   AdminBookingManagementRow,
@@ -23,15 +24,25 @@ type BookingStatusFilter = 'ALL' | AdminBookingStatus;
 type BookingTypeFilter = 'ALL' | AdminBookingType;
 type PaymentStatusFilter = 'ALL' | AdminBookingPaymentStatus;
 
-const STATUS_OPTIONS: BookingStatusFilter[] = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
+const STATUS_OPTIONS: BookingStatusFilter[] = [
+  'ALL',
+  'PENDING',
+  'CONFIRMED',
+  'CHECKED_IN',
+  'COMPLETED',
+  'CANCELLED',
+  'REFUNDED',
+];
 const TYPE_OPTIONS: BookingTypeFilter[] = ['ALL', 'HOTEL', 'TOUR'];
 const PAYMENT_OPTIONS: PaymentStatusFilter[] = ['ALL', 'PAID', 'PENDING', 'FAILED', 'REFUNDED'];
 
 const STATUS_LABELS: Record<AdminBookingStatus, string> = {
   PENDING: 'Pending',
   CONFIRMED: 'Confirmed',
+  CHECKED_IN: 'Checked in',
   COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',
+  REFUNDED: 'Refunded',
 };
 
 const PAYMENT_LABELS: Record<AdminBookingPaymentStatus, string> = {
@@ -68,6 +79,7 @@ const bookingDateRange = (booking: AdminBookingManagementRow) => {
 };
 
 export default function AdminBookingsPage() {
+  const hasLoadedOnceRef = useRef(false);
   const [overview, setOverview] = useState<AdminBookingsOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -82,11 +94,14 @@ export default function AdminBookingsPage() {
   const pageSize = 10;
 
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingManagementRow | null>(null);
+  const [nextStatus, setNextStatus] = useState<AdminBookingStatus>('CONFIRMED');
+  const [updateReason, setUpdateReason] = useState('');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const loadBookings = useCallback(async ({ silent = false } = {}) => {
     try {
       setError('');
-      if (silent) setRefreshing(true);
+      if (silent || hasLoadedOnceRef.current) setRefreshing(true);
       else setLoading(true);
 
       const response = (await adminApi.getAdminBookings({
@@ -103,6 +118,7 @@ export default function AdminBookingsPage() {
       const message = err instanceof Error ? err.message : 'Khong the tai danh sach bookings admin.';
       setError(message);
     } finally {
+      hasLoadedOnceRef.current = true;
       setLoading(false);
       setRefreshing(false);
     }
@@ -111,6 +127,12 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     void loadBookings();
   }, [loadBookings]);
+
+  useEffect(() => {
+    if (!selectedBooking) return;
+    setNextStatus(selectedBooking.status);
+    setUpdateReason('');
+  }, [selectedBooking]);
 
   const totalPages = useMemo(() => {
     const total = Number(overview?.meta?.total || 0);
@@ -135,6 +157,56 @@ export default function AdminBookingsPage() {
     setTypeFilter('ALL');
     setPaymentFilter('ALL');
     setPage(1);
+  };
+
+  const submitStatusUpdate = async () => {
+    if (!selectedBooking || updatingStatus) return;
+
+    const trimmedReason = updateReason.trim();
+    if (!trimmedReason) {
+      toast.error('Vui long nhap ly do cap nhat trang thai booking.');
+      return;
+    }
+
+    try {
+      setUpdatingStatus(true);
+
+      await adminApi.updateBookingStatus(selectedBooking.id, nextStatus, trimmedReason);
+
+      setOverview((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bookings: prev.bookings.map((item) =>
+            item.id === selectedBooking.id
+              ? {
+                  ...item,
+                  status: nextStatus,
+                  note: trimmedReason,
+                }
+              : item,
+          ),
+        };
+      });
+
+      setSelectedBooking((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: nextStatus,
+              note: trimmedReason,
+            }
+          : prev,
+      );
+
+      toast.success('Da cap nhat trang thai booking.');
+      void loadBookings({ silent: true });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Cap nhat trang thai booking that bai.';
+      toast.error(message);
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   if (loading) {
@@ -308,8 +380,12 @@ export default function AdminBookingsPage() {
                         className={`${styles.badge} ${
                           booking.status === 'CONFIRMED'
                             ? styles.badgeConfirmed
+                            : booking.status === 'CHECKED_IN'
+                              ? styles.badgeConfirmed
                             : booking.status === 'COMPLETED'
                               ? styles.badgeCompleted
+                              : booking.status === 'REFUNDED'
+                                ? styles.badgeRefunded
                               : booking.status === 'CANCELLED'
                                 ? styles.badgeCancelled
                                 : styles.badgePending
@@ -347,7 +423,7 @@ export default function AdminBookingsPage() {
                         onClick={() => setSelectedBooking(booking)}
                       >
                         <FaCheckCircle />
-                        View detail
+                        Review
                       </button>
                     </td>
                   </tr>
@@ -443,6 +519,47 @@ export default function AdminBookingsPage() {
             </dl>
 
             <div className={styles.modalActions}>
+              <div className={styles.statusUpdateBox}>
+                <label className={styles.modalFieldLabel} htmlFor="booking-next-status">
+                  Update status
+                </label>
+                <select
+                  id="booking-next-status"
+                  className={styles.modalSelect}
+                  value={nextStatus}
+                  onChange={(event) => setNextStatus(event.target.value as AdminBookingStatus)}
+                  disabled={updatingStatus}
+                >
+                  {STATUS_OPTIONS.filter((status) => status !== 'ALL').map((status) => (
+                    <option key={status} value={status}>
+                      {STATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </select>
+
+                <label className={styles.modalFieldLabel} htmlFor="booking-status-reason">
+                  Reason (required)
+                </label>
+                <textarea
+                  id="booking-status-reason"
+                  className={styles.modalTextarea}
+                  rows={3}
+                  value={updateReason}
+                  onChange={(event) => setUpdateReason(event.target.value)}
+                  placeholder="Vi du: Da lien he khach va xac nhan thanh toan"
+                  disabled={updatingStatus}
+                />
+              </div>
+
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={submitStatusUpdate}
+                disabled={updatingStatus}
+              >
+                {updatingStatus ? 'Updating...' : 'Update status'}
+              </button>
+
               <button type="button" className={styles.ghostButton} onClick={() => setSelectedBooking(null)}>
                 Close
               </button>

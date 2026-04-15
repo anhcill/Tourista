@@ -23,198 +23,234 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @Service
 @Transactional
 public class HotelServiceImpl implements HotelService {
 
-    @Autowired
-    private HotelRepository hotelRepository;
+        @Autowired
+        private HotelRepository hotelRepository;
 
-    @Autowired
-    private RoomTypeRepository roomTypeRepository;
+        @Autowired
+        private RoomTypeRepository roomTypeRepository;
 
-    @Autowired
-    private ReviewRepository reviewRepository;
+        @Autowired
+        private ReviewRepository reviewRepository;
 
-    @Override
-    public List<HotelSummaryResponse> getHotels(Integer limit) {
-        int safeLimit = (limit == null || limit < 1) ? 200 : Math.min(limit, 500);
-        List<Long> hotelIds = hotelRepository.findActiveHotelIds(PageRequest.of(0, safeLimit));
-        return mapHotelSummariesWithoutAvailability(hotelIds);
-    }
-
-    @Override
-    public List<HotelSummaryResponse> searchHotels(HotelSearchRequest request) {
-        validateSearchRequest(request);
-
-        List<Long> hotelIds = hotelRepository.searchAvailableHotelIds(
-                request.getCity(),
-                request.getCheckIn(),
-                request.getCheckOut(),
-                request.getAdults(),
-                request.getRooms());
-
-        if (hotelIds.isEmpty()) {
-            return Collections.emptyList();
+        @Override
+        public List<HotelSummaryResponse> getHotels(Integer limit) {
+                int safeLimit = (limit == null || limit < 1) ? 200 : Math.min(limit, 500);
+                List<Long> hotelIds = hotelRepository.findActiveHotelIds(PageRequest.of(0, safeLimit));
+                return mapHotelSummariesWithoutAvailability(hotelIds);
         }
 
-        Map<Long, Hotel> hotelsById = hotelRepository.findAllById(hotelIds)
-                .stream()
-                .collect(Collectors.toMap(Hotel::getId, Function.identity()));
+        @Override
+        public List<HotelSummaryResponse> searchHotels(HotelSearchRequest request) {
+                validateSearchRequest(request);
 
-        return hotelIds.stream()
-                .map(hotelsById::get)
-                .filter(Objects::nonNull)
-                .map(hotel -> mapHotelSummaryWithAvailability(hotel, request))
-                .toList();
-    }
+                List<Long> hotelIds = hotelRepository.searchAvailableHotelIds(
+                                request.getCity(),
+                                request.getCheckIn(),
+                                request.getCheckOut(),
+                                request.getAdults(),
+                                request.getRooms());
 
-    @Override
-    public List<HotelSummaryResponse> getFeaturedHotels(Integer limit) {
-        int safeLimit = sanitizeLimit(limit);
-        List<Long> hotelIds = hotelRepository.findFeaturedHotelIds(PageRequest.of(0, safeLimit));
-        return mapHotelSummariesWithoutAvailability(hotelIds);
-    }
+                if (hotelIds.isEmpty()) {
+                        return Collections.emptyList();
+                }
 
-    @Override
-    public List<HotelSummaryResponse> getTrendingHotels(Integer limit) {
-        int safeLimit = sanitizeLimit(limit);
-        List<Long> hotelIds = hotelRepository.findTrendingHotelIds(PageRequest.of(0, safeLimit));
-        return mapHotelSummariesWithoutAvailability(hotelIds);
-    }
+                Map<Long, Hotel> hotelsById = hotelRepository.findAllById(hotelIds)
+                                .stream()
+                                .collect(Collectors.toMap(Hotel::getId, Function.identity()));
 
-    @Override
-    public HotelDetailResponse getHotelDetail(Long hotelId) {
-        Hotel hotel = hotelRepository.findByIdAndIsActiveTrue(hotelId)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy khách sạn"));
+                Map<Long, String> coverImageMap = hotelRepository.findCoverImagesByHotelIds(hotelIds).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (String) r[1],
+                                                (a, b) -> a));
+                Map<Long, BigDecimal> minPriceMap = roomTypeRepository.findMinBasePricesByHotelIds(hotelIds).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (BigDecimal) r[1],
+                                                (a, b) -> a));
+                Map<Long, Integer> roomCountMap = roomTypeRepository.countActiveRoomTypesByHotelIds(hotelIds).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(),
+                                                r -> ((Number) r[1]).intValue(), (a, b) -> a));
 
-        List<RoomType> roomTypes = roomTypeRepository.findByHotel_IdAndIsActiveTrueOrderByBasePricePerNightAsc(hotelId);
+                return hotelIds.stream()
+                                .map(hotelsById::get)
+                                .filter(Objects::nonNull)
+                                .map(hotel -> {
+                                        HotelSummaryResponse base = mapHotelSummaryWithPreFetchedData(hotel,
+                                                        coverImageMap, minPriceMap, roomCountMap);
+                                        Integer availableRoomTypes = roomTypeRepository
+                                                        .countAvailableRoomTypesByHotelId(
+                                                                        hotel.getId(),
+                                                                        request.getCheckIn(),
+                                                                        request.getCheckOut(),
+                                                                        request.getAdults(),
+                                                                        request.getRooms());
+                                        Integer availableRooms = roomTypeRepository.countAvailableRoomsByHotelId(
+                                                        hotel.getId(),
+                                                        request.getCheckIn(),
+                                                        request.getCheckOut(),
+                                                        request.getAdults());
 
-        return HotelDetailResponse.builder()
-                .id(hotel.getId())
-                .name(hotel.getName())
-                .address(hotel.getAddress())
-                .city(buildCityLabel(hotel.getCity()))
-                .starRating(hotel.getStarRating())
-                .avgRating(hotel.getAvgRating())
-                .reviewCount(hotel.getReviewCount())
-                .coverImage(hotelRepository.findCoverImageByHotelId(hotel.getId()).orElse(null))
-                .description(hotel.getDescription())
-                .checkInTime(hotel.getCheckInTime())
-                .checkOutTime(hotel.getCheckOutTime())
-                .roomTypes(roomTypes.stream()
-                        .map(roomType -> HotelDetailResponse.RoomTypeItem.builder()
-                                .id(roomType.getId())
-                                .name(roomType.getName())
-                                .capacity(roomType.getMaxAdults())
-                                .basePricePerNight(roomType.getBasePricePerNight())
-                                .description(roomType.getDescription())
-                                .totalRooms(roomType.getTotalRooms())
-                                .amenities(Collections.emptyList())
-                                .build())
-                        .toList())
-                .build();
-    }
-
-    @Override
-    public List<HotelReviewResponse> getHotelReviews(Long hotelId, Integer page, Integer limit) {
-        hotelRepository.findByIdAndIsActiveTrue(hotelId)
-                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy khách sạn"));
-
-        int safePage = (page == null || page < 1) ? 1 : page;
-        int safeLimit = (limit == null || limit < 1) ? 6 : Math.min(limit, 20);
-        int offset = (safePage - 1) * safeLimit;
-
-        return reviewRepository.findPublishedHotelReviews(hotelId, safeLimit, offset)
-                .stream()
-                .map(item -> HotelReviewResponse.builder()
-                        .id(item.getId())
-                        .userName(item.getUserName())
-                        .avatarUrl(item.getAvatarUrl())
-                        .overallRating(item.getOverallRating())
-                        .comment(item.getComment())
-                        .verified(Boolean.TRUE.equals(item.getVerified()))
-                        .createdAt(item.getCreatedAt())
-                        .helpfulCount(0)
-                        .build())
-                .toList();
-    }
-
-    private void validateSearchRequest(HotelSearchRequest request) {
-        if (request.getCheckIn() == null || request.getCheckOut() == null) {
-            throw new IllegalArgumentException("Ngày nhận phòng và trả phòng là bắt buộc");
-        }
-        if (!request.getCheckOut().isAfter(request.getCheckIn())) {
-            throw new IllegalArgumentException("Ngày trả phòng phải sau ngày nhận phòng");
-        }
-    }
-
-    private String buildCityLabel(City city) {
-        if (city == null) {
-            return null;
-        }
-        if (city.getNameVi() != null && !city.getNameVi().isBlank()) {
-            return city.getNameVi();
-        }
-        return city.getNameEn();
-    }
-
-    private int sanitizeLimit(Integer limit) {
-        if (limit == null || limit < 1) {
-            return 6;
-        }
-        return Math.min(limit, 20);
-    }
-
-    private List<HotelSummaryResponse> mapHotelSummariesWithoutAvailability(List<Long> hotelIds) {
-        if (hotelIds == null || hotelIds.isEmpty()) {
-            return Collections.emptyList();
+                                        base.setAvailableRoomTypes(availableRoomTypes);
+                                        base.setAvailableRooms(availableRooms);
+                                        return base;
+                                })
+                                .toList();
         }
 
-        Map<Long, Hotel> hotelsById = hotelRepository.findAllById(hotelIds)
-                .stream()
-                .collect(Collectors.toMap(Hotel::getId, Function.identity()));
+        @Override
+        public List<HotelSummaryResponse> getFeaturedHotels(Integer limit) {
+                int safeLimit = sanitizeLimit(limit);
+                List<Long> hotelIds = hotelRepository.findFeaturedHotelIds(PageRequest.of(0, safeLimit));
+                return mapHotelSummariesWithoutAvailability(hotelIds);
+        }
 
-        return hotelIds.stream()
-                .map(hotelsById::get)
-                .filter(Objects::nonNull)
-                .map(this::mapHotelSummary)
-                .toList();
-    }
+        @Override
+        public List<HotelSummaryResponse> getTrendingHotels(Integer limit) {
+                int safeLimit = sanitizeLimit(limit);
+                List<Long> hotelIds = hotelRepository.findTrendingHotelIds(PageRequest.of(0, safeLimit));
+                return mapHotelSummariesWithoutAvailability(hotelIds);
+        }
 
-    private HotelSummaryResponse mapHotelSummaryWithAvailability(Hotel hotel, HotelSearchRequest request) {
-        HotelSummaryResponse base = mapHotelSummary(hotel);
-        Integer availableRoomTypes = roomTypeRepository.countAvailableRoomTypesByHotelId(
-                hotel.getId(),
-                request.getCheckIn(),
-                request.getCheckOut(),
-                request.getAdults(),
-                request.getRooms());
-        Integer availableRooms = roomTypeRepository.countAvailableRoomsByHotelId(
-                hotel.getId(),
-                request.getCheckIn(),
-                request.getCheckOut(),
-                request.getAdults());
+        @Override
+        public HotelDetailResponse getHotelDetail(Long hotelId) {
+                Hotel hotel = hotelRepository.findByIdAndIsActiveTrue(hotelId)
+                                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy khách sạn"));
 
-        base.setAvailableRoomTypes(availableRoomTypes);
-        base.setAvailableRooms(availableRooms);
-        return base;
-    }
+                List<RoomType> roomTypes = roomTypeRepository
+                                .findByHotel_IdAndIsActiveTrueOrderByBasePricePerNightAsc(hotelId);
 
-    private HotelSummaryResponse mapHotelSummary(Hotel hotel) {
-        return HotelSummaryResponse.builder()
-                .id(hotel.getId())
-                .name(hotel.getName())
-                .address(hotel.getAddress())
-                .city(buildCityLabel(hotel.getCity()))
-                .starRating(hotel.getStarRating())
-                .avgRating(hotel.getAvgRating())
-                .reviewCount(hotel.getReviewCount())
-                .coverImage(hotelRepository.findCoverImageByHotelId(hotel.getId()).orElse(null))
-                .minPricePerNight(roomTypeRepository.findMinBasePriceByHotelId(hotel.getId()))
-                .availableRoomTypes(roomTypeRepository.countActiveRoomTypesByHotelId(hotel.getId()))
-                .availableRooms(null)
-                .build();
-    }
+                return HotelDetailResponse.builder()
+                                .id(hotel.getId())
+                                .name(hotel.getName())
+                                .address(hotel.getAddress())
+                                .city(buildCityLabel(hotel.getCity()))
+                                .partnerId(hotel.getOwner() != null ? hotel.getOwner().getId() : null)
+                                .ownerId(hotel.getOwner() != null ? hotel.getOwner().getId() : null)
+                                .ownerName(hotel.getOwner() != null ? hotel.getOwner().getFullName() : null)
+                                .starRating(hotel.getStarRating())
+                                .avgRating(hotel.getAvgRating())
+                                .reviewCount(hotel.getReviewCount())
+                                .coverImage(hotelRepository.findCoverImageByHotelId(hotel.getId()).orElse(null))
+                                .description(hotel.getDescription())
+                                .checkInTime(hotel.getCheckInTime())
+                                .checkOutTime(hotel.getCheckOutTime())
+                                .roomTypes(roomTypes.stream()
+                                                .map(roomType -> HotelDetailResponse.RoomTypeItem.builder()
+                                                                .id(roomType.getId())
+                                                                .name(roomType.getName())
+                                                                .capacity(roomType.getMaxAdults())
+                                                                .basePricePerNight(roomType.getBasePricePerNight())
+                                                                .description(roomType.getDescription())
+                                                                .totalRooms(roomType.getTotalRooms())
+                                                                .amenities(Collections.emptyList())
+                                                                .build())
+                                                .toList())
+                                .build();
+        }
+
+        @Override
+        public List<HotelReviewResponse> getHotelReviews(Long hotelId, Integer page, Integer limit) {
+                hotelRepository.findByIdAndIsActiveTrue(hotelId)
+                                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy khách sạn"));
+
+                int safePage = (page == null || page < 1) ? 1 : page;
+                int safeLimit = (limit == null || limit < 1) ? 6 : Math.min(limit, 20);
+                int offset = (safePage - 1) * safeLimit;
+
+                return reviewRepository.findPublishedHotelReviews(hotelId, safeLimit, offset)
+                                .stream()
+                                .map(item -> HotelReviewResponse.builder()
+                                                .id(item.getId())
+                                                .userName(item.getUserName())
+                                                .avatarUrl(item.getAvatarUrl())
+                                                .overallRating(item.getOverallRating())
+                                                .comment(item.getComment())
+                                                .verified(Boolean.TRUE.equals(item.getVerified()))
+                                                .createdAt(item.getCreatedAt())
+                                                .helpfulCount(0)
+                                                .build())
+                                .toList();
+        }
+
+        private void validateSearchRequest(HotelSearchRequest request) {
+                if (request.getCheckIn() == null || request.getCheckOut() == null) {
+                        throw new IllegalArgumentException("Ngày nhận phòng và trả phòng là bắt buộc");
+                }
+                if (!request.getCheckOut().isAfter(request.getCheckIn())) {
+                        throw new IllegalArgumentException("Ngày trả phòng phải sau ngày nhận phòng");
+                }
+        }
+
+        private String buildCityLabel(City city) {
+                if (city == null) {
+                        return null;
+                }
+                if (city.getNameVi() != null && !city.getNameVi().isBlank()) {
+                        return city.getNameVi();
+                }
+                return city.getNameEn();
+        }
+
+        private int sanitizeLimit(Integer limit) {
+                if (limit == null || limit < 1) {
+                        return 6;
+                }
+                return Math.min(limit, 20);
+        }
+
+        private List<HotelSummaryResponse> mapHotelSummariesWithoutAvailability(List<Long> hotelIds) {
+                if (hotelIds == null || hotelIds.isEmpty()) {
+                        return Collections.emptyList();
+                }
+
+                Map<Long, Hotel> hotelsById = hotelRepository.findAllById(hotelIds)
+                                .stream()
+                                .collect(Collectors.toMap(Hotel::getId, Function.identity()));
+
+                Map<Long, String> coverImageMap = hotelRepository.findCoverImagesByHotelIds(hotelIds).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (String) r[1],
+                                                (a, b) -> a));
+                Map<Long, BigDecimal> minPriceMap = roomTypeRepository.findMinBasePricesByHotelIds(hotelIds).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (BigDecimal) r[1],
+                                                (a, b) -> a));
+                Map<Long, Integer> roomCountMap = roomTypeRepository.countActiveRoomTypesByHotelIds(hotelIds).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(),
+                                                r -> ((Number) r[1]).intValue(), (a, b) -> a));
+
+                return hotelIds.stream()
+                                .map(hotelsById::get)
+                                .filter(Objects::nonNull)
+                                .map(hotel -> mapHotelSummaryWithPreFetchedData(hotel, coverImageMap, minPriceMap,
+                                                roomCountMap))
+                                .toList();
+        }
+
+        private HotelSummaryResponse mapHotelSummaryWithPreFetchedData(
+                        Hotel hotel,
+                        Map<Long, String> coverImageMap,
+                        Map<Long, BigDecimal> minPriceMap,
+                        Map<Long, Integer> roomCountMap) {
+                return HotelSummaryResponse.builder()
+                                .id(hotel.getId())
+                                .name(hotel.getName())
+                                .address(hotel.getAddress())
+                                .city(buildCityLabel(hotel.getCity()))
+                                .starRating(hotel.getStarRating())
+                                .avgRating(hotel.getAvgRating())
+                                .reviewCount(hotel.getReviewCount())
+                                .coverImage(coverImageMap.get(hotel.getId()))
+                                .minPricePerNight(minPriceMap.get(hotel.getId()))
+                                .availableRoomTypes(roomCountMap.getOrDefault(hotel.getId(), 0))
+                                .availableRooms(null)
+                                .build();
+        }
 }

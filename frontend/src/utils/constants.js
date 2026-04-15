@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     REGISTER: "/auth/register",
     LOGOUT: "/auth/logout",
     REFRESH: "/auth/refresh",
+    OAUTH2_EXCHANGE: "/auth/oauth2/exchange",
     FORGOT_PASSWORD: "/auth/forgot-password",
     RESET_PASSWORD: "/auth/reset-password",
     VERIFY_EMAIL: "/auth/verify-email",
@@ -30,6 +31,8 @@ export const API_ENDPOINTS = {
     DETAIL: "/tours/:id",
     SEARCH: "/tours/search",
     FEATURED: "/tours/featured",
+    REVIEWS: "/tours/:id/reviews",
+    SIMILAR: "/tours/:id/similar",
   },
 
   // Home
@@ -66,11 +69,11 @@ export const API_ENDPOINTS = {
 
   // User
   USER: {
-    PROFILE: "/user/profile",
-    UPDATE: "/user/profile",
-    BOOKINGS: "/user/bookings",
-    REVIEWS: "/user/reviews",
-    FAVORITES: "/user/favorites",
+    PROFILE: "/users/me",
+    UPDATE: "/users/me",
+    BOOKINGS: "/bookings/my",
+    REVIEWS: "/reviews/my",
+    FAVORITES: "/favorites",
   },
 };
 
@@ -201,9 +204,9 @@ export const PLACEHOLDERS = {
 
 // Social Links
 export const SOCIAL_LINKS = {
-  FACEBOOK: "https://www.facebook.com/le.uc.anh.607536/",
+  FACEBOOK: "https://www.facebook.com/le.uc.anh.607536",
   TWITTER: "https://twitter.com/tourista",
-  INSTAGRAM: "https://www.instagram.com/nuna_2807/",
+  INSTAGRAM: "https://www.instagram.com/sweetpi_2807/",
   YOUTUBE: "https://www.youtube.com/@ucanhle513",
   TIKTOK: "https://www.tiktok.com/@tourista",
   LINKEDIN: "https://www.linkedin.com/company/tourista",
@@ -213,5 +216,6 @@ export const SOCIAL_LINKS = {
 export const CONTACT_INFO = {
   EMAIL: "ducanhle28072003@gmail.com",
   PHONE: "0815913408",
+  ZALO: "https://zalo.me/0815913408",
   ADDRESS: "207 Đồng Tâm, Giải Phóng, Hà Nội",
 };

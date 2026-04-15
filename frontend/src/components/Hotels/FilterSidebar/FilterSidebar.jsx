@@ -51,17 +51,24 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
   );
 }
 
-export default function FilterSidebar() {
-  const [budget, setBudget] = useState([0, 500]);
-  const [checkedFilters, setCheckedFilters] = useState({ freeCancellation: true });
-  const [checkedRooms, setCheckedRooms] = useState({});
-  const [guestRating, setGuestRating] = useState('any');
-  const [checkedBeds, setCheckedBeds] = useState({});
-  const [checkedStars, setCheckedStars] = useState({});
+const DEFAULT_FILTERS = {
+  budget: [0, 20000000],
+  popular: [],
+  facilities: [],
+  guestRating: 'any',
+  stars: [],
+  sustainability: [],
+};
+
+export default function FilterSidebar({ filters = DEFAULT_FILTERS, setFilters = () => {} }) {
   const [showAllFilters, setShowAllFilters] = useState(false);
 
-  const toggleCheck = (state, setter, id) => {
-    setter({ ...state, [id]: !state[id] });
+  // Helper toggle function for arrays
+  const toggleArrayItem = (array, id) => {
+    if (array.includes(id)) {
+      return array.filter((item) => item !== id);
+    }
+    return [...array, id];
   };
 
   const visibleFilters = showAllFilters ? POPULAR_FILTERS : POPULAR_FILTERS.slice(0, 5);
@@ -80,29 +87,34 @@ export default function FilterSidebar() {
           <input
             type="number"
             className={styles.budgetInput}
-            value={budget[0]}
+            value={filters.budget[0]}
             min={0}
-            max={budget[1]}
-            onChange={(e) => setBudget([Number(e.target.value), budget[1]])}
+            max={filters.budget[1]}
+            onChange={(e) => setFilters({ ...filters, budget: [Number(e.target.value), filters.budget[1]] })}
           />
           <span className={styles.budgetDash}>—</span>
           <input
             type="number"
             className={styles.budgetInput}
-            value={budget[1]}
-            min={budget[0]}
-            max={2000}
-            onChange={(e) => setBudget([budget[0], Number(e.target.value)])}
+            value={filters.budget[1]}
+            min={filters.budget[0]}
+            max={20000000}
+            onChange={(e) => setFilters({ ...filters, budget: [filters.budget[0], Number(e.target.value)] })}
           />
         </div>
         <input
           type="range"
           className={styles.rangeSlider}
           min={0}
-          max={2000}
-          value={budget[1]}
-          onChange={(e) => setBudget([budget[0], Number(e.target.value)])}
+          max={20000000}
+          step={100000}
+          value={filters.budget[1]}
+          onChange={(e) => setFilters({ ...filters, budget: [filters.budget[0], Number(e.target.value)] })}
         />
+        <div className={styles.budgetHints}>
+           <span className={styles.hintValue}>0đ</span>
+           <span className={styles.hintValue}>20,000,000đ+</span>
+        </div>
       </CollapsibleSection>
 
       {/* Popular Filters */}
@@ -114,8 +126,8 @@ export default function FilterSidebar() {
                 <input
                   type="checkbox"
                   className={styles.checkbox}
-                  checked={!!checkedFilters[f.id]}
-                  onChange={() => toggleCheck(checkedFilters, setCheckedFilters, f.id)}
+                  checked={filters.popular.includes(f.id)}
+                  onChange={() => setFilters({ ...filters, popular: toggleArrayItem(filters.popular, f.id) })}
                 />
                 <span className={styles.checkText}>{f.label}</span>
               </label>
@@ -138,8 +150,8 @@ export default function FilterSidebar() {
                 <input
                   type="checkbox"
                   className={styles.checkbox}
-                  checked={!!checkedRooms[f.id]}
-                  onChange={() => toggleCheck(checkedRooms, setCheckedRooms, f.id)}
+                  checked={filters.facilities.includes(f.id)}
+                  onChange={() => setFilters({ ...filters, facilities: toggleArrayItem(filters.facilities, f.id) })}
                 />
                 <span className={styles.checkText}>{f.label}</span>
               </label>
@@ -158,29 +170,10 @@ export default function FilterSidebar() {
                   type="radio"
                   className={styles.checkbox}
                   name="guestRating"
-                  checked={guestRating === r.id}
-                  onChange={() => setGuestRating(r.id)}
+                  checked={filters.guestRating === r.id}
+                  onChange={() => setFilters({ ...filters, guestRating: r.id })}
                 />
                 <span className={styles.checkText}>{r.label}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
-      </CollapsibleSection>
-
-      {/* Bed Type */}
-      <CollapsibleSection title="Loại giường" defaultOpen={false}>
-        <ul className={styles.checkList}>
-          {BED_TYPES.map((b) => (
-            <li key={b.id}>
-              <label className={styles.checkLabel}>
-                <input
-                  type="checkbox"
-                  className={styles.checkbox}
-                  checked={!!checkedBeds[b.id]}
-                  onChange={() => toggleCheck(checkedBeds, setCheckedBeds, b.id)}
-                />
-                <span className={styles.checkText}>{b.label}</span>
               </label>
             </li>
           ))}
@@ -196,8 +189,8 @@ export default function FilterSidebar() {
                 <input
                   type="checkbox"
                   className={styles.checkbox}
-                  checked={!!checkedStars[s]}
-                  onChange={() => toggleCheck(checkedStars, setCheckedStars, s)}
+                  checked={filters.stars.includes(s)}
+                  onChange={() => setFilters({ ...filters, stars: toggleArrayItem(filters.stars, s) })}
                 />
                 <span className={styles.starText}>
                   {'★'.repeat(s)}{'☆'.repeat(5 - s)}
@@ -214,7 +207,12 @@ export default function FilterSidebar() {
           {[1, 2, 3, 4, 5].map((level) => (
             <li key={level}>
               <label className={styles.checkLabel}>
-                <input type="checkbox" className={styles.checkbox} />
+                <input 
+                  type="checkbox" 
+                  className={styles.checkbox} 
+                  checked={filters.sustainability.includes(level)}
+                  onChange={() => setFilters({ ...filters, sustainability: toggleArrayItem(filters.sustainability, level) })}
+                />
                 <span className={styles.checkText}>Cấp độ {level}</span>
               </label>
             </li>

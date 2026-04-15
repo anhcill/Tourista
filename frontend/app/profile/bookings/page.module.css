@@ -200,6 +200,35 @@
   font-size: 12px;
 }
 
+.actionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chatOwnerBtn {
+  border: 1.5px solid #93c5fd;
+  border-radius: 10px;
+  background: #eef7ff;
+  color: #0d5b96;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 0.18s,
+    background 0.18s,
+    transform 0.15s;
+}
+
+.chatOwnerBtn:hover {
+  border-color: #3b82f6;
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
 .qrBox {
   border: 1px dashed #93c5fd;
   border-radius: 12px;
@@ -286,6 +315,15 @@
   .flowNotice {
     grid-template-columns: 1fr;
     align-items: flex-start;
+  }
+
+  .actionRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chatOwnerBtn {
+    width: 100%;
   }
 
   .hero h1 {

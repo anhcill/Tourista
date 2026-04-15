@@ -8,12 +8,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import vn.tourista.dto.request.TourSearchRequest;
 import vn.tourista.dto.response.TourDetailResponse;
+import vn.tourista.dto.response.TourReviewResponse;
 import vn.tourista.dto.response.TourSummaryResponse;
 import vn.tourista.entity.City;
 import vn.tourista.entity.Tour;
 import vn.tourista.entity.TourDeparture;
 import vn.tourista.entity.TourImage;
 import vn.tourista.entity.TourItinerary;
+import vn.tourista.repository.ReviewRepository;
 import vn.tourista.repository.TourDepartureRepository;
 import vn.tourista.repository.TourImageRepository;
 import vn.tourista.repository.TourItineraryRepository;
@@ -31,8 +33,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.LinkedHashSet;
 
 @Service
 @Transactional
@@ -49,6 +53,9 @@ public class TourServiceImpl implements TourService {
 
     @Autowired
     private TourDepartureRepository tourDepartureRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -104,6 +111,9 @@ public class TourServiceImpl implements TourService {
                 .title(tour.getTitle())
                 .slug(tour.getSlug())
                 .city(buildCityLabel(tour.getCity()))
+                .partnerId(tour.getOperator() != null ? tour.getOperator().getId() : null)
+                .operatorId(tour.getOperator() != null ? tour.getOperator().getId() : null)
+                .operatorName(tour.getOperator() != null ? tour.getOperator().getFullName() : null)
                 .categoryName(buildCategoryLabel(tour))
                 .description(tour.getDescription())
                 .highlights(parseListText(tour.getHighlights()))
@@ -136,6 +146,80 @@ public class TourServiceImpl implements TourService {
                                 .build())
                         .toList())
                 .build();
+    }
+
+    @Override
+    public List<TourReviewResponse> getTourReviews(Long tourId, Integer page, Integer limit) {
+        tourRepository.findByIdAndIsActiveTrue(tourId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay tour"));
+
+        int safePage = (page == null || page < 1) ? 1 : page;
+        int safeLimit = (limit == null || limit < 1) ? 6 : Math.min(limit, 20);
+        int offset = (safePage - 1) * safeLimit;
+
+        return reviewRepository.findPublishedTourReviews(tourId, safeLimit, offset)
+                .stream()
+                .map(item -> TourReviewResponse.builder()
+                        .id(item.getId())
+                        .userName(item.getUserName())
+                        .avatarUrl(item.getAvatarUrl())
+                        .overallRating(item.getOverallRating())
+                        .comment(item.getComment())
+                        .verified(Boolean.TRUE.equals(item.getVerified()))
+                        .createdAt(item.getCreatedAt())
+                        .helpfulCount(0)
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public List<TourSummaryResponse> getSimilarTours(Long tourId, Integer limit) {
+        Tour sourceTour = tourRepository.findByIdAndIsActiveTrue(tourId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay tour"));
+
+        int safeLimit = (limit == null || limit < 1) ? 4 : Math.min(limit, 12);
+        if (safeLimit == 0) {
+            return Collections.emptyList();
+        }
+
+        Integer cityId = sourceTour.getCity() != null ? sourceTour.getCity().getId() : null;
+        Long categoryId = sourceTour.getCategory() != null ? sourceTour.getCategory().getId() : null;
+
+        Set<Long> similarIds = new LinkedHashSet<>();
+        int fetchSize = Math.max(12, safeLimit * 3);
+
+        appendSimilarCandidates(similarIds, tourId, cityId, categoryId, fetchSize);
+        if (similarIds.size() < safeLimit) {
+            appendSimilarCandidates(similarIds, tourId, cityId, null, fetchSize);
+        }
+        if (similarIds.size() < safeLimit) {
+            appendSimilarCandidates(similarIds, tourId, null, categoryId, fetchSize);
+        }
+        if (similarIds.size() < safeLimit) {
+            appendSimilarCandidates(similarIds, tourId, null, null, fetchSize);
+        }
+
+        List<Long> topIds = similarIds.stream().limit(safeLimit).toList();
+        return mapSummaries(topIds, LocalDate.now(), "RECOMMENDED");
+    }
+
+    private void appendSimilarCandidates(
+            Set<Long> target,
+            Long excludeTourId,
+            Integer cityId,
+            Long categoryId,
+            int fetchSize) {
+        if (fetchSize < 1) {
+            return;
+        }
+
+        List<Long> candidateIds = tourRepository.findSimilarTourIds(
+                excludeTourId,
+                cityId,
+                categoryId,
+                PageRequest.of(0, fetchSize));
+
+        target.addAll(candidateIds);
     }
 
     private List<TourSummaryResponse> mapSummaries(List<Long> tourIds, LocalDate departureFrom, String sort) {

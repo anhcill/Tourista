@@ -1,6 +1,7 @@
 package vn.tourista.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface HotelRepository extends JpaRepository<Hotel, Long> {
+public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecificationExecutor<Hotel> {
 
   Optional<Hotel> findByIdAndIsActiveTrue(Long id);
 
@@ -83,4 +84,12 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
       LIMIT 1
       """, nativeQuery = true)
   Optional<String> findCoverImageByHotelId(@Param("hotelId") Long hotelId);
+
+  @Query(value = """
+      SELECT hi.hotel_id, hi.url
+      FROM hotel_images hi
+      WHERE hi.hotel_id IN :hotelIds
+        AND hi.is_cover = TRUE
+      """, nativeQuery = true)
+  List<Object[]> findCoverImagesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
 }

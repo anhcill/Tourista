@@ -21,4 +21,5 @@
 3. Chạy lệnh: `npm install` để cài đặt dependencies.
 4. Chạy lệnh: `npm run dev` để chạy giao diện.
 
-# Tourista
+## Tài liệu dự án
+- `doc/`: Chứa các file báo cáo (BAO_CAO_HE_THONG.md, BAO_CAO_TOURISTA.md), phân tích (SYSTEM_ANALYSIS.md) và các kế hoạch triển khai của dự án.

@@ -7,10 +7,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.tourista.dto.request.LoginRequest;
+import vn.tourista.dto.request.ForgotPasswordRequest;
+import vn.tourista.dto.request.OAuth2ExchangeRequest;
 import vn.tourista.dto.request.RefreshTokenRequest;
+import vn.tourista.dto.request.ResetPasswordRequest;
 import vn.tourista.dto.request.RegisterRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.AuthResponse;
+import vn.tourista.security.OAuth2LoginCodeStore;
 import vn.tourista.service.AuthService;
 
 // Controller KHÔNG xử lý logic.
@@ -22,6 +26,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private OAuth2LoginCodeStore oAuth2LoginCodeStore;
 
     // ================================================================
     // POST /api/auth/register — Đăng ký tài khoản
@@ -35,12 +42,41 @@ public class AuthController {
     }
 
     // ================================================================
+    // POST /api/auth/oauth2/exchange — Đổi code OAuth2 lấy tokens
+    // ================================================================
+    @PostMapping("/oauth2/exchange")
+    public ResponseEntity<ApiResponse<AuthResponse>> exchangeOAuth2Code(
+            @Valid @RequestBody OAuth2ExchangeRequest request) {
+
+        AuthResponse data = oAuth2LoginCodeStore.consumeCode(request.getCode().trim());
+        return ResponseEntity.ok(ApiResponse.ok("Dang nhap OAuth2 thanh cong", data));
+    }
+
+    // ================================================================
     // GET /api/auth/verify-email?token=xxx — Xác thực email
     // ================================================================
     @GetMapping("/verify-email")
     public ResponseEntity<ApiResponse<?>> verifyEmail(@RequestParam String token) {
         authService.verifyEmail(token);
         return ResponseEntity.ok(ApiResponse.ok("Xác thực email thành công. Bạn có thể đăng nhập ngay bây giờ."));
+    }
+
+    // ================================================================
+    // POST /api/auth/forgot-password — Gửi link đặt lại mật khẩu
+    // ================================================================
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<?>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok("Neu email ton tai, he thong da gui huong dan dat lai mat khau."));
+    }
+
+    // ================================================================
+    // POST /api/auth/reset-password — Đặt lại mật khẩu bằng token
+    // ================================================================
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<?>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok("Dat lai mat khau thanh cong. Vui long dang nhap lai."));
     }
 
     // ================================================================

@@ -10,25 +10,25 @@ import styles from './MakeAComparison.module.css';
 const COMPARISONS = [
     {
         id: 1,
-        title: 'The Past Offers With The Highest Reviews Outshine Others, Standing As A Testament To Their Exceptional Quality.',
+        title: 'Những ưu đãi được đánh giá cao nhất, minh chứng cho chất lượng dịch vụ tuyệt hảo.',
         category: 'Khách sạn 5★ đã từng ở',
-        cover: 'https://images.unsplash.com/photo-1493243391983-5d3f54abd64c?w=700&q=80',
-        badge: 'Best Reviewed',
+        cover: '/images/promos/luxury_hotel.png',
+        badge: 'Đánh Giá Cao Nhất',
         avg_rating: 4.9,
         review_count: 2340,
         gradient: 'linear-gradient(135deg, #667eea, #764ba2)',
-        targetUrl: '/hotels/search?destination=Da%20Nang',
+        targetUrl: '/articles/kham-pha-bien-xanh-phu-quoc',
     },
     {
         id: 2,
-        title: 'Ring In The New Year With Iconic Moments And Unforgettable Memories In New York City.',
+        title: 'Tận hưởng những khoảnh khắc mang tính biểu tượng và trải nghiệm đáng nhớ nhất.',
         category: 'Tour đặc biệt giảm giá sâu',
-        cover: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=700&q=80',
-        badge: 'Top Experience',
+        cover: '/images/promos/tropical_beach.png',
+        badge: 'Trải Nghiệm Đỉnh Cao',
         avg_rating: 4.8,
         review_count: 1876,
         gradient: 'linear-gradient(135deg, #f093fb, #f5576c)',
-        targetUrl: '/tours',
+        targetUrl: '/articles/bi-kip-du-lich-chau-au-ngan-sach-thap',
     },
 ];
 
@@ -43,7 +43,7 @@ export default function MakeAComparison() {
                         <MdCompareArrows className={styles.compareIcon} />
                         <span>So sánh & Chọn lựa</span>
                     </div>
-                    <h2 className={styles.title}>Make A Comparison</h2>
+                    <h2 className={styles.title}>So sánh & Đánh giá</h2>
                     <p className={styles.subtitle}>So sánh các ưu đãi được đánh giá cao nhất để đưa ra lựa chọn tốt nhất</p>
                 </div>
 
@@ -68,7 +68,7 @@ function ComparisonCard({ item, onClick }) {
             onClick={onClick}
         >
             <div className={styles.imageWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src={item.cover}
                     alt={item.title}
                     className={`${styles.image} ${hovered ? styles.imageZoom : ''}`}

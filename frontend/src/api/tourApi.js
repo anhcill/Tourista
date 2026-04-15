@@ -22,12 +22,12 @@ const tourApi = {
   },
 
   getTourReviews: (id, params = {}) => {
-    const url = (API_ENDPOINTS.TOURS.REVIEWS || `/api/tours/${id}/reviews`);
+    const url = API_ENDPOINTS.TOURS.REVIEWS;
     return axiosClient.get(url.replace(":id", id), { params });
   },
 
   getSimilarTours: (id, params = {}) => {
-    const url = (API_ENDPOINTS.TOURS.SIMILAR || `/api/tours/${id}/similar`);
+    const url = API_ENDPOINTS.TOURS.SIMILAR;
     return axiosClient.get(url.replace(":id", id), { params });
   },
 };

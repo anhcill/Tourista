@@ -10,14 +10,19 @@ import {
     FaUser, FaSearch, FaGlobe, FaSignOutAlt,
     FaBookmark, FaChevronDown, FaHeart,
     FaHotel, FaPlaneDeparture, FaMapMarkedAlt, FaBuilding,
-    FaBell, FaHeadset, FaBars, FaTimes, FaMapMarkerAlt, FaClock
+    FaBars, FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments
 } from 'react-icons/fa';
 import { logout } from '../../../store/slices/authSlice';
 import authApi from '../../../api/authApi';
+import chatApi from '../../../api/chatApi';
 import tourApi from '../../../api/tourApi';
 import { STORAGE_KEYS } from '../../../utils/constants';
 import Button from '../../Common/Button/Button';
 import useHotelAutocomplete from '../../../hooks/useHotelAutocomplete';
+import { setConversations } from '../../../store/slices/chatSlice';
+import CurrencyLangDropdown from './CurrencyLangDropdown';
+import NotificationDropdown from './NotificationDropdown';
+import SupportDropdown from './SupportDropdown';
 import styles from './Header.module.css';
 
 const RECENT_SEARCHES_KEY = 'tourista_recent_searches';
@@ -76,6 +81,7 @@ const Header = () => {
     const router = useRouter();
     const pathname = usePathname();
     const { isAuthenticated, user } = useSelector((state) => state.auth);
+    const { totalUnread } = useSelector((state) => state.chat);
     const [hasMounted, setHasMounted] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -162,6 +168,30 @@ const Header = () => {
 
     const showAuthenticatedMenu = hasMounted && isAuthenticated;
 
+    useEffect(() => {
+        if (!hasMounted || !isAuthenticated) return;
+
+        let isAlive = true;
+        const pullConversations = async () => {
+            try {
+                const response = await chatApi.getConversations();
+                const list = Array.isArray(response?.data) ? response.data : [];
+                if (!isAlive) return;
+                dispatch(setConversations(list));
+            } catch {
+                // Silent: keep header stable even if chat API is temporarily unavailable
+            }
+        };
+
+        pullConversations();
+        const timer = setInterval(pullConversations, 30000);
+
+        return () => {
+            isAlive = false;
+            clearInterval(timer);
+        };
+    }, [dispatch, hasMounted, isAuthenticated]);
+
     // Đóng dropdown khi click ra ngoài
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -198,6 +228,7 @@ const Header = () => {
         { id: 'flight', label: 'Vé máy bay', hint: 'Sắp ra mắt', href: '/flights', icon: FaPlaneDeparture, comingSoon: true },
         { id: 'tour', label: 'Tour du lịch', hint: 'Khám phá ngay', href: '/tours', icon: FaMapMarkedAlt },
         { id: 'apartment', label: 'Căn hộ', hint: 'Sắp ra mắt', href: '/apartments', icon: FaBuilding, comingSoon: true },
+        { id: 'article', label: 'Cẩm nang', hint: 'Blog', href: '/articles', icon: FaBookOpen },
     ];
 
     const isTabActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
@@ -345,10 +376,6 @@ const Header = () => {
         if (!tabLabel) return;
         e.preventDefault();
         toast.info(`${tabLabel} đang được hoàn thiện, bạn quay lại sớm nhé.`);
-    };
-
-    const showQuickHint = (message) => {
-        toast.info(message);
     };
 
     const quickFilters = activeSearchType === 'TOUR'
@@ -506,26 +533,19 @@ const Header = () => {
 
                     <div className={styles.actions}>
                         <div className={styles.utilityButtons}>
-                            <button
-                                className={styles.utilityBtn}
-                                onClick={() => showQuickHint('Tiền tệ hiện tại: VND. Bạn có thể đổi ở bước thanh toán.')}
-                            >
-                                VND | VI
-                            </button>
-                            <button
-                                className={styles.iconBtn}
-                                onClick={() => showQuickHint('Thông báo mới sẽ xuất hiện tại đây.')}
-                                aria-label="Thông báo"
-                            >
-                                <FaBell />
-                            </button>
-                            <button
-                                className={styles.iconBtn}
-                                onClick={() => showQuickHint('Hỗ trợ 24/7: 1900 9999')}
-                                aria-label="Hỗ trợ"
-                            >
-                                <FaHeadset />
-                            </button>
+                            <CurrencyLangDropdown />
+                            <NotificationDropdown />
+                            <SupportDropdown />
+                            {showAuthenticatedMenu && (
+                                <Link href="/partner/messages" className={styles.chatInboxBtn} aria-label="Tin nhan">
+                                    <FaComments />
+                                    {totalUnread > 0 ? (
+                                        <span className={styles.chatInboxBadge}>
+                                            {totalUnread > 9 ? '9+' : totalUnread}
+                                        </span>
+                                    ) : null}
+                                </Link>
+                            )}
                         </div>
 
                         <button
@@ -571,6 +591,20 @@ const Header = () => {
                                         </div>
 
                                         <div className={styles.dropdownDivider} />
+
+                                        {user?.role === 'ADMIN' && (
+                                            <>
+                                                <Link
+                                                    href="/admin"
+                                                    className={styles.dropdownItem}
+                                                    style={{ color: '#0f7fb6', fontWeight: 'bold' }}
+                                                    onClick={() => setDropdownOpen(false)}
+                                                >
+                                                    <FaUserShield /> Bảng điều khiển Admin
+                                                </Link>
+                                                <div className={styles.dropdownDivider} />
+                                            </>
+                                        )}
 
                                         <Link
                                             href="/profile"

@@ -105,7 +105,7 @@ function CTACard({ card, email, setEmail, onAction }) {
             onMouseLeave={() => setHovered(false)}
         >
             <div className={styles.imageWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src={card.cover}
                     alt={card.title}
                     className={`${styles.image} ${hovered ? styles.imageZoom : ''}`}

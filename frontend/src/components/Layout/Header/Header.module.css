@@ -400,6 +400,46 @@
   gap: 6px;
 }
 
+.chatInboxBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #d2e4ec;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2a5368;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  position: relative;
+  text-decoration: none;
+}
+
+.chatInboxBtn:hover {
+  border-color: #0f7fb6;
+  background: #eef9fd;
+  color: #0f7fb6;
+}
+
+.chatInboxBadge {
+  position: absolute;
+  top: -3px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
 .utilityBtn {
   height: 38px;
   border-radius: 999px;
@@ -808,6 +848,12 @@
   .iconBtn {
     width: 30px;
     height: 30px;
+  }
+
+  .chatInboxBtn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
   }
 
   .userName {

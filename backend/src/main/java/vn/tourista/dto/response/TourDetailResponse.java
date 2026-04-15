@@ -19,6 +19,9 @@ public class TourDetailResponse {
     private String title;
     private String slug;
     private String city;
+    private Long partnerId;
+    private Long operatorId;
+    private String operatorName;
     private String categoryName;
     private String description;
     private List<String> highlights;

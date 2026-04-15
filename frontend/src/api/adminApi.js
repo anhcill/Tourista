@@ -1,6 +1,3 @@
-import bookingApi from "./bookingApi";
-import hotelApi from "./hotelApi";
-import tourApi from "./tourApi";
 import axiosClient from "./axiosClient";
 
 const tryGetList = (value) => {
@@ -20,6 +17,7 @@ const tryGetList = (value) => {
     "tours",
     "bookings",
     "promotions",
+    "auditLogs",
   ];
   for (const key of keys) {
     if (Array.isArray(value?.[key])) return value[key];
@@ -307,8 +305,10 @@ const normalizeBookingWorkflowStatus = (value) => {
   const normalized = String(value || "PENDING").toUpperCase();
   if (
     normalized === "CONFIRMED" ||
+    normalized === "CHECKED_IN" ||
     normalized === "COMPLETED" ||
-    normalized === "CANCELLED"
+    normalized === "CANCELLED" ||
+    normalized === "REFUNDED"
   ) {
     return normalized;
   }
@@ -1201,6 +1201,9 @@ const normalizePromotions = (promotions) => {
           Math.random(),
       ),
       code: String(promotion?.code || "PROMO"),
+      name: String(
+        promotion?.name || promotion?.title || promotion?.code || "Promotion",
+      ),
       description: String(promotion?.description || promotion?.title || ""),
       type: normalizePromotionType(promotion?.type || promotion?.discountType),
       value: Number(promotion?.value || promotion?.discountValue || 0),
@@ -1238,6 +1241,32 @@ const normalizePromotions = (promotions) => {
     .sort((a, b) => {
       const timeA = asDate(a.updatedAt || a.createdAt)?.getTime() || 0;
       const timeB = asDate(b.updatedAt || b.createdAt)?.getTime() || 0;
+      return timeB - timeA;
+    });
+};
+
+const normalizeAuditLogs = (auditLogs) => {
+  return auditLogs
+    .map((log) => ({
+      id: String(log?.id || Math.random()),
+      actorId: log?.actorId == null ? null : String(log.actorId),
+      actorEmail: String(log?.actorEmail || log?.actor?.email || "system"),
+      action: String(log?.action || "UNKNOWN").toUpperCase(),
+      resource: String(
+        log?.resource || log?.resourceType || "UNKNOWN",
+      ).toUpperCase(),
+      resourceId: log?.resourceId == null ? null : String(log.resourceId),
+      beforeData: String(log?.beforeData || log?.oldValue || ""),
+      afterData: String(log?.afterData || log?.newValue || ""),
+      reason: String(log?.reason || ""),
+      timestamp:
+        asDate(
+          log?.timestamp || log?.createdAt || log?.created_time,
+        )?.toISOString() || null,
+    }))
+    .sort((a, b) => {
+      const timeA = asDate(a.timestamp)?.getTime() || 0;
+      const timeB = asDate(b.timestamp)?.getTime() || 0;
       return timeB - timeA;
     });
 };
@@ -1365,51 +1394,149 @@ const paginateUsers = (users, page = 1, limit = 10) => {
   return paginateItems(users, page, limit);
 };
 
+// TODO(day5): remove legacy mock helpers after full admin mock cleanup.
+void [
+  createMockBookings,
+  createMockUsers,
+  filterUsers,
+  createMockHotels,
+  filterHotels,
+  createMockTours,
+  filterTours,
+  createMockAdminBookings,
+  filterAdminBookings,
+  createMockPromotions,
+  filterPromotions,
+  paginateUsers,
+];
+
+const normalizeError = (error, fallbackMessage) => {
+  const payload = error?.data;
+  const fieldErrors = payload?.errors;
+  const fieldMessage =
+    fieldErrors && typeof fieldErrors === "object"
+      ? Object.values(fieldErrors).filter(Boolean).join(". ")
+      : "";
+
+  const message =
+    fieldMessage ||
+    payload?.message ||
+    error?.message ||
+    fallbackMessage ||
+    "Request failed";
+
+  const normalized = new Error(String(message));
+  normalized.name = "ApiError";
+  return normalized;
+};
+
+const safeRequest = async (request, fallbackMessage) => {
+  try {
+    return await request();
+  } catch (error) {
+    throw normalizeError(error, fallbackMessage);
+  }
+};
+
+const DASHBOARD_CACHE_TTL_MS = 30000;
+let dashboardCache = {
+  fetchedAt: 0,
+  data: null,
+};
+
+const toAdminOverview = (
+  response,
+  key,
+  fallbackPage = 1,
+  fallbackSize = 10,
+) => {
+  const list = extractList(response);
+  const paging = extractPaging(
+    response,
+    fallbackPage,
+    fallbackSize,
+    list.length,
+  );
+
+  return {
+    [key]: list,
+    meta: {
+      total: paging.total,
+      page: paging.page,
+      size: paging.size,
+    },
+    dataMode: "live",
+    hasMockFallback: false,
+  };
+};
+
 const adminApi = {
-  getDashboardOverview: async () => {
-    const results = await Promise.allSettled([
-      bookingApi.getBookings({ page: 1, limit: 200 }),
-      hotelApi.getHotels({ page: 1, limit: 120 }),
-      tourApi.getTours({ page: 1, limit: 120 }),
-    ]);
+  getDashboardOverview: async ({ force = false } = {}) => {
+    const now = Date.now();
+    if (
+      !force &&
+      dashboardCache.data &&
+      now - dashboardCache.fetchedAt < DASHBOARD_CACHE_TTL_MS
+    ) {
+      return dashboardCache.data;
+    }
 
-    const [bookingResult, hotelResult, tourResult] = results;
+    const [bookingsResponse, hotelsResponse, toursResponse] = await Promise.all(
+      [
+        safeRequest(
+          () =>
+            axiosClient.get("/admin/bookings", {
+              params: { page: 1, limit: 80 },
+            }),
+          "Khong the tai bookings cho dashboard.",
+        ),
+        safeRequest(
+          () =>
+            axiosClient.get("/admin/hotels", {
+              params: { page: 1, limit: 1 },
+            }),
+          "Khong the tai hotels cho dashboard.",
+        ),
+        safeRequest(
+          () =>
+            axiosClient.get("/admin/tours", {
+              params: { page: 1, limit: 1 },
+            }),
+          "Khong the tai tours cho dashboard.",
+        ),
+      ],
+    );
 
-    const bookingList =
-      bookingResult.status === "fulfilled"
-        ? extractList(bookingResult.value)
-        : [];
-    const hotelList =
-      hotelResult.status === "fulfilled" ? extractList(hotelResult.value) : [];
-    const tourList =
-      tourResult.status === "fulfilled" ? extractList(tourResult.value) : [];
-
-    const hasLiveData =
-      bookingList.length > 0 || hotelList.length > 0 || tourList.length > 0;
-
-    const bookings = hasLiveData
-      ? normalizeBookings(bookingList)
-      : createMockBookings();
+    const bookings = normalizeBookings(extractList(bookingsResponse));
+    const hotelList = extractList(hotelsResponse);
+    const tourList = extractList(toursResponse);
+    const hotelPaging = extractPaging(hotelsResponse, 1, 1, hotelList.length);
+    const tourPaging = extractPaging(toursResponse, 1, 1, tourList.length);
     const revenueSeries = buildRevenueSeries(bookings);
 
     const totalRevenue = bookings.reduce(
       (sum, booking) => sum + Number(booking.totalAmount || 0),
       0,
     );
-    const dataMode = hasLiveData ? "live-or-partial" : "mock";
-
-    return {
+    const data = {
       stats: {
         totalRevenue,
         bookingsToday: countTodayBookings(bookings),
-        hotelCount: hotelList.length || 0,
-        tourCount: tourList.length || 0,
+        hotelCount: Number(hotelPaging.total || hotelList.length || 0),
+        tourCount: Number(tourPaging.total || tourList.length || 0),
       },
       revenueSeries,
       recentBookings: bookings.slice(0, 6),
-      dataMode,
-      hasMockFallback: !hasLiveData,
+      dataMode: "live",
+      hasMockFallback: false,
     };
+
+    dashboardCache = {
+      fetchedAt: Date.now(),
+      data,
+    };
+
+    return data;
   },
 
   getAdminUsers: async ({
@@ -1419,70 +1546,43 @@ const adminApi = {
     page = 1,
     limit = 10,
   } = {}) => {
-    try {
-      const response = await axiosClient.get("/admin/users", {
-        params: { search, role, status, page, limit },
-      });
+    const response = await safeRequest(
+      () =>
+        axiosClient.get("/admin/users", {
+          params: { search, role, status, page, limit },
+        }),
+      "Khong the tai danh sach users.",
+    );
 
-      const normalizedUsers = normalizeUsers(extractList(response));
-      const filteredUsers = filterUsers(normalizedUsers, {
-        search,
-        role,
-        status,
-      });
-      const paging = extractPaging(response, page, limit, filteredUsers.length);
-
-      const users =
-        paging.total > filteredUsers.length
-          ? normalizedUsers
-          : paginateUsers(filteredUsers, paging.page, paging.size);
-
-      return {
-        users,
-        meta: {
-          total: paging.total,
-          page: paging.page,
-          size: paging.size,
-        },
-        dataMode: "live-or-partial",
-        hasMockFallback: false,
-      };
-    } catch {
-      const mockUsers = createMockUsers();
-      const filteredUsers = filterUsers(mockUsers, { search, role, status });
-      const pagedUsers = paginateUsers(filteredUsers, page, limit);
-
-      return {
-        users: pagedUsers,
-        meta: {
-          total: filteredUsers.length,
-          page: Number(page) || 1,
-          size: Number(limit) || 10,
-        },
-        dataMode: "mock",
-        hasMockFallback: true,
-      };
-    }
+    const overview = toAdminOverview(response, "users", page, limit);
+    return {
+      ...overview,
+      users: normalizeUsers(overview.users),
+    };
   },
 
-  updateUserRole: async (userId, role) => {
-    const payload = { role: normalizeRole(role) };
+  updateUserRole: async (userId, role, reason) => {
+    const payload = {
+      role: normalizeRole(role),
+      reason: String(reason || "").trim(),
+    };
 
-    try {
-      return await axiosClient.patch(`/admin/users/${userId}/role`, payload);
-    } catch {
-      return axiosClient.patch(`/admin/users/${userId}`, payload);
-    }
+    return safeRequest(
+      () => axiosClient.patch(`/admin/users/${userId}/role`, payload),
+      "Cap nhat role user that bai.",
+    );
   },
 
-  updateUserStatus: async (userId, status) => {
-    const payload = { status: normalizeStatus(status) };
+  updateUserStatus: async (userId, status, reason) => {
+    const payload = {
+      status: normalizeStatus(status),
+      reason: String(reason || "").trim(),
+    };
 
-    try {
-      return await axiosClient.patch(`/admin/users/${userId}/status`, payload);
-    } catch {
-      return axiosClient.patch(`/admin/users/${userId}`, payload);
-    }
+    return safeRequest(
+      () => axiosClient.patch(`/admin/users/${userId}/status`, payload),
+      "Cap nhat status user that bai.",
+    );
   },
 
   getAdminHotels: async ({
@@ -1492,55 +1592,19 @@ const adminApi = {
     page = 1,
     limit = 8,
   } = {}) => {
-    try {
-      const response = await axiosClient.get("/admin/hotels", {
-        params: { search, status, city, page, limit },
-      });
+    const response = await safeRequest(
+      () =>
+        axiosClient.get("/admin/hotels", {
+          params: { search, status, city, page, limit },
+        }),
+      "Khong the tai danh sach hotels.",
+    );
 
-      const normalizedHotels = normalizeHotels(extractList(response));
-      const filteredHotels = filterHotels(normalizedHotels, {
-        search,
-        status,
-        city,
-      });
-      const paging = extractPaging(
-        response,
-        page,
-        limit,
-        filteredHotels.length,
-      );
-
-      const hotels =
-        paging.total > filteredHotels.length
-          ? normalizedHotels
-          : paginateItems(filteredHotels, paging.page, paging.size);
-
-      return {
-        hotels,
-        meta: {
-          total: paging.total,
-          page: paging.page,
-          size: paging.size,
-        },
-        dataMode: "live-or-partial",
-        hasMockFallback: false,
-      };
-    } catch {
-      const mockHotels = createMockHotels();
-      const filteredHotels = filterHotels(mockHotels, { search, status, city });
-      const pagedHotels = paginateItems(filteredHotels, page, limit);
-
-      return {
-        hotels: pagedHotels,
-        meta: {
-          total: filteredHotels.length,
-          page: Number(page) || 1,
-          size: Number(limit) || 8,
-        },
-        dataMode: "mock",
-        hasMockFallback: true,
-      };
-    }
+    const overview = toAdminOverview(response, "hotels", page, limit);
+    return {
+      ...overview,
+      hotels: normalizeHotels(overview.hotels),
+    };
   },
 
   updateHotelStatus: async (hotelId, status, reason) => {
@@ -1549,7 +1613,10 @@ const adminApi = {
       reason: String(reason || "").trim(),
     };
 
-    return axiosClient.patch(`/admin/hotels/${hotelId}/status`, payload);
+    return safeRequest(
+      () => axiosClient.patch(`/admin/hotels/${hotelId}/status`, payload),
+      "Cap nhat trang thai hotel that bai.",
+    );
   },
 
   getAdminTours: async ({
@@ -1560,56 +1627,19 @@ const adminApi = {
     page = 1,
     limit = 8,
   } = {}) => {
-    try {
-      const response = await axiosClient.get("/admin/tours", {
-        params: { search, status, city, operator, page, limit },
-      });
+    const response = await safeRequest(
+      () =>
+        axiosClient.get("/admin/tours", {
+          params: { search, status, city, operator, page, limit },
+        }),
+      "Khong the tai danh sach tours.",
+    );
 
-      const normalizedTours = normalizeTours(extractList(response));
-      const filteredTours = filterTours(normalizedTours, {
-        search,
-        status,
-        city,
-        operator,
-      });
-      const paging = extractPaging(response, page, limit, filteredTours.length);
-
-      const tours =
-        paging.total > filteredTours.length
-          ? normalizedTours
-          : paginateItems(filteredTours, paging.page, paging.size);
-
-      return {
-        tours,
-        meta: {
-          total: paging.total,
-          page: paging.page,
-          size: paging.size,
-        },
-        dataMode: "live-or-partial",
-        hasMockFallback: false,
-      };
-    } catch {
-      const mockTours = createMockTours();
-      const filteredTours = filterTours(mockTours, {
-        search,
-        status,
-        city,
-        operator,
-      });
-      const pagedTours = paginateItems(filteredTours, page, limit);
-
-      return {
-        tours: pagedTours,
-        meta: {
-          total: filteredTours.length,
-          page: Number(page) || 1,
-          size: Number(limit) || 8,
-        },
-        dataMode: "mock",
-        hasMockFallback: true,
-      };
-    }
+    const overview = toAdminOverview(response, "tours", page, limit);
+    return {
+      ...overview,
+      tours: normalizeTours(overview.tours),
+    };
   },
 
   updateTourStatus: async (tourId, status, reason) => {
@@ -1618,7 +1648,10 @@ const adminApi = {
       reason: String(reason || "").trim(),
     };
 
-    return axiosClient.patch(`/admin/tours/${tourId}/status`, payload);
+    return safeRequest(
+      () => axiosClient.patch(`/admin/tours/${tourId}/status`, payload),
+      "Cap nhat trang thai tour that bai.",
+    );
   },
 
   getAdminBookings: async ({
@@ -1629,61 +1662,36 @@ const adminApi = {
     page = 1,
     limit = 10,
   } = {}) => {
-    try {
-      const response = await axiosClient.get("/admin/bookings", {
-        params: { search, status, type, paymentStatus, page, limit },
-      });
+    const response = await safeRequest(
+      () =>
+        axiosClient.get("/admin/bookings", {
+          params: { search, status, type, paymentStatus, page, limit },
+        }),
+      "Khong the tai danh sach bookings.",
+    );
 
-      const normalizedBookings = normalizeAdminBookings(extractList(response));
-      const filteredBookings = filterAdminBookings(normalizedBookings, {
-        search,
-        status,
-        type,
-        paymentStatus,
-      });
-      const paging = extractPaging(
-        response,
-        page,
-        limit,
-        filteredBookings.length,
-      );
+    const overview = toAdminOverview(response, "bookings", page, limit);
+    return {
+      ...overview,
+      bookings: normalizeAdminBookings(overview.bookings),
+    };
+  },
 
-      const bookings =
-        paging.total > filteredBookings.length
-          ? normalizedBookings
-          : paginateItems(filteredBookings, paging.page, paging.size);
+  updateBookingStatus: async (bookingId, status, reason) => {
+    const payload = {
+      status: normalizeBookingWorkflowStatus(status),
+      reason: String(reason || "").trim(),
+    };
 
-      return {
-        bookings,
-        meta: {
-          total: paging.total,
-          page: paging.page,
-          size: paging.size,
-        },
-        dataMode: "live-or-partial",
-        hasMockFallback: false,
-      };
-    } catch {
-      const mockBookings = createMockAdminBookings();
-      const filteredBookings = filterAdminBookings(mockBookings, {
-        search,
-        status,
-        type,
-        paymentStatus,
-      });
-      const pagedBookings = paginateItems(filteredBookings, page, limit);
+    dashboardCache = {
+      fetchedAt: 0,
+      data: null,
+    };
 
-      return {
-        bookings: pagedBookings,
-        meta: {
-          total: filteredBookings.length,
-          page: Number(page) || 1,
-          size: Number(limit) || 10,
-        },
-        dataMode: "mock",
-        hasMockFallback: true,
-      };
-    }
+    return safeRequest(
+      () => axiosClient.patch(`/admin/bookings/${bookingId}/status`, payload),
+      "Cap nhat trang thai booking that bai.",
+    );
   },
 
   getAdminPromotions: async ({
@@ -1693,89 +1701,78 @@ const adminApi = {
     page = 1,
     limit = 10,
   } = {}) => {
-    try {
-      const response = await axiosClient.get("/admin/promotions", {
-        params: { search, status, type, page, limit },
-      });
+    const response = await safeRequest(
+      () =>
+        axiosClient.get("/admin/promotions", {
+          params: { search, status, type, page, limit },
+        }),
+      "Khong the tai danh sach promotions.",
+    );
 
-      const normalizedPromotions = normalizePromotions(extractList(response));
-      const filteredPromotions = filterPromotions(normalizedPromotions, {
-        search,
-        status,
-        type,
-      });
-      const paging = extractPaging(
-        response,
-        page,
-        limit,
-        filteredPromotions.length,
-      );
+    const overview = toAdminOverview(response, "promotions", page, limit);
+    return {
+      ...overview,
+      promotions: normalizePromotions(overview.promotions),
+    };
+  },
 
-      const promotions =
-        paging.total > filteredPromotions.length
-          ? normalizedPromotions
-          : paginateItems(filteredPromotions, paging.page, paging.size);
+  getAdminAuditLogs: async ({
+    search = "",
+    action = "ALL",
+    resource = "ALL",
+    page = 1,
+    limit = 12,
+  } = {}) => {
+    const response = await safeRequest(
+      () =>
+        axiosClient.get("/admin/audit-logs", {
+          params: { q: search, action, resource, page, limit },
+        }),
+      "Khong the tai audit logs.",
+    );
 
-      return {
-        promotions,
-        meta: {
-          total: paging.total,
-          page: paging.page,
-          size: paging.size,
-        },
-        dataMode: "live-or-partial",
-        hasMockFallback: false,
-      };
-    } catch {
-      const mockPromotions = createMockPromotions();
-      const filteredPromotions = filterPromotions(mockPromotions, {
-        search,
-        status,
-        type,
-      });
-      const pagedPromotions = paginateItems(filteredPromotions, page, limit);
-
-      return {
-        promotions: pagedPromotions,
-        meta: {
-          total: filteredPromotions.length,
-          page: Number(page) || 1,
-          size: Number(limit) || 10,
-        },
-        dataMode: "mock",
-        hasMockFallback: true,
-      };
-    }
+    const overview = toAdminOverview(response, "auditLogs", page, limit);
+    return {
+      ...overview,
+      auditLogs: normalizeAuditLogs(overview.auditLogs),
+    };
   },
 
   createAdminPromotion: async (payload) => {
-    return axiosClient.post("/admin/promotions", payload);
+    return safeRequest(
+      () => axiosClient.post("/admin/promotions", payload),
+      "Tao promotion that bai.",
+    );
   },
 
   updateAdminPromotion: async (promotionId, payload) => {
-    try {
-      return await axiosClient.patch(
-        `/admin/promotions/${promotionId}`,
-        payload,
-      );
-    } catch {
-      return axiosClient.put(`/admin/promotions/${promotionId}`, payload);
-    }
+    return safeRequest(
+      () => axiosClient.patch(`/admin/promotions/${promotionId}`, payload),
+      "Cap nhat promotion that bai.",
+    );
   },
 
   updateAdminPromotionStatus: async (promotionId, isActive, reason) => {
-    return axiosClient.patch(`/admin/promotions/${promotionId}/status`, {
-      isActive: Boolean(isActive),
-      reason: String(reason || "").trim(),
-    });
+    return safeRequest(
+      () =>
+        axiosClient.patch(`/admin/promotions/${promotionId}/status`, {
+          isActive: Boolean(isActive),
+          reason: String(reason || "").trim(),
+        }),
+      "Cap nhat trang thai promotion that bai.",
+    );
   },
 
   deleteAdminPromotion: async (promotionId, reason) => {
-    return axiosClient.delete(`/admin/promotions/${promotionId}`, {
-      data: {
-        reason: String(reason || "").trim(),
-      },
-    });
+    return safeRequest(
+      () =>
+        axiosClient.delete(`/admin/promotions/${promotionId}`, {
+          data: {
+            reason: String(reason || "").trim(),
+          },
+        }),
+      "Xoa promotion that bai.",
+    );
   },
 };
 

@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import vn.tourista.dto.request.ForgotPasswordRequest;
 import vn.tourista.dto.request.LoginRequest;
 import vn.tourista.dto.request.RefreshTokenRequest;
+import vn.tourista.dto.request.ResetPasswordRequest;
 import vn.tourista.dto.request.RegisterRequest;
 import vn.tourista.dto.response.AuthResponse;
 import vn.tourista.entity.*;
@@ -119,6 +121,74 @@ public class AuthServiceImpl implements AuthService {
         // 5. Đánh dấu token đã dùng
         verifyToken.setUsed(true);
         emailTokenRepository.save(verifyToken);
+    }
+
+    // ================================================================
+    // QUEN MAT KHAU
+    // ================================================================
+    @Override
+    public void forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+
+        // Khong tiet lo email co ton tai hay khong
+        if (user == null) {
+            return;
+        }
+
+        // Tai khoan Google khong dat lai mat khau LOCAL
+        if (user.getAuthProvider() == User.AuthProvider.GOOGLE) {
+            return;
+        }
+
+        String resetTokenValue = UUID.randomUUID().toString();
+        EmailVerificationToken resetToken = EmailVerificationToken.builder()
+                .user(user)
+                .token(resetTokenValue)
+                .type(EmailVerificationToken.TokenType.RESET_PASSWORD)
+                .expiresAt(LocalDateTime.now().plusHours(1))
+                .build();
+
+        emailTokenRepository.save(resetToken);
+        emailService.sendPasswordResetEmail(user.getEmail(), resetTokenValue);
+    }
+
+    // ================================================================
+    // DAT LAI MAT KHAU
+    // ================================================================
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        EmailVerificationToken resetToken = emailTokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new InvalidTokenException("Link dat lai mat khau khong hop le"));
+
+        if (resetToken.getType() != EmailVerificationToken.TokenType.RESET_PASSWORD) {
+            throw new InvalidTokenException("Token khong dung cho thao tac dat lai mat khau");
+        }
+
+        if (Boolean.TRUE.equals(resetToken.getUsed())) {
+            throw new InvalidTokenException("Link dat lai mat khau da duoc su dung");
+        }
+
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new InvalidTokenException("Link dat lai mat khau da het han");
+        }
+
+        User user = resetToken.getUser();
+        if (user.getAuthProvider() == User.AuthProvider.GOOGLE) {
+            throw new IllegalArgumentException("Tai khoan nay dang nhap bang Google, khong co mat khau LOCAL");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setFailedAttempts(0);
+        user.setLockedUntil(null);
+        if (user.getStatus() == User.UserStatus.LOCKED) {
+            user.setStatus(User.UserStatus.ACTIVE);
+        }
+        userRepository.save(user);
+
+        refreshTokenRepository.revokeAllByUser(user);
+
+        resetToken.setUsed(true);
+        emailTokenRepository.save(resetToken);
     }
 
     // ================================================================

@@ -8,7 +8,7 @@ import SearchResultsHeader from '@/components/Hotels/SearchResultsHeader/SearchR
 import HotelCard from '@/components/Hotels/HotelCard/HotelCard';
 import hotelApi from '@/api/hotelApi';
 import styles from './search.module.css';
-import { FaMapMarkerAlt, FaGift } from 'react-icons/fa';
+import { FaGift } from 'react-icons/fa';
 
 type ApiHotelSummary = {
   id: number;
@@ -96,6 +96,15 @@ function HotelSearchResultInner() {
   const [hotels, setHotels] = useState<SearchHotelCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [filters, setFilters] = useState({
+    budget: [0, 20000000],
+    popular: [] as string[],
+    facilities: [] as string[],
+    guestRating: 'any',
+    stars: [] as number[],
+    sustainability: [] as number[],
+  });
 
   const query = useMemo(() => {
     const city = searchParams.get('destination') || searchParams.get('city') || '';
@@ -193,6 +202,62 @@ function HotelSearchResultInner() {
     fetchHotels();
   }, [query]);
 
+  const displayedHotels = useMemo(() => {
+    return hotels.filter((hotel) => {
+      // 1. Budget
+      if (hotel.discountPrice < filters.budget[0] || hotel.discountPrice > filters.budget[1]) {
+        return false;
+      }
+
+      // 2. Guest Rating
+      if (filters.guestRating !== 'any') {
+        const minRating =
+          filters.guestRating === 'wonderful' ? 9 :
+          filters.guestRating === 'veryGood' ? 8 :
+          filters.guestRating === 'good' ? 7 :
+          filters.guestRating === 'pleasant' ? 6 : 0;
+        if (hotel.rating < minRating) return false;
+      }
+
+      // 3. Stars / Classification
+      if (filters.stars.length > 0) {
+        // We map sustainableLevel to stars as mock data
+        if (!filters.stars.includes(hotel.sustainableLevel)) return false;
+      }
+
+      // 4. Sustainability
+      if (filters.sustainability.length > 0) {
+        if (!filters.sustainability.includes(hotel.sustainableLevel)) return false;
+      }
+
+      // Mock utility for array matching
+      const mockHasAmenity = (amenityId: string) => {
+        const hash = hotel.id + amenityId.length;
+        return hash % 2 === 0;
+      };
+
+      // 5. Popular Filters
+      if (filters.popular.length > 0) {
+        for (const p of filters.popular) {
+          if (p === 'freeCancellation') {
+            if (hotel.id % 3 === 0) return false;
+          } else {
+            if (!mockHasAmenity(p)) return false;
+          }
+        }
+      }
+
+      // 6. Facilities
+      if (filters.facilities.length > 0) {
+        for (const f of filters.facilities) {
+          if (!mockHasAmenity(`fac_${f}`)) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [hotels, filters]);
+
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.bannerWrapper}>
@@ -205,10 +270,10 @@ function HotelSearchResultInner() {
 
         {/* Results layout: sidebar + list */}
         <div className={styles.resultsLayout}>
-          <FilterSidebar />
+          <FilterSidebar filters={filters} setFilters={setFilters} />
 
           <div className={styles.resultsList}>
-            <SearchResultsHeader city={query.city || 'Điểm đến'} count={hotels.length} />
+            <SearchResultsHeader city={query.city || 'Điểm đến'} count={displayedHotels.length} />
 
             {loading && <div className={styles.statusBox}>Đang tải danh sách khách sạn...</div>}
 
@@ -223,10 +288,10 @@ function HotelSearchResultInner() {
 
             {!loading && !error && (
               <div className={styles.cardList}>
-                {hotels.length === 0 ? (
+                {displayedHotels.length === 0 ? (
                   <div className={styles.statusBox}>Không tìm thấy khách sạn phù hợp với điều kiện tìm kiếm.</div>
                 ) : (
-                  hotels.map((hotel) => (
+                  displayedHotels.map((hotel) => (
                     <HotelCard
                       key={hotel.id}
                       hotel={hotel}
@@ -246,7 +311,7 @@ function HotelSearchResultInner() {
               </div>
             )}
 
-            {!loading && !error && hotels.length > 0 && (
+            {!loading && !error && displayedHotels.length > 0 && (
               <div className={styles.loadMore}>
                 <button className={styles.loadMoreBtn}>Xem thêm kết quả tìm kiếm</button>
               </div>

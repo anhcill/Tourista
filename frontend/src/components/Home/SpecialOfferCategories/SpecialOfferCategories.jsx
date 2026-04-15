@@ -108,7 +108,7 @@ function OfferCard({ offer, onClick }) {
             onClick={onClick}
         >
             <div className={styles.imageWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src={offer.cover}
                     alt={offer.title}
                     className={`${styles.image} ${hovered ? styles.imageZoom : ''}`}

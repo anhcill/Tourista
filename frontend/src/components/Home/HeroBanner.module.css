@@ -262,7 +262,7 @@
 
 .searchForm {
   display: grid;
-  grid-template-columns: 2fr 1.2fr 1.5fr auto;
+  grid-template-columns: 2fr 1.2fr 1.85fr auto;
   gap: 12px;
   align-items: end;
 }
@@ -310,9 +310,16 @@
 }
 
 .guestRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(84px, 1fr));
   align-items: center;
   gap: 6px;
+  width: 100%;
+}
+
+.guestRow .guestSelect {
+  min-width: 0;
+  padding: 0 10px;
 }
 
 .dateSep {

@@ -1,0 +1,97 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(
+      circle at 12% 12%,
+      rgba(81, 207, 102, 0.22),
+      transparent 38%
+    ),
+    radial-gradient(circle at 88% 88%, rgba(0, 102, 255, 0.2), transparent 42%),
+    linear-gradient(160deg, #f5fff8 0%, #f3f9ff 100%);
+}
+
+.card {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 18px 40px rgba(17, 24, 39, 0.12);
+}
+
+.eyebrow {
+  margin: 0;
+  color: #166534;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.title {
+  margin: 8px 0 14px;
+  font-size: 34px;
+  line-height: 1.1;
+  color: #1f2937;
+}
+
+.infoText {
+  margin: 0;
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.errorText {
+  margin: 0;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  padding: 10px 16px;
+  color: #ffffff;
+  background: linear-gradient(90deg, #166534 0%, #15803d 100%);
+  font-weight: 700;
+}
+
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  padding: 10px 16px;
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 22px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+}

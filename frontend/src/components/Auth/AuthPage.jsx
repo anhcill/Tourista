@@ -92,28 +92,12 @@ const AuthPage = ({ initialMode = 'login' }) => {
         }
     }, [isAuthenticated, router, searchParams, user]);
 
-    // Xử lý OAuth2 callback (Google trả về token qua URL)
+    // Chỉ xử lý cờ lỗi OAuth2 trên trang login
     useEffect(() => {
-        const token = searchParams.get('token');
-        const refreshToken = searchParams.get('refreshToken');
         const error = searchParams.get('error');
 
         if (error) {
             toast.error('Đăng nhập Google thất bại. Vui lòng thử lại.');
-            return;
-        }
-
-        if (token) {
-            // Google OAuth thành công — backend đã redirect kèm token
-            try {
-                const userStr = searchParams.get('user');
-                const user = userStr ? JSON.parse(decodeURIComponent(userStr)) : { email: '' };
-                dispatch(loginSuccess({ user, token, refreshToken: refreshToken || '' }));
-                toast.success('Đăng nhập Google thành công! 🎉');
-                router.push(getDefaultPostLoginRoute(user, searchParams));
-            } catch {
-                toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
-            }
         }
     }, [searchParams, dispatch, router]);
 

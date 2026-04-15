@@ -42,11 +42,6 @@ const formatRating = (avgRating: number, reviewCount: number) => {
   return `${Number(avgRating || 0).toFixed(1)} (${Number(reviewCount || 0)})`;
 };
 
-const simulateNetworkDelay = (ms = 350) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-
 export default function AdminHotelsPage() {
   const [overview, setOverview] = useState<AdminHotelsOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -181,11 +176,7 @@ export default function AdminHotelsPage() {
       setActionError('');
       setActionSuccess('');
 
-      if (overview?.hasMockFallback) {
-        await simulateNetworkDelay();
-      } else {
-        await adminApi.updateHotelStatus(confirmState.hotel.id, confirmState.action, reason);
-      }
+      await adminApi.updateHotelStatus(confirmState.hotel.id, confirmState.action, reason);
 
       patchHotelStatusLocal(confirmState.hotel.id, confirmState.action);
       setActionSuccess(`Da ${ACTION_LABELS[confirmState.action].toLowerCase()} hotel thanh cong.`);

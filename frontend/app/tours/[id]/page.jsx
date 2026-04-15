@@ -7,6 +7,7 @@ import {
   FaMapMarkerAlt, FaStar, FaShieldAlt, FaUsers, FaClock,
   FaMountain, FaHeart, FaShare, FaThumbsUp,
 } from 'react-icons/fa';
+import ClientChatModal from '@/components/Chat/ClientChatModal';
 import tourApi from '@/api/tourApi';
 import styles from './page.module.css';
 
@@ -39,23 +40,57 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=900&q=80',
 ];
 
-const MOCK_REVIEWS = [
-  { id: 1, name: 'Nguyễn Thị Lan', initials: 'NL', rating: 5, date: '15/03/2026', tour: 'Đặt tour tháng 3', text: 'Chuyến đi tuyệt vời! Hướng dẫn viên rất nhiệt tình, lịch trình hợp lý, không bị gò bó. Sẽ đặt lại lần nữa!', helpful: 12 },
-  { id: 2, name: 'Trần Văn Minh', initials: 'TM', rating: 4, date: '02/02/2026', tour: 'Tour Tết 2026', text: 'Tour chất lượng tốt, phòng khách sạn sạch sẽ. Bữa ăn ngon, phong phú. Chỉ hơi tiếc là thời gian tự do hơi ít.', helpful: 8 },
-  { id: 3, name: 'Lê Minh Hoàng', initials: 'LH', rating: 5, date: '20/01/2026', tour: 'Khởi hành tháng 1', text: 'Dịch vụ 5 sao! Từ lúc đặt tour đến khi kết thúc chuyến đi, mọi thứ đều trơn tru chuyên nghiệp. Cảm ơn Tourista!', helpful: 19 },
-];
-
-const MOCK_SIMILAR = [
-  { id: 101, title: 'Khám phá Hội An 3N2Đ', city: 'Hội An', durationDays: 3, price: 2900000, rating: 4.7, image: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=500&q=75' },
-  { id: 102, title: 'Đà Nẵng – Bà Nà 4N3Đ', city: 'Đà Nẵng', durationDays: 4, price: 4200000, rating: 4.8, image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=500&q=75' },
-  { id: 103, title: 'Phú Quốc Thiên Đường Biển', city: 'Phú Quốc', durationDays: 4, price: 4800000, rating: 4.9, image: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=500&q=75' },
-  { id: 104, title: 'Sapa Trekking Cao Nguyên', city: 'Sapa', durationDays: 3, price: 3100000, rating: 4.6, image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&q=75' },
-];
-
 const formatVnd = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
 
 const DIFF_MAP = { EASY: '😊 Dễ đi', MEDIUM: '🧗 Trung bình', HARD: '🏔️ Thử thách' };
+
+const buildInitials = (name) => {
+  if (!name || typeof name !== 'string') {
+    return 'U';
+  }
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0) {
+    return 'U';
+  }
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+  return `${words[0].charAt(0)}${words[words.length - 1].charAt(0)}`.toUpperCase();
+};
+
+const normalizeReview = (item, index) => {
+  const name = item?.name || item?.userName || item?.guestName || 'Khách hàng';
+  const rawDate = item?.date || item?.createdAt || null;
+  const parsedDate = rawDate ? new Date(rawDate) : null;
+  const date = parsedDate && !Number.isNaN(parsedDate.getTime())
+    ? parsedDate.toLocaleDateString('vi-VN')
+    : (rawDate || '');
+
+  return {
+    id: item?.id ?? `${name}-${index}`,
+    name,
+    initials: item?.initials || buildInitials(name),
+    rating: Number(item?.rating ?? item?.overallRating ?? 0),
+    date,
+    text: item?.text || item?.comment || item?.content || '',
+    helpful: Number(item?.helpful ?? item?.helpfulCount ?? 0),
+  };
+};
+
+const normalizeSimilarTour = (item) => ({
+  id: item?.id,
+  title: item?.title || 'Tour',
+  city: item?.city || '',
+  durationDays: Number(item?.durationDays || 1),
+  durationNights: Number(item?.durationNights ?? Math.max(Number(item?.durationDays || 1) - 1, 0)),
+  price: Number(item?.price ?? item?.pricePerAdult ?? 0),
+  rating: Number(item?.rating ?? item?.avgRating ?? 0),
+  image: item?.image || item?.coverImage || null,
+});
 
 /* ─────────────────── Star Row ─────────────────── */
 function StarRow({ rating, size = 14 }) {
@@ -88,6 +123,7 @@ function TourDetailInner() {
   const [children, setChildren] = useState(Number(searchParams.get('children') || 0));
   const [liked, setLiked] = useState(false);
   const [helpfulMap, setHelpfulMap] = useState({});
+  const [chatModalOpen, setChatModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -96,21 +132,37 @@ function TourDetailInner() {
         setError('');
         const [detailRes, reviewsRes, similarRes] = await Promise.allSettled([
           tourApi.getTourDetail(id),
-          tourApi.getTourReviews(id, { page: 1, size: 6 }),
+          tourApi.getTourReviews(id, { page: 1, limit: 6 }),
           tourApi.getSimilarTours(id, { limit: 4 }),
         ]);
 
-        const data = detailRes.status === 'fulfilled' ? detailRes.value?.data : null;
-        setTour(data || null);
-        if (Array.isArray(data?.departures) && data.departures.length > 0) {
-          setSelectedDepartureId(data.departures[0].departureId);
+        const detailData = detailRes.status === 'fulfilled' ? detailRes.value?.data : null;
+        setTour(detailData || null);
+        if (Array.isArray(detailData?.departures) && detailData.departures.length > 0) {
+          setSelectedDepartureId(detailData.departures[0].departureId);
         }
 
-        const reviewData = reviewsRes.status === 'fulfilled' ? reviewsRes.value?.data : null;
-        setReviews(Array.isArray(reviewData) ? reviewData : Array.isArray(reviewData?.content) ? reviewData.content : MOCK_REVIEWS);
+        if (!detailData) {
+          setError('Không thể tải thông tin tour.');
+          return;
+        }
 
-        const simData = similarRes.status === 'fulfilled' ? similarRes.value?.data : null;
-        setSimilar(Array.isArray(simData) ? simData.slice(0, 4) : MOCK_SIMILAR);
+        const reviewData = reviewsRes.status === 'fulfilled' ? reviewsRes.value?.data : [];
+        const reviewItems = Array.isArray(reviewData)
+          ? reviewData
+          : (Array.isArray(reviewData?.content) ? reviewData.content : []);
+        setReviews(reviewItems.map(normalizeReview));
+
+        const similarData = similarRes.status === 'fulfilled' ? similarRes.value?.data : [];
+        const similarItems = Array.isArray(similarData)
+          ? similarData
+          : (Array.isArray(similarData?.content) ? similarData.content : []);
+        setSimilar(
+          similarItems
+            .map(normalizeSimilarTour)
+            .filter((item) => Number.isFinite(Number(item.id)) || typeof item.id === 'string')
+            .slice(0, 4),
+        );
       } catch (err) {
         setError(err?.message || 'Không thể tải thông tin tour.');
       } finally {
@@ -135,6 +187,15 @@ function TourDetailInner() {
   const totalGuests = Math.max(1, adults + children);
   const totalAmount = adultPrice * adults + childPrice * children;
   const rating = Number(tour?.avgRating || 0);
+  const tourPartnerId =
+    tour?.partnerId ||
+    tour?.operatorId ||
+    tour?.ownerId ||
+    tour?.hostId ||
+    tour?.operator?.id ||
+    tour?.owner?.id ||
+    tour?.partner?.id ||
+    null;
   const reviewCount = Number(tour?.reviewCount || reviews.length || 0);
 
   const galleryImages = useMemo(() => {
@@ -447,7 +508,7 @@ function TourDetailInner() {
                       <p className={styles.similarTitle}>{t.title}</p>
                       <p className={styles.similarCity}><FaMapMarkerAlt size={10} /> {t.city}</p>
                       <div className={styles.similarFooter}>
-                        <span className={styles.similarDur}>{t.durationDays || 1}N{(t.durationDays || 1) - 1}Đ</span>
+                        <span className={styles.similarDur}>{t.durationDays || 1}N{t.durationNights ?? Math.max((t.durationDays || 1) - 1, 0)}Đ</span>
                         <span className={styles.similarPrice}>
                           {new Intl.NumberFormat('vi-VN').format(t.price || t.pricePerAdult || 0)}đ
                         </span>
@@ -525,6 +586,13 @@ function TourDetailInner() {
                 🎒 Đặt tour ngay
               </button>
 
+              <button
+                className={styles.chatOwnerBtn}
+                onClick={() => setChatModalOpen(true)}
+              >
+                Chat với Chủ
+              </button>
+
               <p className={styles.safeNote}>
                 <FaShieldAlt /> Thanh toán an toàn · Xác nhận tức thì
               </p>
@@ -547,6 +615,17 @@ function TourDetailInner() {
           </div>
         </div>
       </div>
+
+      <ClientChatModal
+        isOpen={chatModalOpen}
+        onClose={() => setChatModalOpen(false)}
+        conversationSeed={chatModalOpen ? {
+          type: 'P2P_TOUR',
+          partnerId: tourPartnerId,
+          referenceId: tour?.id,
+          title: tour?.title,
+        } : null}
+      />
     </div>
   );
 }

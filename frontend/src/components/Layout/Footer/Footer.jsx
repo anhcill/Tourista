@@ -21,23 +21,14 @@ const Footer = () => {
                             mang đến trải nghiệm du lịch tuyệt vời cho bạn.
                         </p>
                         <div className={styles.socialLinks}>
-                            <a href={SOCIAL_LINKS.FACEBOOK} className={styles.socialLink} target="_blank" rel="noopener noreferrer">
+                            <a href={SOCIAL_LINKS.FACEBOOK} className={styles.socialLink} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                                 <FaFacebook />
                             </a>
-                            <a href={SOCIAL_LINKS.TWITTER} className={styles.socialLink} target="_blank" rel="noopener noreferrer">
-                                <FaTwitter />
-                            </a>
-                            <a href={SOCIAL_LINKS.INSTAGRAM} className={styles.socialLink} target="_blank" rel="noopener noreferrer">
+                            <a href={SOCIAL_LINKS.INSTAGRAM} className={styles.socialLink} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                                 <FaInstagram />
                             </a>
-                            <a href={SOCIAL_LINKS.YOUTUBE} className={styles.socialLink} target="_blank" rel="noopener noreferrer">
+                            <a href={SOCIAL_LINKS.YOUTUBE} className={styles.socialLink} target="_blank" rel="noopener noreferrer" aria-label="Youtube">
                                 <FaYoutube />
-                            </a>
-                            <a href={SOCIAL_LINKS.TIKTOK} className={styles.socialLink} target="_blank" rel="noopener noreferrer">
-                                <FaTiktok />
-                            </a>
-                            <a href={SOCIAL_LINKS.LINKEDIN} className={styles.socialLink} target="_blank" rel="noopener noreferrer">
-                                <FaLinkedin />
                             </a>
                         </div>
                     </div>
@@ -79,6 +70,12 @@ const Footer = () => {
                                 <span>{CONTACT_INFO.PHONE}</span>
                             </li>
                             <li className={styles.contactItem}>
+                                <span style={{ fontWeight: 'bold', marginRight: '4px', color: '#0f7fb6' }}>Zalo:</span>
+                                <a href={CONTACT_INFO.ZALO} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+                                    {CONTACT_INFO.PHONE}
+                                </a>
+                            </li>
+                            <li className={styles.contactItem}>
                                 <FaEnvelope className={styles.contactIcon} />
                                 <span>{CONTACT_INFO.EMAIL}</span>
                             </li>
@@ -86,27 +83,7 @@ const Footer = () => {
                     </div>
                 </div>
 
-                {/* Newsletter Subscription */}
-                <div className={styles.newsletter}>
-                    <h3 className={styles.newsletterTitle}>Đăng ký nhận tin</h3>
-                    <p className={styles.newsletterText}>
-                        Nhận thông tin ưu đãi và cập nhật mới nhất từ chúng tôi
-                    </p>
-                    <form className={styles.newsletterForm} onSubmit={(e) => e.preventDefault()}>
-                        <div className={styles.inputWrapper}>
-                            <FaEnvelope className={styles.inputIcon} />
-                            <input
-                                type="email"
-                                placeholder="Enter Your Email"
-                                className={styles.newsletterInput}
-                                required
-                            />
-                        </div>
-                        <button type="submit" className={styles.subscribeBtn}>
-                            Subscribe
-                        </button>
-                    </form>
-                </div>
+                {/* Newsletter has been moved to its own module above Footer */}
 
                 {/* Bottom Bar */}
                 <div className={styles.bottomBar}>

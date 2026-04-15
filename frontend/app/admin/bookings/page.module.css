@@ -337,8 +337,40 @@
 .modalActions {
   margin-top: 14px;
   display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.statusUpdateBox {
+  margin-right: auto;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modalFieldLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.modalSelect,
+.modalTextarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.modalTextarea {
+  resize: vertical;
+  min-height: 72px;
 }
 
 @media (max-width: 1260px) {
@@ -363,5 +395,10 @@
 
   .detailGrid {
     grid-template-columns: 1fr;
+  }
+
+  .statusUpdateBox {
+    width: 100%;
+    margin-right: 0;
   }
 }

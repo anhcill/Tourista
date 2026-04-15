@@ -45,6 +45,22 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         String getTargetType();
     }
 
+    interface TourReviewProjection {
+        Long getId();
+
+        String getUserName();
+
+        String getAvatarUrl();
+
+        Integer getOverallRating();
+
+        String getComment();
+
+        Boolean getVerified();
+
+        java.time.LocalDateTime getCreatedAt();
+    }
+
     @Query(value = """
             SELECT
                 r.id AS id,
@@ -103,6 +119,30 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             """, nativeQuery = true)
     List<HotelReviewProjection> findPublishedHotelReviews(
             @Param("hotelId") Long hotelId,
+            @Param("limit") Integer limit,
+            @Param("offset") Integer offset);
+
+    @Query(value = """
+            SELECT
+                r.id AS id,
+                u.full_name AS userName,
+                COALESCE(NULLIF(u.avatar_url, ''), CONCAT('https://i.pravatar.cc/80?img=', MOD(r.user_id, 60) + 1)) AS avatarUrl,
+                r.overall_rating AS overallRating,
+                r.comment AS comment,
+                r.is_verified AS verified,
+                r.created_at AS createdAt
+            FROM reviews r
+            JOIN users u ON u.id = r.user_id
+            WHERE r.target_type = 'TOUR'
+            AND r.target_id = :tourId
+            AND r.is_published = TRUE
+            AND r.comment IS NOT NULL
+            AND TRIM(r.comment) <> ''
+            ORDER BY r.is_verified DESC, r.created_at DESC
+            LIMIT :limit OFFSET :offset
+            """, nativeQuery = true)
+    List<TourReviewProjection> findPublishedTourReviews(
+            @Param("tourId") Long tourId,
             @Param("limit") Integer limit,
             @Param("offset") Integer offset);
 }

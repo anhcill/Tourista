@@ -4,19 +4,25 @@ server:
 spring:
   # ===== DATABASE =====
   datasource:
-    url: jdbc:mysql://localhost:3306/tourista?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:root}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/tourista?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    open-in-view: false
     hibernate:
-      ddl-auto: update # tự tạo/cập nhật bảng mới (login_attempts, refresh_tokens...)
+      ddl-auto: none # dùng schema SQL/migration, tránh Hibernate tự ALTER gây lệch FK
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-chat.sql
 
   # ===== EMAIL (SMTP Gmail) =====
   mail:
@@ -47,7 +53,7 @@ spring:
 # ===== JWT + APP CONFIG =====
 app:
   jwt:
-    secret: tourista-super-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm
+    secret: ${JWT_SECRET:}
     access-token-expiry-ms: 900000 # 15 phút (ms)
     refresh-token-expiry-days: 7 # 7 ngày
 
@@ -59,7 +65,10 @@ app:
     login-per-minute: 5 # Tối đa 5 lần login / phút / IP
     register-per-minute: 3 # Tối đa 3 lần register / phút / IP
 
-  frontend-url: http://localhost:3000 # URL frontend (dùng cho redirect OAuth2, email link)
+  frontend-url: ${FRONTEND_URL:http://localhost:3000} # URL frontend (dùng cho redirect OAuth2, email link)
+
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
   vnpay:
     tmn-code: ${VNPAY_TMN_CODE:}
@@ -74,3 +83,11 @@ logging:
     # Client aborts on async responses are common (browser refresh/close).
     org.springframework.web.context.request.async: ERROR
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
+
+# ===== GEMINI AI =====
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: gemini-2.0-flash
+  api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+  timeout-seconds: 10
+  max-output-tokens: 400

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FaCalendarAlt, FaHotel, FaMapMarkerAlt, FaQrcode, FaUsers } from 'react-icons/fa';
 import bookingApi from '@/api/bookingApi';
+import ClientChatModal from '@/components/Chat/ClientChatModal';
 import styles from './page.module.css';
 
 const formatDate = (value) => {
@@ -60,12 +61,13 @@ const encodeQrData = (booking) => {
   }
 };
 
-export default function ProfileBookingsPage() {
+function ProfileBookingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [chatSeed, setChatSeed] = useState(null);
 
   const fromPayment = searchParams.get('from') === 'payment';
   const paymentBookingCode = searchParams.get('bookingCode') || '';
@@ -102,6 +104,31 @@ export default function ProfileBookingsPage() {
     () => bookings.find((item) => item.bookingCode === paymentBookingCode) || null,
     [bookings, paymentBookingCode],
   );
+
+  const openChatWithOwner = (booking) => {
+    const isTourBooking = booking.bookingType === 'TOUR' || (!!booking.tourId && !booking.hotelId);
+    const partnerId =
+      booking.partnerId ||
+      booking.ownerId ||
+      booking.operatorId ||
+      booking.hostId ||
+      booking.partner?.id ||
+      null;
+
+    const referenceId = isTourBooking
+      ? (booking.tourId || booking.referenceId || null)
+      : (booking.hotelId || booking.referenceId || null);
+
+    setChatSeed({
+      type: isTourBooking ? 'P2P_TOUR' : 'P2P_HOTEL',
+      partnerId,
+      referenceId,
+      bookingId: booking.bookingId || booking.id || null,
+      title: isTourBooking
+        ? (booking.tourTitle || 'Chu tour')
+        : (booking.hotelName || 'Chu khach san'),
+    });
+  };
 
   if (loading) {
     return <main className={styles.statusPage}>Đang tải lịch sử booking...</main>;
@@ -163,7 +190,8 @@ export default function ProfileBookingsPage() {
           {bookings.map((booking) => {
             const isTourBooking = booking.bookingType === 'TOUR' || (!!booking.tourId && !booking.hotelId);
             const qrData = encodeQrData(booking);
-            const detailUrl = qrData ? `${window.location.origin}/booking-qr?d=${encodeURIComponent(qrData)}` : '';
+            const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+            const detailUrl = qrData && baseOrigin ? `${baseOrigin}/booking-qr?d=${encodeURIComponent(qrData)}` : '';
             const qrUrl = detailUrl
               ? `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(detailUrl)}`
               : '';
@@ -217,7 +245,16 @@ export default function ProfileBookingsPage() {
                     <div><strong>{formatMoney(booking.totalAmount)} {booking.currency || 'VND'}</strong></div>
                   </div>
 
-                  <p className={styles.createdAt}>Đặt lúc: {formatDate(booking.createdAt)}</p>
+                  <div className={styles.actionRow}>
+                    <p className={styles.createdAt}>Đặt lúc: {formatDate(booking.createdAt)}</p>
+                    <button
+                      type="button"
+                      className={styles.chatOwnerBtn}
+                      onClick={() => openChatWithOwner(booking)}
+                    >
+                      Chat với Chủ
+                    </button>
+                  </div>
                 </div>
 
                 <div className={styles.qrBox}>
@@ -237,6 +274,20 @@ export default function ProfileBookingsPage() {
           })}
         </section>
       )}
+
+      <ClientChatModal
+        isOpen={!!chatSeed}
+        onClose={() => setChatSeed(null)}
+        conversationSeed={chatSeed}
+      />
     </main>
+  );
+}
+
+export default function ProfileBookingsPage() {
+  return (
+    <Suspense fallback={<main className={styles.statusPage}>Dang tai lich su booking...</main>}>
+      <ProfileBookingsContent />
+    </Suspense>
   );
 }

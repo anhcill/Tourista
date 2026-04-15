@@ -1,0 +1,129 @@
+.bannerContainer {
+    display: block;
+    width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    text-decoration: none;
+}
+
+.bannerContainer:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
+}
+
+.imageWrapper {
+    width: 100%;
+    height: 400px;
+    position: relative;
+}
+
+.bannerImage {
+    object-fit: cover;
+    transition: transform 0.7s ease;
+}
+
+.bannerContainer:hover .bannerImage {
+    transform: scale(1.05);
+}
+
+/* ── Overlays ── */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 48px;
+}
+
+/* Các biến thể hướng gradient đổ bóng để chữ dễ đọc */
+.overlay-left {
+    background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
+    justify-content: flex-start;
+}
+
+.overlay-right {
+    background: linear-gradient(270deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.overlay-center {
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    text-align: center;
+}
+
+.textContent {
+    color: #fff;
+    max-width: 400px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    line-height: 1.2;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.subtitle {
+    font-size: 16px;
+    margin-bottom: 24px;
+    opacity: 0.9;
+    line-height: 1.5;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.actionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0066ff;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.2s, padding 0.2s;
+}
+
+.bannerContainer:hover .actionBtn {
+    background: #0052cc;
+    padding-right: 20px; /* Hiệu ứng kéo dãn nút */
+}
+
+.icon {
+    transition: transform 0.2s;
+}
+
+.bannerContainer:hover .icon {
+    transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+    .imageWrapper {
+        height: 240px;
+    }
+    
+    .overlay {
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.5) !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+}

@@ -8,6 +8,7 @@ import {
     FaChevronDown, FaHeart, FaArrowLeft, FaBed, FaWalking, FaBus, FaRegCalendarAlt
 } from 'react-icons/fa';
 import { MdOutlinePool } from 'react-icons/md';
+import ClientChatModal from '@/components/Chat/ClientChatModal';
 import hotelApi from '@/api/hotelApi';
 import tourApi from '@/api/tourApi';
 import reviewApi from '@/api/reviewApi';
@@ -216,6 +217,7 @@ function HotelDetailInner() {
     const [reviewLoadingMore, setReviewLoadingMore] = useState(false);
     const [recommendedHotels, setRecommendedHotels] = useState([]);
     const [recommendedHotelsLoading, setRecommendedHotelsLoading] = useState(false);
+    const [chatModalOpen, setChatModalOpen] = useState(false);
 
     const checkIn = searchParams.get('checkIn') || '';
     const checkOut = searchParams.get('checkOut') || '';
@@ -430,6 +432,15 @@ function HotelDetailInner() {
         { label: 'Vi tri', score: Math.max(0, Math.min(10, reviewScore + 0.4)) },
         { label: 'Dich vu', score: Math.max(0, Math.min(10, reviewScore)) },
     ];
+    const hotelPartnerId =
+        hotel?.partnerId ||
+        hotel?.ownerId ||
+        hotel?.hostId ||
+        hotel?.operatorId ||
+        hotel?.owner?.id ||
+        hotel?.operator?.id ||
+        hotel?.partner?.id ||
+        null;
     const roomAlternatives = (hotel.roomTypes || []).filter((room) => room?.id !== selectedRoom?.id);
 
     const goToHotelDetail = (hotelId) => {
@@ -883,6 +894,12 @@ function HotelDetailInner() {
                                     Đặt phòng ngay
                                 </button>
                                 <button
+                                    className={styles.chatOwnerBtn}
+                                    onClick={() => setChatModalOpen(true)}
+                                >
+                                    Chat với Chủ
+                                </button>
+                                <button
                                     className={`${styles.tab} ${styles.switchRoomBtn}`}
                                     onClick={() => setActiveTab(2)}
                                 >
@@ -899,6 +916,17 @@ function HotelDetailInner() {
                     </div>
                 </div>
             </div>
+
+            <ClientChatModal
+                isOpen={chatModalOpen}
+                onClose={() => setChatModalOpen(false)}
+                conversationSeed={{
+                    type: 'P2P_HOTEL',
+                    partnerId: hotelPartnerId,
+                    referenceId: hotel?.id,
+                    title: hotel?.name,
+                }}
+            />
         </div>
     );
 }

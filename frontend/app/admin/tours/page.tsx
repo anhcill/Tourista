@@ -42,11 +42,6 @@ const formatVnd = (value: number) => {
   return `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))} VND`;
 };
 
-const simulateNetworkDelay = (ms = 350) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-
 export default function AdminToursPage() {
   const [overview, setOverview] = useState<AdminToursOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -190,11 +185,7 @@ export default function AdminToursPage() {
       setActionError('');
       setActionSuccess('');
 
-      if (overview?.hasMockFallback) {
-        await simulateNetworkDelay();
-      } else {
-        await adminApi.updateTourStatus(confirmState.tour.id, confirmState.action, reason);
-      }
+      await adminApi.updateTourStatus(confirmState.tour.id, confirmState.action, reason);
 
       patchTourStatusLocal(confirmState.tour.id, confirmState.action);
       setActionSuccess(`Da ${ACTION_LABELS[confirmState.action].toLowerCase()} tour thanh cong.`);

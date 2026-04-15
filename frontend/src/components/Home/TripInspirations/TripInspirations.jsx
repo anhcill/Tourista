@@ -2,6 +2,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FaArrowRight, FaBookOpen, FaClock, FaHeart } from 'react-icons/fa';
 import { MdAutoAwesome } from 'react-icons/md';
 import styles from './TripInspirations.module.css';
@@ -98,9 +100,11 @@ export default function TripInspirations() {
                     </div>
                     <div className={styles.headerContent}>
                         <h2 className={styles.title}>Lấy Cảm Hứng Cho Chuyến Đi Tiếp Theo</h2>
-                        <button className={styles.readAllBtn}>
-                            Đọc tất cả bài viết <FaArrowRight />
-                        </button>
+                        <Link href="/articles" style={{textDecoration: 'none'}}>
+                            <button className={styles.readAllBtn}>
+                                Đọc tất cả bài viết <FaArrowRight />
+                            </button>
+                        </Link>
                     </div>
                     <p className={styles.subtitle}>Đọc về những chuyến phiêu lưu tuyệt vời mà chúng tôi yêu thích nhất</p>
                 </div>
@@ -126,10 +130,17 @@ export default function TripInspirations() {
 /* ── Hero Card (big left) ── */
 function HeroCard({ article }) {
     const [liked, setLiked] = useState(false);
+    const router = useRouter();
+
+    const handleCardClick = (e) => {
+        // Prevent routing if clicking the like button
+        if (e.target.closest('button')) return;
+        router.push('/articles/kham-pha-bien-xanh-phu-quoc');
+    };
 
     return (
-        <div className={styles.heroCard}>
-            <img
+        <div className={styles.heroCard} onClick={handleCardClick} style={{cursor: 'pointer'}}>
+            <img loading="lazy" decoding="async"
                 src={article.cover_image}
                 alt={article.title}
                 className={styles.heroImage}
@@ -156,7 +167,7 @@ function HeroCard({ article }) {
 
                 <div className={styles.heroMeta}>
                     <div className={styles.heroAuthor}>
-                        <img src={article.author.avatar} alt={article.author.name} className={styles.avatar} />
+                        <img loading="lazy" decoding="async" src={article.author.avatar} alt={article.author.name} className={styles.avatar} />
                         <span>{article.author.name}</span>
                     </div>
                     <div className={styles.heroStats}>
@@ -176,11 +187,17 @@ function HeroCard({ article }) {
 /* ── Article Card (small) ── */
 function ArticleCard({ article }) {
     const [liked, setLiked] = useState(false);
+    const router = useRouter();
+
+    const handleCardClick = (e) => {
+        if (e.target.closest('button')) return;
+        router.push('/articles/kham-pha-bien-xanh-phu-quoc');
+    };
 
     return (
-        <div className={styles.articleCard}>
+        <div className={styles.articleCard} onClick={handleCardClick} style={{cursor: 'pointer'}}>
             <div className={styles.articleImageWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src={article.cover_image}
                     alt={article.title}
                     className={styles.articleImage}
@@ -199,7 +216,7 @@ function ArticleCard({ article }) {
 
                 <div className={styles.articleMeta}>
                     <div className={styles.articleAuthor}>
-                        <img src={article.author.avatar} alt={article.author.name} className={styles.smallAvatar} />
+                        <img loading="lazy" decoding="async" src={article.author.avatar} alt={article.author.name} className={styles.smallAvatar} />
                         <span className={styles.authorName}>{article.author.name}</span>
                         <span className={styles.metaDot}>·</span>
                         <span className={styles.metaDate}>{article.date}</span>

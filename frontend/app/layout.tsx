@@ -8,6 +8,7 @@ import Header from "../src/components/Layout/Header/Header";
 import Footer from "../src/components/Layout/Footer/Footer";
 import Toast from "../src/components/Common/Toast/Toast";
 import DetailTopSearchBar from "../src/components/Hotels/DetailTopSearchBar/DetailTopSearchBar";
+import BotChatWidget from "../src/components/Chat/BotChatWidget";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,7 +29,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const authPathPrefixes = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+    '/oauth2',
+  ];
+  const isAuthPage = authPathPrefixes.some((prefix) =>
+    pathname === prefix || (pathname || '').startsWith(`${prefix}/`),
+  );
   const isAdminRoute = (pathname || '').startsWith('/admin');
   const isHotelDetailPage = /^\/hotels\/\d+$/.test(pathname || '');
 
@@ -51,6 +62,8 @@ export default function RootLayout({
               </main>
               <Footer />
               <Toast />
+              {/* Bot Chat Widget — floating button góc dưới phải mọi trang */}
+              <BotChatWidget />
             </div>
           )}
         </ReduxProvider>

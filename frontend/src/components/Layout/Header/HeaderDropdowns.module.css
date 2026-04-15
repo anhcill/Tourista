@@ -1,0 +1,246 @@
+.dropdownContainer {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.triggerBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    border-radius: 999px;
+    padding: 0 14px;
+    border: 1px solid #d2e4ec;
+    background: rgba(255, 255, 255, 0.9);
+    color: #2a5368;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.triggerBtn.iconOnly {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.triggerBtn:hover {
+    background: #f0f8fd;
+    border-color: #0f7fb6;
+}
+
+.badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: #d23b3b;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 250px;
+    background: #ffffff;
+    border: 1px solid #dcebf1;
+    border-radius: 16px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 4px 16px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    overflow: hidden;
+    animation: dropdownFade 0.24s ease;
+}
+
+.dropdownLarge {
+    min-width: 320px;
+}
+
+@keyframes dropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(15, 127, 182, 0.08), rgba(0, 168, 168, 0.06));
+    border-bottom: 1px solid #e8f0f4;
+}
+
+.headerTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a3f54;
+    margin: 0;
+}
+
+.headerAction {
+    font-size: 12px;
+    color: #0f7fb6;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.headerAction:hover {
+    text-decoration: underline;
+}
+
+.divider {
+    height: 1px;
+    background: #e8f0f4;
+    margin: 8px 0;
+}
+
+.content {
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.content::-webkit-scrollbar {
+    width: 6px;
+}
+.content::-webkit-scrollbar-thumb {
+    background: #c3d5df;
+    border-radius: 10px;
+}
+.content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.emptyState {
+    padding: 24px;
+    text-align: center;
+    color: #648392;
+    font-size: 13px;
+}
+
+.menuItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    text-align: left;
+    color: #1f455b;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.menuItem:hover {
+    background: #f2fbff;
+    color: #0f7fb6;
+}
+
+.menuItem.active {
+    background: #eef9fd;
+    color: #0f7fb6;
+}
+
+.menuItemLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menuItemIcon {
+    font-size: 16px;
+    color: #0f7fb6;
+}
+
+.menuItemDesc {
+    font-size: 11px;
+    color: #648392;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* Notification Item */
+.notifItem {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f4f8;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+}
+
+.notifItem:last-child {
+    border-bottom: none;
+}
+
+.notifItem:hover {
+    background: #f9fcfd;
+}
+
+.notifItem.unread {
+    background: #f0f8fd;
+}
+
+.notifIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #e6f5fb;
+    color: #0077b6;
+    font-size: 14px;
+}
+
+.notifBody {
+    flex: 1;
+}
+
+.notifTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a3f54;
+    margin: 0 0 4px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notifTime {
+    font-size: 11px;
+    color: #8faebb;
+    font-weight: 500;
+}
+
+.notifText {
+    font-size: 12px;
+    color: #537586;
+    margin: 0;
+    line-height: 1.4;
+}

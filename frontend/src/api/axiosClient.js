@@ -37,6 +37,16 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    const clearSessionAndRedirectLogin = () => {
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
+
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    };
+
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -67,17 +77,17 @@ axiosClient.interceptors.response.use(
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${token}`;
           return axiosClient(originalRequest);
+        } else {
+          // Không còn refresh token => phiên đã hết, buộc đăng nhập lại
+          clearSessionAndRedirectLogin();
+          return Promise.reject({
+            message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+            status: 401,
+          });
         }
       } catch (refreshError) {
         // Refresh failed, logout user
-        localStorage.removeItem(STORAGE_KEYS.TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.USER);
-
-        // Redirect to login
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
+        clearSessionAndRedirectLogin();
 
         return Promise.reject(refreshError);
       }

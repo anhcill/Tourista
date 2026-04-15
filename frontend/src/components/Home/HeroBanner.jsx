@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaMapMarkerAlt, FaCalendar, FaUser, FaSearch, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import styles from './HeroBanner.module.css';
 import useHotelAutocomplete from '@/hooks/useHotelAutocomplete';
 

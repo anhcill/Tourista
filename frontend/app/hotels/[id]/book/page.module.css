@@ -44,11 +44,11 @@
 
 .breadcrumbSep {
   color: #cbd5e1;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .breadcrumbCurrent {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   color: #0f172a;
 }
@@ -81,7 +81,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 800;
   flex-shrink: 0;
   border: 2px solid #e2e8f0;
@@ -102,7 +102,7 @@
 }
 
 .progressStepLabel {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   color: #94a3b8;
 }
@@ -160,7 +160,7 @@
 
 .hotelName {
   margin: 0;
-  font-size: 28px;
+  font-size: 32px;
   line-height: 1.15;
   color: #111827;
 }
@@ -170,20 +170,20 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 17px;
   color: #374151;
 }
 
 .rating {
   margin: 0;
   color: #0369a1;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .locationBlock h3 {
   margin: 16px 0 8px;
-  font-size: 22px;
+  font-size: 26px;
   color: #111827;
 }
 
@@ -191,7 +191,7 @@
   margin: 0;
   padding-left: 18px;
   color: #4b5563;
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.7;
 }
 
@@ -206,13 +206,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 17px;
   color: #111827;
 }
 
 .block h2 {
   margin: 0 0 10px;
-  font-size: 34px;
+  font-size: 38px;
   color: #111827;
   line-height: 1.2;
 }
@@ -231,26 +231,26 @@
 }
 
 .dateGrid strong {
-  font-size: 18px;
+  font-size: 22px;
 }
 
 .dateGrid p {
   margin: 6px 0 0;
   color: #334155;
-  font-size: 13px;
+  font-size: 17px;
 }
 
 .metaList {
   margin: 12px 0 0;
   padding-left: 16px;
   color: #374151;
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.7;
 }
 
 .roomMeta {
   margin: 0 0 10px;
-  font-size: 15px;
+  font-size: 19px;
   color: #1f2937;
 }
 
@@ -267,7 +267,7 @@
   border-radius: 8px;
   padding: 8px;
   text-align: center;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -277,7 +277,7 @@
   gap: 8px;
   padding: 10px 0;
   border-bottom: 1px solid #e5e7eb;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .discount {
@@ -285,18 +285,18 @@
 }
 
 .total {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 800;
 }
 
 .subTitle {
-  font-size: 24px;
+  font-size: 28px;
   margin: 16px 0 8px;
 }
 
 .note {
   margin: 0;
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.6;
   color: #374151;
 }
@@ -314,7 +314,7 @@
 .switchRow p {
   margin: 6px 0 0;
   color: #6b7280;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .switchRow input {
@@ -329,12 +329,12 @@
 }
 
 .topAction strong {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .topAction p {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: 16px;
   color: #6b7280;
 }
 
@@ -346,13 +346,13 @@
   padding: 8px 12px;
   cursor: pointer;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .helperText {
   margin: 0 0 12px;
   color: #4b5563;
-  font-size: 13px;
+  font-size: 17px;
 }
 
 .inputGrid3 {
@@ -370,7 +370,7 @@
 
 .block label {
   display: block;
-  font-size: 12px;
+  font-size: 16px;
   color: #374151;
   font-weight: 600;
 }
@@ -383,7 +383,7 @@
   border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 9px 10px;
-  font-size: 13px;
+  font-size: 17px;
   background: #ffffff;
 }
 
@@ -392,7 +392,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 17px;
 }
 
 .checkboxRow input {
@@ -471,18 +471,18 @@
 }
 
 .methodBody strong {
-  font-size: 13px;
+  font-size: 17px;
   color: #0f172a;
 }
 
 .methodBody small {
-  font-size: 12px;
+  font-size: 16px;
   color: #475569;
 }
 
 .methodBadge {
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 700;
   color: #0c4a6e;
   background: #dbeafe;
@@ -495,7 +495,7 @@
   background: #f0f9ff;
   border-radius: 10px;
   padding: 10px;
-  font-size: 13px;
+  font-size: 17px;
   color: #0c4a6e;
 }
 
@@ -554,7 +554,7 @@
 
   .hotelName,
   .block h2 {
-    font-size: 26px;
+    font-size: 30px;
   }
 }
 

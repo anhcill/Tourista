@@ -20,6 +20,7 @@ type ConfirmState = {
   actionType: UpdateActionType;
   user: AdminUserRow | null;
   nextValue: string;
+  userReason: string;
 };
 
 const ROLE_OPTIONS: AdminUserRole[] = ['ADMIN', 'USER', 'HOST'];
@@ -46,11 +47,6 @@ const formatDateTime = (value: string | null) => {
 
 const userKey = (id: string) => String(id);
 
-const simulateNetworkDelay = (ms = 350) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-
 export default function AdminUsersPage() {
   const [usersOverview, setUsersOverview] = useState<AdminUsersOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,6 +68,7 @@ export default function AdminUsersPage() {
     actionType: 'role',
     user: null,
     nextValue: '',
+    userReason: '',
   });
 
   const [actionLoading, setActionLoading] = useState(false);
@@ -142,11 +139,18 @@ export default function AdminUsersPage() {
       actionType,
       user,
       nextValue,
+      userReason: '',
     });
   };
 
   const closeConfirmModal = () => {
-    setConfirmState((prev) => ({ ...prev, open: false, user: null, nextValue: '' }));
+    setConfirmState((prev) => ({
+      ...prev,
+      open: false,
+      user: null,
+      nextValue: '',
+      userReason: '',
+    }));
   };
 
   const applyLocalPatch = (userId: string, patch: Partial<AdminUserRow>) => {
@@ -167,7 +171,11 @@ export default function AdminUsersPage() {
     if (!confirmState.user || !confirmState.nextValue) return;
 
     const targetUser = confirmState.user;
-    const isMockMode = Boolean(usersOverview?.hasMockFallback);
+    const reason = confirmState.userReason.trim();
+    if (!reason) {
+      setActionError('Ly do la bat buoc cho thao tac cap nhat user.');
+      return;
+    }
 
     try {
       setActionLoading(true);
@@ -175,11 +183,7 @@ export default function AdminUsersPage() {
       setActionSuccess('');
 
       if (confirmState.actionType === 'role') {
-        if (isMockMode) {
-          await simulateNetworkDelay();
-        } else {
-          await adminApi.updateUserRole(targetUser.id, confirmState.nextValue);
-        }
+        await adminApi.updateUserRole(targetUser.id, confirmState.nextValue, reason);
 
         const nextRole = confirmState.nextValue as AdminUserRole;
         applyLocalPatch(targetUser.id, { role: nextRole });
@@ -188,11 +192,7 @@ export default function AdminUsersPage() {
       }
 
       if (confirmState.actionType === 'status') {
-        if (isMockMode) {
-          await simulateNetworkDelay();
-        } else {
-          await adminApi.updateUserStatus(targetUser.id, confirmState.nextValue);
-        }
+        await adminApi.updateUserStatus(targetUser.id, confirmState.nextValue, reason);
 
         const nextStatus = confirmState.nextValue as AdminUserStatus;
         applyLocalPatch(targetUser.id, { status: nextStatus });
@@ -490,6 +490,21 @@ export default function AdminUsersPage() {
               {confirmState.actionType === 'role' ? 'Role moi' : 'Status moi'}:{' '}
               <strong>{confirmState.nextValue}</strong>
             </p>
+
+            <label className={styles.reasonField}>
+              <span>Ly do thao tac (bat buoc)</span>
+              <textarea
+                value={confirmState.userReason}
+                onChange={(event) =>
+                  setConfirmState((prev) => ({
+                    ...prev,
+                    userReason: event.target.value,
+                  }))
+                }
+                placeholder="Nhap ly do de luu audit log"
+                rows={4}
+              />
+            </label>
 
             <div className={styles.modalActions}>
               <button type="button" className={styles.ghostButton} onClick={closeConfirmModal}>

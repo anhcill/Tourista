@@ -309,7 +309,7 @@ function DealCard({ deal, onBook }) {
         >
             <div className={styles.cardImageWrap}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <img loading="lazy" decoding="async"
                     src={deal.cover_image}
                     alt={isHotel ? deal.name : deal.title}
                     className={styles.cardImage}

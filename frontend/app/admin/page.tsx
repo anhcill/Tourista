@@ -51,7 +51,7 @@ export default function AdminDashboardPage() {
         setLoading(true);
         setError('');
         const data = await adminApi.getDashboardOverview();
-        setOverview(data);
+        setOverview(data as DashboardOverview);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Khong the tai dashboard admin.';
         setError(message);

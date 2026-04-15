@@ -38,7 +38,7 @@ export default function WhyChooseUs() {
         <section className={styles.section}>
             {/* Background image */}
             <div className={styles.bgImageWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src="https://images.unsplash.com/photo-1540541338537-1220059a5b57?w=1600&q=85"
                     alt="Luxury pool resort"
                     className={styles.bgImage}

@@ -1,0 +1,80 @@
+.cardContainer {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 16px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.header {
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.question {
+  font-weight: 700;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.choiceBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(14, 116, 144, 0.2);
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 86px;
+}
+
+.choiceBtn:hover:not(.disabled):not(.selected) {
+  background: #e0f2fe;
+  border-color: rgba(2, 132, 199, 0.4);
+  transform: translateY(-2px);
+}
+
+.emoji {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.selected {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(3, 105, 161, 0.3);
+}
+
+.selected .label {
+  color: white;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+}

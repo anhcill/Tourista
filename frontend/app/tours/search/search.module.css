@@ -43,7 +43,7 @@
 
 .heroBannerSub {
   color: rgba(255,255,255,0.65);
-  font-size: 0.92rem;
+  font-size: 1.16rem;
   margin: 0 0 24px;
 }
 
@@ -71,7 +71,7 @@
 
 .inlineIcon {
   color: rgba(255,255,255,0.5);
-  font-size: 0.82rem;
+  font-size: 1.06rem;
   flex-shrink: 0;
 }
 
@@ -80,7 +80,7 @@
   border: none;
   outline: none;
   color: #ffffff;
-  font-size: 0.9rem;
+  font-size: 1.14rem;
   font-weight: 500;
   width: 100%;
   min-width: 80px;
@@ -104,7 +104,7 @@
   border-radius: 12px;
   padding: 10px 22px;
   font-weight: 800;
-  font-size: 0.88rem;
+  font-size: 1.12rem;
   cursor: pointer;
   white-space: nowrap;
   transition: transform 0.16s, box-shadow 0.2s;
@@ -153,7 +153,7 @@
 }
 
 .sidebarTitle {
-  font-size: 0.95rem;
+  font-size: 1.19rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
@@ -163,11 +163,11 @@
 }
 
 .sidebarTitleIcon {
-  font-size: 1rem;
+  font-size: 1.24rem;
 }
 
 .resetBtn {
-  font-size: 0.76rem;
+  font-size: 1.00rem;
   font-weight: 700;
   color: #0077b6;
   background: none;
@@ -198,7 +198,7 @@
   border: none;
   cursor: pointer;
   padding: 14px 20px;
-  font-size: 0.87rem;
+  font-size: 1.11rem;
   font-weight: 700;
   color: #0f172a;
   text-align: left;
@@ -210,7 +210,7 @@
 
 .filterChevron {
   color: #94a3b8;
-  font-size: 0.72rem;
+  font-size: 0.96rem;
   transition: transform 0.2s ease;
   flex-shrink: 0;
 }
@@ -237,7 +237,7 @@
 }
 
 .priceFieldLabel {
-  font-size: 0.72rem;
+  font-size: 0.96rem;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
@@ -248,7 +248,7 @@
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   padding: 8px 10px;
-  font-size: 0.84rem;
+  font-size: 1.08rem;
   color: #0f172a;
   transition: border-color 0.2s;
   width: 100%;
@@ -272,7 +272,7 @@
   border-radius: 999px;
   border: 1.5px solid #e2e8f0;
   background: #f8fafc;
-  font-size: 0.78rem;
+  font-size: 1.02rem;
   font-weight: 700;
   color: #475569;
   cursor: pointer;
@@ -302,7 +302,7 @@
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   padding: 8px 10px;
-  font-size: 0.84rem;
+  font-size: 1.08rem;
   color: #0f172a;
   width: 60px;
   text-align: center;
@@ -315,7 +315,7 @@
 
 .durationSep {
   color: #94a3b8;
-  font-size: 0.84rem;
+  font-size: 1.08rem;
 }
 
 /* ── RESULTS SIDE ───────────────────────────────────────── */
@@ -345,14 +345,14 @@
 }
 
 .resultsCity {
-  font-size: 1.1rem;
+  font-size: 1.34rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0;
 }
 
 .resultsCount {
-  font-size: 0.82rem;
+  font-size: 1.06rem;
   color: #64748b;
   font-weight: 500;
 }
@@ -369,7 +369,7 @@
 }
 
 .sortLabel {
-  font-size: 0.8rem;
+  font-size: 1.04rem;
   font-weight: 600;
   color: #64748b;
   white-space: nowrap;
@@ -379,7 +379,7 @@
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   padding: 8px 12px;
-  font-size: 0.84rem;
+  font-size: 1.08rem;
   color: #0f172a;
   font-weight: 600;
   background: #f8fafc;
@@ -411,19 +411,19 @@
 }
 
 .statusBoxIcon {
-  font-size: 2.4rem;
+  font-size: 2.64rem;
   margin-bottom: 12px;
 }
 
 .statusBoxTitle {
-  font-size: 1rem;
+  font-size: 1.24rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 6px;
 }
 
 .statusBoxSub {
-  font-size: 0.84rem;
+  font-size: 1.08rem;
   color: #94a3b8;
   margin: 0;
 }
@@ -450,7 +450,7 @@
   font-weight: 700;
   padding: 10px 20px;
   cursor: pointer;
-  font-size: 0.88rem;
+  font-size: 1.12rem;
 }
 
 /* ── RESPONSIVE ─────────────────────────────────────────── */

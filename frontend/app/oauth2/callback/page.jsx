@@ -4,6 +4,7 @@ import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../../src/store/slices/authSlice';
+import authApi from '../../../src/api/authApi';
 
 // Loading spinner (dùng chung cho Suspense fallback và CallbackHandler)
 const Spinner = () => (
@@ -38,37 +39,42 @@ function CallbackHandler() {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const accessToken = searchParams.get('accessToken');
-        const refreshToken = searchParams.get('refreshToken');
+        const code = searchParams.get('code');
 
-        if (!accessToken) {
-            // Không có token → về trang login
+        if (!code) {
+            // Không có code → về trang login
             router.replace('/login?error=oauth_failed');
             return;
         }
 
-        try {
-            // Decode JWT payload để lấy thông tin user (email, role)
-            const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        const exchange = async () => {
+            try {
+                const response = await authApi.exchangeOAuth2Code(code);
+                const payload = response?.data || response;
+                const accessToken = payload?.accessToken;
+                const refreshToken = payload?.refreshToken;
+                const user = payload?.user || null;
 
-            const user = {
-                email: payload.sub,
-                role: payload.role,
-            };
+                if (!accessToken || !refreshToken || !user) {
+                    throw new Error('OAuth2 exchange payload is invalid.');
+                }
 
-            // Lưu vào Redux store — authSlice sẽ tự persist vào localStorage
-            dispatch(loginSuccess({
-                token: accessToken,
-                refreshToken: refreshToken,
-                user: user,
-            }));
+                dispatch(loginSuccess({
+                    token: accessToken,
+                    refreshToken,
+                    user,
+                }));
 
-            // Redirect về trang chủ sau khi lưu session
-            router.replace('/');
-        } catch (err) {
-            console.error('OAuth2 callback error:', err);
-            router.replace('/login?error=oauth_failed');
-        }
+                const role = String(user?.role || '').toUpperCase();
+                const destination = role === 'ADMIN' || role === 'ROLE_ADMIN' ? '/admin' : '/';
+                router.replace(destination);
+            } catch (err) {
+                console.error('OAuth2 callback exchange error:', err);
+                router.replace('/login?error=oauth_failed');
+            }
+        };
+
+        exchange();
     }, [searchParams, dispatch, router]);
 
     return <Spinner />;

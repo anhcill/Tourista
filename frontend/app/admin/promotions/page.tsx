@@ -24,6 +24,7 @@ type PromotionTypeFilter = 'ALL' | AdminPromotionType;
 
 type PromotionFormState = {
   code: string;
+  name: string;
   description: string;
   type: AdminPromotionType;
   value: string;
@@ -50,6 +51,7 @@ const TYPE_OPTIONS: PromotionTypeFilter[] = ['ALL', 'PERCENT', 'FIXED'];
 
 const EMPTY_FORM: PromotionFormState = {
   code: '',
+  name: '',
   description: '',
   type: 'PERCENT',
   value: '',
@@ -204,6 +206,7 @@ export default function AdminPromotionsPage() {
     setFormSuccess('');
     setForm({
       code: promotion.code,
+      name: promotion.name || promotion.code,
       description: promotion.description,
       type: promotion.type,
       value: String(promotion.value),
@@ -221,6 +224,10 @@ export default function AdminPromotionsPage() {
     const code = form.code.trim().toUpperCase();
     if (!/^[A-Z0-9_-]{4,20}$/.test(code)) {
       return 'Code phai 4-20 ky tu, chi gom A-Z, 0-9, _ hoac -.';
+    }
+
+    if (!form.name.trim()) {
+      return 'Name promotion la bat buoc.';
     }
 
     const value = Number(form.value);
@@ -257,55 +264,11 @@ export default function AdminPromotionsPage() {
       return 'End date phai lon hon start date.';
     }
 
-    if (editingPromotionId && form.changeReason.trim().length < 5) {
-      return 'Khi sua promotion, reason toi thieu 5 ky tu.';
+    if (form.changeReason.trim().length < 5) {
+      return 'Reason toi thieu 5 ky tu.';
     }
 
     return '';
-  };
-
-  const applyPromotionPatch = (promotionId: string, patch: Partial<AdminPromotionRow>) => {
-    setOverview((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        promotions: prev.promotions.map((promotion) => {
-          if (promotion.id !== promotionId) return promotion;
-          return { ...promotion, ...patch, updatedAt: new Date().toISOString() };
-        }),
-      };
-    });
-  };
-
-  const prependPromotion = (promotion: AdminPromotionRow) => {
-    setOverview((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        promotions: [promotion, ...prev.promotions].slice(0, pageSize),
-        meta: {
-          ...prev.meta,
-          total: prev.meta.total + 1,
-        },
-      };
-    });
-  };
-
-  const removePromotion = (promotionId: string) => {
-    setOverview((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        promotions: prev.promotions.filter((promotion) => promotion.id !== promotionId),
-        meta: {
-          ...prev.meta,
-          total: Math.max(0, prev.meta.total - 1),
-        },
-      };
-    });
   };
 
   const handleSubmitPromotion = async (event: FormEvent<HTMLFormElement>) => {
@@ -321,6 +284,7 @@ export default function AdminPromotionsPage() {
 
     const payload = {
       code: form.code.trim().toUpperCase(),
+      name: form.name.trim(),
       description: form.description.trim(),
       type: form.type,
       value: Number(form.value),
@@ -330,55 +294,20 @@ export default function AdminPromotionsPage() {
       startAt: toIso(form.startAt),
       endAt: toIso(form.endAt),
       isActive: form.isActive,
-      reason: form.changeReason.trim() || undefined,
+      reason: form.changeReason.trim(),
     };
 
     try {
       setSubmitting(true);
 
       if (editingPromotionId) {
-        if (overview?.hasMockFallback) {
-          applyPromotionPatch(editingPromotionId, {
-            code: payload.code,
-            description: payload.description,
-            type: payload.type,
-            value: payload.value,
-            minOrderAmount: payload.minOrderAmount,
-            maxDiscountAmount: payload.maxDiscountAmount,
-            usageLimit: payload.usageLimit,
-            startAt: payload.startAt,
-            endAt: payload.endAt,
-            isActive: payload.isActive,
-          });
-        } else {
-          await adminApi.updateAdminPromotion(editingPromotionId, payload);
-          await loadPromotions({ silent: true });
-        }
+        await adminApi.updateAdminPromotion(editingPromotionId, payload);
+        await loadPromotions({ silent: true });
 
         setFormSuccess('Cap nhat promotion thanh cong.');
       } else {
-        if (overview?.hasMockFallback) {
-          const nowIso = new Date().toISOString();
-          prependPromotion({
-            id: `MOCK-${Date.now()}`,
-            code: payload.code,
-            description: payload.description,
-            type: payload.type,
-            value: payload.value,
-            minOrderAmount: payload.minOrderAmount,
-            maxDiscountAmount: payload.maxDiscountAmount,
-            usageLimit: payload.usageLimit,
-            usedCount: 0,
-            startAt: payload.startAt,
-            endAt: payload.endAt,
-            isActive: payload.isActive,
-            createdAt: nowIso,
-            updatedAt: nowIso,
-          });
-        } else {
-          await adminApi.createAdminPromotion(payload);
-          await loadPromotions({ silent: true });
-        }
+        await adminApi.createAdminPromotion(payload);
+        await loadPromotions({ silent: true });
 
         setFormSuccess('Tao promotion thanh cong.');
       }
@@ -423,22 +352,13 @@ export default function AdminPromotionsPage() {
     try {
       if (confirmState.action === 'toggle') {
         const nextActive = !confirmState.promotion.isActive;
-
-        if (overview?.hasMockFallback) {
-          applyPromotionPatch(confirmState.promotion.id, { isActive: nextActive });
-        } else {
-          await adminApi.updateAdminPromotionStatus(confirmState.promotion.id, nextActive, reason);
-          await loadPromotions({ silent: true });
-        }
+        await adminApi.updateAdminPromotionStatus(confirmState.promotion.id, nextActive, reason);
+        await loadPromotions({ silent: true });
       }
 
       if (confirmState.action === 'delete') {
-        if (overview?.hasMockFallback) {
-          removePromotion(confirmState.promotion.id);
-        } else {
-          await adminApi.deleteAdminPromotion(confirmState.promotion.id, reason);
-          await loadPromotions({ silent: true });
-        }
+        await adminApi.deleteAdminPromotion(confirmState.promotion.id, reason);
+        await loadPromotions({ silent: true });
       }
 
       closeConfirm();
@@ -497,6 +417,15 @@ export default function AdminPromotionsPage() {
               onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value.toUpperCase() }))}
               placeholder="SUMMER25"
               maxLength={20}
+            />
+          </label>
+
+          <label>
+            <span>Name</span>
+            <input
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              placeholder="Summer Campaign 2026"
             />
           </label>
 
@@ -589,16 +518,14 @@ export default function AdminPromotionsPage() {
             <span>Active</span>
           </label>
 
-          {editingPromotionId ? (
-            <label className={styles.fullWidth}>
-              <span>Reason (required for update)</span>
-              <input
-                value={form.changeReason}
-                onChange={(event) => setForm((prev) => ({ ...prev, changeReason: event.target.value }))}
-                placeholder="Nhap ly do cap nhat promotion"
-              />
-            </label>
-          ) : null}
+          <label className={styles.fullWidth}>
+            <span>Reason (required)</span>
+            <input
+              value={form.changeReason}
+              onChange={(event) => setForm((prev) => ({ ...prev, changeReason: event.target.value }))}
+              placeholder="Nhap ly do thao tac promotion"
+            />
+          </label>
 
           <div className={`${styles.actionsBar} ${styles.fullWidth}`}>
             <button className={styles.primaryButton} type="submit" disabled={submitting}>
@@ -709,6 +636,7 @@ export default function AdminPromotionsPage() {
                       <td>
                         <div className={styles.codeCell}>
                           <strong>{promotion.code}</strong>
+                          <span>{promotion.name || '-'}</span>
                           <span>{promotion.description || '-'}</span>
                         </div>
                       </td>

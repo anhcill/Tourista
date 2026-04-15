@@ -112,7 +112,13 @@ export type AdminToursOverview = {
   hasMockFallback: boolean;
 };
 
-export type AdminBookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+export type AdminBookingStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'CHECKED_IN'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'REFUNDED';
 
 export type AdminBookingType = 'HOTEL' | 'TOUR';
 
@@ -154,6 +160,7 @@ export type AdminPromotionLifecycleStatus = 'ACTIVE' | 'INACTIVE' | 'UPCOMING' |
 export type AdminPromotionRow = {
   id: string;
   code: string;
+  name: string;
   description: string;
   type: AdminPromotionType;
   value: number;
@@ -170,6 +177,30 @@ export type AdminPromotionRow = {
 
 export type AdminPromotionsOverview = {
   promotions: AdminPromotionRow[];
+  meta: {
+    total: number;
+    page: number;
+    size: number;
+  };
+  dataMode: 'live-or-partial' | 'mock';
+  hasMockFallback: boolean;
+};
+
+export type AdminAuditLogRow = {
+  id: string;
+  actorId: string | null;
+  actorEmail: string;
+  action: string;
+  resource: string;
+  resourceId: string | null;
+  beforeData: string;
+  afterData: string;
+  reason: string;
+  timestamp: string | null;
+};
+
+export type AdminAuditLogsOverview = {
+  auditLogs: AdminAuditLogRow[];
   meta: {
     total: number;
     page: number;

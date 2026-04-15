@@ -21,6 +21,10 @@ public class MyBookingResponse {
     private String status;
     private BigDecimal totalAmount;
     private String currency;
+    private Long partnerId;
+    private String partnerName;
+    private Long ownerId;
+    private Long operatorId;
 
     private Long hotelId;
     private String hotelName;

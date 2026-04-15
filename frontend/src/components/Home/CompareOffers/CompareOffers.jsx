@@ -160,7 +160,7 @@ function CategoryCard({ cat }) {
         >
             {/* Image */}
             <div className={styles.imageWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src={cat.cover_image}
                     alt={cat.label}
                     className={`${styles.image} ${hovered ? styles.imageZoom : ''}`}

@@ -214,7 +214,7 @@ function DestinationCard({ dest, onExplore }) {
         >
             {/* Image */}
             <div className={styles.imageWrap}>
-                <img
+                <img loading="lazy" decoding="async"
                     src={dest.cover_image}
                     alt={dest.city.name_en}
                     className={`${styles.image} ${hovered ? styles.imageZoom : ''}`}

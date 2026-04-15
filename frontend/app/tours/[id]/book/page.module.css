@@ -33,7 +33,7 @@
   border-radius: 10px;
   padding: 8px 16px;
   font-weight: 700;
-  font-size: 0.84rem;
+  font-size: 1.08rem;
   cursor: pointer;
   transition: all 0.18s ease;
 }
@@ -46,11 +46,11 @@
 
 .breadcrumbSep {
   color: #cbd5e1;
-  font-size: 0.9rem;
+  font-size: 1.14rem;
 }
 
 .breadcrumbCurrent {
-  font-size: 0.84rem;
+  font-size: 1.08rem;
   font-weight: 700;
   color: #0f172a;
 }
@@ -84,7 +84,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
+  font-size: 1.02rem;
   font-weight: 800;
   flex-shrink: 0;
   border: 2px solid #e2e8f0;
@@ -105,7 +105,7 @@
 }
 
 .progressStepLabel {
-  font-size: 0.78rem;
+  font-size: 1.02rem;
   font-weight: 700;
   color: #94a3b8;
 }
@@ -172,13 +172,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.24rem;
   flex-shrink: 0;
 }
 
 .blockTitle {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.19rem;
   font-weight: 800;
   color: #0f172a;
 }
@@ -210,7 +210,7 @@
 .tourTitle {
   margin: 0 0 8px;
   color: #ffffff;
-  font-size: 1.15rem;
+  font-size: 1.39rem;
   font-weight: 800;
   line-height: 1.3;
 }
@@ -221,7 +221,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.84rem;
+  font-size: 1.08rem;
 }
 
 .tourCityIcon {
@@ -240,7 +240,7 @@
   color: rgba(255,255,255,0.85);
   border-radius: 999px;
   padding: 5px 12px;
-  font-size: 0.76rem;
+  font-size: 1.00rem;
   font-weight: 700;
 }
 
@@ -259,7 +259,7 @@
 }
 
 .infoCellLabel {
-  font-size: 0.72rem;
+  font-size: 0.96rem;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
@@ -269,7 +269,7 @@
 }
 
 .infoCellValue {
-  font-size: 0.92rem;
+  font-size: 1.16rem;
   font-weight: 700;
   color: #0f172a;
 }
@@ -288,7 +288,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 0.88rem;
+  font-size: 1.12rem;
   color: #1e293b;
   line-height: 1.5;
 }
@@ -306,7 +306,7 @@
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid #f1f5f9;
-  font-size: 0.88rem;
+  font-size: 1.12rem;
   color: #475569;
 }
 
@@ -333,13 +333,13 @@
 }
 
 .totalLabel {
-  font-size: 0.88rem;
+  font-size: 1.12rem;
   font-weight: 700;
   color: #0f172a;
 }
 
 .totalAmount {
-  font-size: 1.55rem;
+  font-size: 1.79rem;
   font-weight: 900;
   color: #0077b6;
   letter-spacing: -0.03em;
@@ -353,7 +353,7 @@
 .formLabel {
   display: block;
   margin-bottom: 6px;
-  font-size: 0.78rem;
+  font-size: 1.02rem;
   font-weight: 800;
   color: #475569;
   text-transform: uppercase;
@@ -366,7 +366,7 @@
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   padding: 11px 13px;
-  font-size: 0.9rem;
+  font-size: 1.14rem;
   color: #0f172a;
   background: #f8fafc;
   outline: none;
@@ -422,7 +422,7 @@
 }
 
 .methodEmoji {
-  font-size: 1.4rem;
+  font-size: 1.64rem;
   flex-shrink: 0;
 }
 
@@ -431,14 +431,14 @@
 }
 
 .methodTitle {
-  font-size: 0.9rem;
+  font-size: 1.14rem;
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 2px;
 }
 
 .methodSub {
-  font-size: 0.76rem;
+  font-size: 1.00rem;
   color: #94a3b8;
   margin: 0;
 }
@@ -477,7 +477,7 @@
 }
 
 .agreeText {
-  font-size: 0.84rem;
+  font-size: 1.08rem;
   color: #475569;
   line-height: 1.5;
 }
@@ -496,7 +496,7 @@
   background: linear-gradient(135deg, #0077b6, #00a8a8);
   color: #fff;
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 1.24rem;
   padding: 16px;
   cursor: pointer;
   box-shadow: 0 6px 22px rgba(0,119,182,0.35);
@@ -519,7 +519,7 @@
 
 .secureNote {
   margin: 10px 0 0;
-  font-size: 0.76rem;
+  font-size: 1.00rem;
   color: #94a3b8;
   text-align: center;
   display: flex;
@@ -538,7 +538,7 @@
   padding: 40px 32px;
   text-align: center;
   color: #64748b;
-  font-size: 1rem;
+  font-size: 1.24rem;
 }
 
 .statusBoxError {
@@ -562,7 +562,7 @@
   padding: 11px 22px;
   font-weight: 700;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1.14rem;
 }
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */

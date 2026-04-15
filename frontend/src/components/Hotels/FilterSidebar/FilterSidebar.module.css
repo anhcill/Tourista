@@ -1,27 +1,27 @@
 .sidebar {
-  width: 260px;
+  width: 280px;
   flex-shrink: 0;
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.02);
   height: fit-content;
   position: sticky;
-  top: 20px;
+  top: 24px;
 }
 
 .sidebarTitle {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 16px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 20px 0;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 .section {
-  border-bottom: 1px solid #f0f0f0;
-  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 16px 0;
 }
 
 .section:last-child {
@@ -70,29 +70,45 @@
 }
 
 .budgetInput {
-  width: 72px;
-  padding: 5px 8px;
-  border: 1.5px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  color: #1a1a2e;
+  width: 100px;
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
   text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .budgetInput:focus {
   outline: none;
-  border-color: #0d47a1;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .budgetDash {
-  color: #999;
+  color: #94a3b8;
   font-size: 0.9rem;
 }
 
 .rangeSlider {
   width: 100%;
-  accent-color: #0d47a1;
+  accent-color: #2563eb;
   cursor: pointer;
+  margin-top: 12px;
+}
+
+.budgetHints {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.hintValue {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
 }
 
 /* Checkbox list */
@@ -117,35 +133,38 @@
 }
 
 .checkbox {
-  width: 16px;
-  height: 16px;
-  accent-color: #0d47a1;
+  width: 18px;
+  height: 18px;
+  accent-color: #2563eb;
   cursor: pointer;
   flex-shrink: 0;
+  border-radius: 4px;
 }
 
 .checkText {
-  font-size: 0.84rem;
-  color: #444;
+  font-size: 0.88rem;
+  color: #334155;
+  font-weight: 500;
 }
 
 .starText {
   font-size: 0.9rem;
-  color: #f4a826;
-  letter-spacing: 1px;
+  color: #fbbf24;
+  letter-spacing: 2px;
 }
 
 .showMore {
   background: none;
   border: none;
-  color: #0d47a1;
-  font-size: 0.82rem;
+  color: #2563eb;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 6px 0 0 0;
-  text-decoration: underline;
+  padding: 8px 0 0 0;
+  margin-top: 4px;
 }
 
 .showMore:hover {
-  color: #1565c0;
+  text-decoration: underline;
+  color: #1d4ed8;
 }

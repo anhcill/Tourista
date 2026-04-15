@@ -311,6 +311,34 @@
   font-size: 14px;
 }
 
+.reasonField {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reasonField span {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.reasonField textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 9px 10px;
+  font-size: 13px;
+  color: #0f172a;
+  resize: vertical;
+  min-height: 92px;
+}
+
+.reasonField textarea:focus {
+  outline: 2px solid #bae6fd;
+  border-color: #0ea5e9;
+}
+
 .modalActions {
   margin-top: 14px;
   display: flex;

@@ -291,6 +291,22 @@ public class BookingServiceImpl implements BookingService {
                     BookingHotelDetail detail = detailsByBookingId.get(booking.getId());
                     BookingTourDetail tourDetail = tourDetailsByBookingId.get(booking.getId());
 
+                    Long ownerId = detail != null && detail.getHotel() != null && detail.getHotel().getOwner() != null
+                            ? detail.getHotel().getOwner().getId()
+                            : null;
+                    Long operatorId = tourDetail != null && tourDetail.getTour() != null
+                            && tourDetail.getTour().getOperator() != null
+                                    ? tourDetail.getTour().getOperator().getId()
+                                    : null;
+                    Long partnerId = ownerId != null ? ownerId : operatorId;
+                    String partnerName = detail != null && detail.getHotel() != null
+                            && detail.getHotel().getOwner() != null
+                                    ? detail.getHotel().getOwner().getFullName()
+                                    : (tourDetail != null && tourDetail.getTour() != null
+                                            && tourDetail.getTour().getOperator() != null
+                                                    ? tourDetail.getTour().getOperator().getFullName()
+                                                    : null);
+
                     return MyBookingResponse.builder()
                             .bookingId(booking.getId())
                             .bookingCode(booking.getBookingCode())
@@ -298,6 +314,10 @@ public class BookingServiceImpl implements BookingService {
                             .status(booking.getStatus().name())
                             .totalAmount(booking.getTotalAmount())
                             .currency(booking.getCurrency())
+                            .partnerId(partnerId)
+                            .partnerName(partnerName)
+                            .ownerId(ownerId)
+                            .operatorId(operatorId)
                             .hotelId(detail != null && detail.getHotel() != null ? detail.getHotel().getId() : null)
                             .hotelName(detail != null ? detail.getHotelName() : null)
                             .roomTypeId(detail != null && detail.getRoomType() != null ? detail.getRoomType().getId()
