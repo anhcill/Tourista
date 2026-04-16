@@ -147,13 +147,47 @@
   gap: 18px;
 }
 
+.recoveryBanner {
+  background: #ecfeff;
+  border: 1px solid #99f6e4;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.recoveryText {
+  margin: 0;
+  color: #155e75;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.recoveryMeta {
+  margin: 10px 0 0;
+  color: #0f766e;
+  font-size: 0.93rem;
+  font-weight: 700;
+}
+
+.recoveryBtn {
+  margin-top: 10px;
+  border: 1px solid #0f766e;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f766e;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
 /* ── CARD BLOCK ───────────────────────────────────────────── */
 .block {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,50,100,0.05);
+  box-shadow: 0 2px 12px rgba(0, 50, 100, 0.05);
 }
 
 .blockHeader {
@@ -168,7 +202,11 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(0,119,182,0.12), rgba(0,168,168,0.15));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 119, 182, 0.12),
+    rgba(0, 168, 168, 0.15)
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +230,7 @@
   background: linear-gradient(135deg, #0f2044 0%, #0a3d5e 100%);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(0,50,100,0.18);
+  box-shadow: 0 8px 28px rgba(0, 50, 100, 0.18);
 }
 
 .tourSummaryImg {
@@ -217,7 +255,7 @@
 
 .tourCity {
   margin: 0 0 14px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -235,12 +273,12 @@
 }
 
 .tag {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: rgba(255,255,255,0.85);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.85);
   border-radius: 999px;
   padding: 5px 12px;
-  font-size: 1.00rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -272,6 +310,10 @@
   font-size: 1.16rem;
   font-weight: 700;
   color: #0f172a;
+}
+
+.infoUsersIcon {
+  margin-right: 5px;
 }
 
 /* ── POLICY LIST ──────────────────────────────────────────── */
@@ -370,14 +412,16 @@
   color: #0f172a;
   background: #f8fafc;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   font-family: inherit;
 }
 
 .input:focus,
 .textarea:focus {
   border-color: #0077b6;
-  box-shadow: 0 0 0 3px rgba(0,119,182,0.1);
+  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
   background: #ffffff;
 }
 
@@ -413,7 +457,7 @@
 .methodItemActive {
   border-color: #0077b6 !important;
   background: #e0f2fe !important;
-  box-shadow: 0 0 0 3px rgba(0,119,182,0.1);
+  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.1);
 }
 
 .methodItemDisabled {
@@ -438,7 +482,7 @@
 }
 
 .methodSub {
-  font-size: 1.00rem;
+  font-size: 1rem;
   color: #94a3b8;
   margin: 0;
 }
@@ -461,6 +505,10 @@
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.16s ease;
+}
+
+.agreeRowSpaced {
+  margin-top: 16px;
 }
 
 .agreeRow:hover {
@@ -499,14 +547,20 @@
   font-size: 1.24rem;
   padding: 16px;
   cursor: pointer;
-  box-shadow: 0 6px 22px rgba(0,119,182,0.35);
-  transition: transform 0.16s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 22px rgba(0, 119, 182, 0.35);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.2s ease;
   letter-spacing: 0.01em;
+}
+
+.submitBtnSpaced {
+  margin-top: 16px;
 }
 
 .submitBtn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(0,119,182,0.45);
+  box-shadow: 0 12px 30px rgba(0, 119, 182, 0.45);
 }
 
 .submitBtn:disabled {
@@ -519,13 +573,24 @@
 
 .secureNote {
   margin: 10px 0 0;
-  font-size: 1.00rem;
+  font-size: 1rem;
   color: #94a3b8;
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
+}
+
+.secureCalendarIcon {
+  margin-left: 4px;
+}
+
+.suspenseFallback {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ── STATUS BOXES ─────────────────────────────────────────── */

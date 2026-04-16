@@ -5,7 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { addMessage, setWsConnected } from "../store/slices/chatSlice";
-import { API_BASE_URL, STORAGE_KEYS } from "../utils/constants";
+import { API_BASE_URL } from "../utils/constants";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "../utils/authStorage";
 
 const AUTH_ERROR_PATTERN =
   /token|authorization|unauthor|forbidden|access denied|het han|khong hop le|missing/i;
@@ -61,7 +67,7 @@ export const useChatWebSocket = () => {
   const refreshAccessToken = useCallback(async () => {
     if (typeof window === "undefined") return null;
 
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    const refreshToken = getRefreshToken();
     if (!refreshToken) return null;
 
     try {
@@ -82,9 +88,9 @@ export const useChatWebSocket = () => {
 
       if (!nextToken) return null;
 
-      localStorage.setItem(STORAGE_KEYS.TOKEN, nextToken);
+      setAccessToken(nextToken);
       if (nextRefreshToken) {
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, nextRefreshToken);
+        setRefreshToken(nextRefreshToken);
       }
 
       return nextToken;
@@ -96,7 +102,7 @@ export const useChatWebSocket = () => {
   const ensureValidAccessToken = useCallback(async () => {
     if (typeof window === "undefined") return null;
 
-    const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    const token = getAccessToken();
     if (!token) return null;
 
     if (!isTokenExpired(token)) return token;

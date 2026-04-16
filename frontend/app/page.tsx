@@ -4,7 +4,6 @@ import ExclusiveHotelSearch from '@/components/Home/ExclusiveHotelSearch/Exclusi
 import TopAnnouncementBar from '@/components/Ads/TopAnnouncementBar';
 import PromoPopup from '@/components/Ads/PromoPopup';
 import FloatingGiftWidget from '@/components/Ads/FloatingGiftWidget';
-import InlineAdBanner from '@/components/Ads/InlineAdBanner';
 import BottomBannerCarousel from '@/components/Ads/BottomBannerCarousel';
 import styles from './page.module.css';
 

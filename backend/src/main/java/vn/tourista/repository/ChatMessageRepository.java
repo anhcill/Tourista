@@ -18,6 +18,9 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     // Lấy lịch sử tin nhắn của 1 phiên chat (phân trang, mới nhất trước)
     Page<ChatMessage> findByConversationOrderByCreatedAtAsc(Conversation conversation, Pageable pageable);
 
+    // Lấy lịch sử tin nhắn mới nhất trước, phục vụ trang đầu là đoạn chat gần nhất
+    Page<ChatMessage> findByConversationOrderByCreatedAtDesc(Conversation conversation, Pageable pageable);
+
     // Tin nhắn mới nhất của conversation (hiển thị snippet trong danh sách)
     Optional<ChatMessage> findTopByConversationOrderByCreatedAtDesc(Conversation conversation);
 

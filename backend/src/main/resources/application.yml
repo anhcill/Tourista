@@ -2,11 +2,16 @@ server:
   port: 8080
 
 spring:
+  config:
+    # Support running from both backend/ and workspace root/.
+    import: optional:file:.env[.properties],optional:file:backend/.env[.properties],optional:file:${user.dir}/.env[.properties],optional:file:${user.dir}/backend/.env[.properties]
+
   # ===== DATABASE =====
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/tourista?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true}
-    username: ${DB_USERNAME:}
-    password: ${DB_PASSWORD:}
+    # Priority: explicit DB_* -> SPRING_DATASOURCE_* -> Railway MYSQL* -> local default
+    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:tourista}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true}}
+    username: ${DB_USERNAME:${SPRING_DATASOURCE_USERNAME:${MYSQLUSER:root}}}
+    password: ${DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:${MYSQLPASSWORD:${MYSQL_ROOT_PASSWORD:}}}}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

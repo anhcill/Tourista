@@ -13,11 +13,13 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * GeminiService — Gọi Gemini Flash API để trả lời thông minh khi FAQ không khớp.
+ * GeminiService — Gọi Gemini Flash API để trả lời thông minh khi FAQ không
+ * khớp.
  *
  * - Dùng java.net.http (Java 11+, không cần thêm dependency)
  * - System prompt đặt context Tourista, chỉ trả lời về du lịch
- * - Nếu API key rỗng hoặc lỗi → trả về null để BotService dùng default FAQ answer
+ * - Nếu API key rỗng hoặc lỗi → trả về null để BotService dùng default FAQ
+ * answer
  */
 @Slf4j
 @Service
@@ -26,7 +28,7 @@ public class GeminiService {
     private static final String SYSTEM_PROMPT = """
             Bạn là Tourista Travel Buddy — trợ lý du lịch AI thân thiện của nền tảng Tourista.vn.
             Tourista chuyên cung cấp dịch vụ đặt tour và khách sạn tại Việt Nam.
-            
+
             QUY TẮC TRẢ LỜI:
             1. Chỉ trả lời các câu hỏi liên quan đến: du lịch, tour, khách sạn, điểm đến, kinh nghiệm đi lại, thời tiết, thủ tục visa/giấy tờ, tiết kiệm chi phí du lịch.
             2. Nếu user hỏi ngoài phạm vi du lịch → từ chối lịch sự và hướng về chủ đề du lịch.
@@ -61,13 +63,21 @@ public class GeminiService {
      * @return Câu trả lời từ Gemini, hoặc null nếu API key chưa cấu hình / lỗi
      */
     public String ask(String userMessage) {
+        return ask(userMessage, null);
+    }
+
+    /**
+     * Gọi Gemini API với ngữ cảnh hội thoại gần nhất để trả lời bám mạch hơn.
+     */
+    public String ask(String userMessage, String conversationContext) {
         if (apiKey == null || apiKey.isBlank()) {
             log.debug("GeminiService: API key chưa cấu hình, bỏ qua AI fallback.");
             return null;
         }
 
         try {
-            String requestBody = buildRequestBody(userMessage);
+            String prompt = composePrompt(userMessage, conversationContext);
+            String requestBody = buildRequestBody(prompt);
             String url = apiUrl + "?key=" + apiKey;
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -101,10 +111,10 @@ public class GeminiService {
      * Build JSON body cho Gemini generateContent API.
      * Dùng "system_instruction" để nhúng system prompt.
      */
-    private String buildRequestBody(String userMessage) throws Exception {
+    private String buildRequestBody(String userMessage) {
         // Escape ký tự đặc biệt trong JSON
         String escapedSystem = escapeJson(SYSTEM_PROMPT);
-        String escapedUser   = escapeJson(userMessage);
+        String escapedUser = escapeJson(userMessage);
 
         return """
                 {
@@ -124,6 +134,20 @@ public class GeminiService {
                   }
                 }
                 """.formatted(escapedSystem, escapedUser, maxOutputTokens);
+    }
+
+    private String composePrompt(String userMessage, String conversationContext) {
+        if (conversationContext == null || conversationContext.isBlank()) {
+            return userMessage;
+        }
+
+        return """
+                Ngữ cảnh hội thoại gần đây:
+                %s
+
+                Câu hỏi hiện tại của khách:
+                %s
+                """.formatted(conversationContext, userMessage);
     }
 
     /**
@@ -159,7 +183,8 @@ public class GeminiService {
      * Escape các ký tự đặc biệt trong JSON string.
      */
     private String escapeJson(String text) {
-        if (text == null) return "";
+        if (text == null)
+            return "";
         return text
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")

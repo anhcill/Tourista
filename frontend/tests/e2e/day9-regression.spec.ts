@@ -65,4 +65,63 @@ test.describe('Day 9 E2E Regression', () => {
     await expect(page.getByRole('heading', { name: /Dashboard Tong quan/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Recent Bookings/i })).toBeVisible();
   });
+
+  test('unauthenticated profile route is redirected to login', async ({ page }) => {
+    await mockApi(page, { loginRole: 'USER' });
+
+    await page.goto('/profile');
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('unauthenticated admin route redirects with return URL', async ({ page }) => {
+    await mockApi(page, { loginRole: 'USER' });
+
+    await page.goto('/admin');
+    await expect(page).toHaveURL(/\/login\?redirect=(%2Fadmin|\/admin)/);
+  });
+
+  test('non-admin user cannot access admin area', async ({ page }) => {
+    await seedAuthStorage(page, 'USER');
+    await mockApi(page, { loginRole: 'USER' });
+
+    await page.goto('/admin');
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('tour booking keeps user on page when create booking API fails', async ({ page }) => {
+    await seedAuthStorage(page, 'USER');
+    await mockApi(page, {
+      loginRole: 'USER',
+      bookingCreateStatus: 'failure',
+    });
+
+    await page.goto('/tours/1/book?departureId=501&departureDate=2026-08-20&adults=2&children=1');
+    await expect(page).toHaveURL(/\/tours\/1\/book/);
+
+    await page.getByRole('checkbox').check();
+    await page.getByRole('button', { name: /Xác nhận đặt tour|Xac nhan dat tour/i }).click();
+
+    await expect(page).toHaveURL(/\/tours\/1\/book/, { timeout: 8000 });
+    await expect(page.getByText(/Khong the tao booking tour luc nay|Không thể tạo booking tour/i)).toBeVisible();
+  });
+
+  test('expired refresh token flow redirects authenticated user to login', async ({ page }) => {
+    await seedAuthStorage(page, 'USER');
+    await mockApi(page, {
+      loginRole: 'USER',
+      profileStatus: 401,
+      refreshStatus: 401,
+    });
+
+    await page.goto('/profile');
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('vnpay callback without vnp params shows verification error state', async ({ page }) => {
+    await mockApi(page, { loginRole: 'USER' });
+
+    await page.goto('/payments/vnpay/return');
+    await expect(page.getByRole('heading', { name: /Xác minh không thành công|Xac minh khong thanh cong/i })).toBeVisible();
+    await expect(page.getByText(/Không nhận được dữ liệu phản hồi từ cổng thanh toán VNPay/i)).toBeVisible();
+  });
 });

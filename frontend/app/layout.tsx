@@ -1,14 +1,7 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { Inter, Poppins } from "next/font/google";
-import { usePathname } from "next/navigation";
 import "./globals.css";
-import ReduxProvider from "../src/store/ReduxProvider";
-import Header from "../src/components/Layout/Header/Header";
-import Footer from "../src/components/Layout/Footer/Footer";
-import Toast from "../src/components/Common/Toast/Toast";
-import DetailTopSearchBar from "../src/components/Hotels/DetailTopSearchBar/DetailTopSearchBar";
-import BotChatWidget from "../src/components/Chat/BotChatWidget";
+import AppShellClient from "@/components/Layout/AppShellClient";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,50 +16,40 @@ const poppins = Poppins({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Tourista | Dat tour va khach san',
+    template: '%s | Tourista',
+  },
+  description:
+    'Nen tang dat tour du lich va khach san tai Viet Nam voi quy trinh nhanh, minh bach va an toan.',
+  openGraph: {
+    title: 'Tourista | Dat tour va khach san',
+    description:
+      'Kham pha tour va khach san chat luong cao, dat lich nhanh, thanh toan tien loi.',
+    url: siteUrl,
+    siteName: 'Tourista',
+    locale: 'vi_VN',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const authPathPrefixes = [
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/reset-password',
-    '/verify-email',
-    '/oauth2',
-  ];
-  const isAuthPage = authPathPrefixes.some((prefix) =>
-    pathname === prefix || (pathname || '').startsWith(`${prefix}/`),
-  );
-  const isAdminRoute = (pathname || '').startsWith('/admin');
-  const isHotelDetailPage = /^\/hotels\/\d+$/.test(pathname || '');
-
   return (
     <html lang="vi">
       <body className={`${inter.variable} ${poppins.variable}`}>
-        <ReduxProvider>
-          {isAuthPage || isAdminRoute ? (
-            // Auth pages and admin shell: no public header/footer
-            <>
-              {children}
-              <Toast />
-            </>
-          ) : (
-            // Regular pages: with header/footer
-            <div className="app-shell">
-              {isHotelDetailPage ? <DetailTopSearchBar /> : <Header />}
-              <main className="app-main">
-                {children}
-              </main>
-              <Footer />
-              <Toast />
-              {/* Bot Chat Widget — floating button góc dưới phải mọi trang */}
-              <BotChatWidget />
-            </div>
-          )}
-        </ReduxProvider>
+        <AppShellClient>{children}</AppShellClient>
       </body>
     </html>
   );

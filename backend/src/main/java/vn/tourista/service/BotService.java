@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -23,6 +24,7 @@ import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -83,6 +85,8 @@ public class BotService {
             "\\b(\\d{1,2})\\s*n\\s*\\d{1,2}\\s*[đd]\\b",
             Pattern.CASE_INSENSITIVE);
     private static final long RECOMMENDATION_STATE_TIMEOUT_MINUTES = 20;
+    private static final int RECOMMENDATION_HISTORY_SCAN_LIMIT = 20;
+    private static final int AI_CONTEXT_HISTORY_LIMIT = 8;
     private static final List<CityAlias> CITY_ALIASES = List.of(
             new CityAlias("da nang", "Da Nang", List.of("da nang", "đà nẵng")),
             new CityAlias("da lat", "Da Lat", List.of("da lat", "đà lạt")),
@@ -101,6 +105,8 @@ public class BotService {
     private final TourItineraryRepository tourItineraryRepository;
     private final TourRepository tourRepository;
     private final TourImageRepository tourImageRepository;
+    private final ConversationRepository conversationRepository;
+    private final ChatMessageRepository chatMessageRepository;
     private final ObjectMapper objectMapper;
     private final GeminiService geminiService;
     private volatile List<FaqRule> faqRules = List.of();
@@ -178,15 +184,22 @@ public class BotService {
             } else if (isHotTourIntent(canonicalInput)) {
                 // Luồng 2b: Tour hot
                 pushHotTours(conversationId, clientEmail);
-            } else if (hasActiveRecommendation(conversationId)) {
-                // Luồng 2: Slot-filling đang chạy
-                processRecommendationFlow(conversationId, inputText, canonicalInput, clientEmail);
-            } else if (isRecommendationIntent(canonicalInput)) {
-                // Luồng 2: Bắt đầu gợi ý tour
-                startRecommendationFlow(conversationId, inputText, clientEmail);
             } else {
-                // Luồng 3: FAQ + AI fallback
-                processFaqFallback(conversationId, inputText, clientEmail);
+                if (!hasActiveRecommendation(conversationId)
+                        && isRecommendationFollowUpIntent(inputText, canonicalInput)) {
+                    restoreRecommendationStateFromHistory(conversationId);
+                }
+
+                if (hasActiveRecommendation(conversationId)) {
+                    // Luồng 2: Slot-filling đang chạy
+                    processRecommendationFlow(conversationId, inputText, canonicalInput, clientEmail);
+                } else if (isRecommendationIntent(canonicalInput)) {
+                    // Luồng 2: Bắt đầu gợi ý tour
+                    startRecommendationFlow(conversationId, inputText, clientEmail);
+                } else {
+                    // Luồng 3: FAQ + AI fallback
+                    processFaqFallback(conversationId, inputText, clientEmail);
+                }
             }
         } catch (Exception ex) {
             log.error("BotService: Unexpected error while handling bot message. conversationId={}, clientEmail={}",
@@ -677,6 +690,95 @@ public class BotService {
         return (hasSuggestIntent && hasTourContext) || directBudgetIntent || (directRefineIntent && hasTourContext);
     }
 
+    private boolean isRecommendationFollowUpIntent(String inputText, String canonicalInput) {
+        boolean hasRefineKeyword = containsAny(canonicalInput,
+                List.of("loc", "xoa loc", "bo loc", "reset loc", "diem den", "so ngay", "ngay", "dem"));
+        boolean hasCityHint = parseCityAlias(canonicalInput) != null;
+        boolean hasDurationHint = parseMaxDurationDays(inputText) != null;
+
+        return hasRefineKeyword || hasCityHint || hasDurationHint;
+    }
+
+    private void restoreRecommendationStateFromHistory(Long conversationId) {
+        if (hasActiveRecommendation(conversationId)) {
+            return;
+        }
+
+        Conversation conversation = conversationRepository.findById(conversationId).orElse(null);
+        if (conversation == null) {
+            return;
+        }
+
+        Page<ChatMessage> page = chatMessageRepository.findByConversationOrderByCreatedAtDesc(
+                conversation,
+                PageRequest.of(0, RECOMMENDATION_HISTORY_SCAN_LIMIT));
+
+        if (page.isEmpty()) {
+            return;
+        }
+
+        List<ChatMessage> chronological = new ArrayList<>(page.getContent());
+        Collections.reverse(chronological);
+
+        Integer budgetVnd = null;
+        Integer travelers = null;
+        String cityQuery = null;
+        String cityDisplay = null;
+        Integer maxDurationDays = null;
+
+        for (ChatMessage message : chronological) {
+            if (message.getSender() == null) {
+                continue;
+            }
+
+            String content = message.getContent();
+            if (content == null || content.isBlank()) {
+                continue;
+            }
+
+            String canonical = canonicalize(normalizeInput(content));
+
+            Integer parsedBudget = parseBudgetVnd(content);
+            if (parsedBudget != null) {
+                budgetVnd = parsedBudget;
+            }
+
+            Integer parsedTravelers = parseTravelers(content, true);
+            if (parsedTravelers != null) {
+                travelers = parsedTravelers;
+            }
+
+            CityAlias parsedCity = parseCityAlias(canonical);
+            if (parsedCity != null) {
+                cityQuery = parsedCity.queryValue();
+                cityDisplay = parsedCity.displayValue();
+            }
+
+            Integer parsedDuration = parseMaxDurationDays(content);
+            if (parsedDuration != null) {
+                maxDurationDays = parsedDuration;
+            }
+
+            if (containsAny(canonical, List.of("xoa loc", "bo loc", "reset loc"))) {
+                cityQuery = null;
+                cityDisplay = null;
+                maxDurationDays = null;
+            }
+        }
+
+        if (budgetVnd == null && travelers == null && cityQuery == null && maxDurationDays == null) {
+            return;
+        }
+
+        recommendationStates.put(conversationId, new RecommendationState(
+                budgetVnd,
+                travelers,
+                cityQuery,
+                cityDisplay,
+                maxDurationDays,
+                LocalDateTime.now()));
+    }
+
     private boolean isHotTourIntent(String canonicalInput) {
         return containsAny(canonicalInput, List.of(
                 "tour hot", "tour noi bat", "pho bien", "bestseller",
@@ -867,7 +969,8 @@ public class BotService {
         if ((answer == null || answer.isBlank()) && geminiService.isEnabled()) {
             log.info("BotService: Không khớp FAQ, chuyển sang Gemini AI. conversationId={}", conversationId);
             try {
-                String aiAnswer = geminiService.ask(inputText);
+                String context = buildRecentConversationContext(conversationId);
+                String aiAnswer = geminiService.ask(inputText, context);
                 if (aiAnswer != null && !aiAnswer.isBlank()) {
                     answer = "🤖 " + aiAnswer;
                 }
@@ -939,6 +1042,48 @@ public class BotService {
                 .toLowerCase();
 
         return normalized.replaceAll("\\s+", " ").trim();
+    }
+
+    private String buildRecentConversationContext(Long conversationId) {
+        Conversation conversation = conversationRepository.findById(conversationId).orElse(null);
+        if (conversation == null) {
+            return "";
+        }
+
+        Page<ChatMessage> page = chatMessageRepository.findByConversationOrderByCreatedAtDesc(
+                conversation,
+                PageRequest.of(0, AI_CONTEXT_HISTORY_LIMIT));
+
+        if (page.isEmpty()) {
+            return "";
+        }
+
+        List<ChatMessage> chronological = new ArrayList<>(page.getContent());
+        Collections.reverse(chronological);
+
+        StringBuilder context = new StringBuilder();
+        for (ChatMessage message : chronological) {
+            if (message.getContent() == null || message.getContent().isBlank()) {
+                continue;
+            }
+
+            if (message.getContentType() == ChatMessage.ContentType.SYSTEM_LOG) {
+                continue;
+            }
+
+            String role = message.getSender() == null ? "Tro ly" : "Khach";
+            String normalized = message.getContent().replaceAll("\\s+", " ").trim();
+            if (normalized.length() > 220) {
+                normalized = normalized.substring(0, 220) + "...";
+            }
+
+            if (!context.isEmpty()) {
+                context.append("\n");
+            }
+            context.append(role).append(": ").append(normalized);
+        }
+
+        return context.toString();
     }
 
     private List<FaqRule> buildFallbackFaqRules() {

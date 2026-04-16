@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { FaBookOpen, FaHeart, FaEye, FaClock } from 'react-icons/fa';
 import styles from './page.module.css';
@@ -142,7 +143,14 @@ export default function ArticlesPage() {
                     {filteredArticles.map((article) => (
                         <Link href={`/articles/${article.slug}`} key={article.id} className={styles.card}>
                             <div className={styles.imgWrapper}>
-                                <img src={article.image} alt={article.title} className={styles.cardImg} loading="lazy" decoding="async" />
+                                <Image
+                                    src={article.image}
+                                    alt={article.title}
+                                    className={styles.cardImg}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 350px"
+                                    unoptimized
+                                />
                                 <span className={styles.categoryBadge}>{article.category}</span>
                             </div>
                             <div className={styles.cardBody}>
@@ -154,7 +162,7 @@ export default function ArticlesPage() {
                                 <p className={styles.excerpt}>{article.excerpt}</p>
                                 <div className={styles.cardFooter}>
                                     <div className={styles.author}>
-                                        <img src={article.author.avatar} alt="Avatar" className={styles.avatar} />
+                                        <Image src={article.author.avatar} alt="Avatar" className={styles.avatar} width={36} height={36} unoptimized />
                                         <span>{article.author.name}</span>
                                     </div>
                                     <div className={styles.stats}>

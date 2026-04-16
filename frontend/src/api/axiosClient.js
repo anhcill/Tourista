@@ -1,5 +1,12 @@
 import axios from "axios";
 import { API_BASE_URL, STORAGE_KEYS } from "../utils/constants";
+import {
+  clearAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "../utils/authStorage";
 
 // Create axios instance
 const axiosClient = axios.create({
@@ -13,8 +20,8 @@ const axiosClient = axios.create({
 // Request interceptor
 axiosClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    // Read auth token from hardened storage helper.
+    const token = getAccessToken();
 
     // Add token to headers if exists
     if (token) {
@@ -38,8 +45,7 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     const clearSessionAndRedirectLogin = () => {
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      clearAuthTokens();
       localStorage.removeItem(STORAGE_KEYS.USER);
 
       if (typeof window !== "undefined") {
@@ -53,7 +59,7 @@ axiosClient.interceptors.response.use(
 
       try {
         // Try to refresh token
-        const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+        const refreshToken = getRefreshToken();
 
         if (refreshToken) {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
@@ -69,9 +75,9 @@ axiosClient.interceptors.response.use(
           }
 
           // Save new token
-          localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+          setAccessToken(token);
           if (newRefreshToken) {
-            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
+            setRefreshToken(newRefreshToken);
           }
 
           // Retry original request with new token

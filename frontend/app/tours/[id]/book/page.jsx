@@ -10,6 +10,11 @@ import {
 } from 'react-icons/fa';
 import tourApi from '@/api/tourApi';
 import bookingApi from '@/api/bookingApi';
+import {
+  clearTourBookingDraft,
+  loadTourBookingDraft,
+  saveTourBookingDraft,
+} from '@/utils/conversionStorage';
 import styles from './page.module.css';
 
 const formatVnd = (value) =>
@@ -25,6 +30,15 @@ const PAYMENT_METHODS = [
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=900&q=80';
 
+const DEFAULT_FORM = {
+  guestName: '',
+  guestEmail: '',
+  guestPhone: '',
+  specialRequests: '',
+  paymentMethod: 'card_domestic',
+  agreeTerms: false,
+};
+
 /* ════════════════════════════════════════════════════════════
    BOOKING INNER
    ════════════════════════════════════════════════════════════ */
@@ -38,15 +52,10 @@ function TourBookingInner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasDraftLoaded, setHasDraftLoaded] = useState(false);
+  const [recoveredDraftAt, setRecoveredDraftAt] = useState(null);
 
-  const [form, setForm] = useState({
-    guestName: '',
-    guestEmail: '',
-    guestPhone: '',
-    specialRequests: '',
-    paymentMethod: 'card_domestic',
-    agreeTerms: false,
-  });
+  const [form, setForm] = useState(DEFAULT_FORM);
 
   const query = useMemo(() => ({
     departureId: Number(searchParams.get('departureId') || 0),
@@ -55,16 +64,59 @@ function TourBookingInner() {
     children: Math.max(0, Number(searchParams.get('children') || 0)),
   }), [searchParams]);
 
+  const draftContext = useMemo(() => ({
+    tourId: Number(id || 0),
+    departureId: Number(query.departureId || 0),
+    departureDate: query.departureDate,
+    adults: query.adults,
+    children: query.children,
+  }), [id, query]);
+
+  const hasDraftableProgress = useMemo(() => {
+    return Boolean(
+      form.guestName.trim() ||
+      form.guestEmail.trim() ||
+      form.guestPhone.trim() ||
+      form.specialRequests.trim() ||
+      form.agreeTerms ||
+      form.paymentMethod !== DEFAULT_FORM.paymentMethod,
+    );
+  }, [form]);
+
   /* Pre-fill from user profile */
   useEffect(() => {
     if (!user) return;
     setForm((prev) => ({
       ...prev,
-      guestName: (user.fullName || '').trim(),
-      guestEmail: user.email || '',
-      guestPhone: user.phone || '',
+      guestName: prev.guestName || (user.fullName || '').trim(),
+      guestEmail: prev.guestEmail || user.email || '',
+      guestPhone: prev.guestPhone || user.phone || '',
     }));
   }, [user]);
+
+  useEffect(() => {
+    const draft = loadTourBookingDraft(draftContext);
+    if (draft?.form) {
+      setForm((prev) => ({ ...prev, ...draft.form }));
+      setRecoveredDraftAt(Number(draft.savedAt || Date.now()));
+      toast.info('Da khoi phuc ban nhap dat tour gan nhat.');
+    } else {
+      setRecoveredDraftAt(null);
+    }
+
+    setHasDraftLoaded(true);
+  }, [draftContext]);
+
+  useEffect(() => {
+    if (!hasDraftLoaded || !id) return;
+
+    if (!hasDraftableProgress) {
+      clearTourBookingDraft(draftContext);
+      return;
+    }
+
+    saveTourBookingDraft(draftContext, form);
+  }, [draftContext, form, hasDraftLoaded, hasDraftableProgress, id]);
 
   /* Fetch tour detail */
   useEffect(() => {
@@ -156,12 +208,19 @@ function TourBookingInner() {
         bookingType: 'TOUR',
         tourId: String(id),
       });
+      clearTourBookingDraft(draftContext);
       router.push(`/payments/success?${successParams.toString()}`);
     } catch (err) {
       toast.error(err?.message || 'Không thể tạo booking tour. Vui lòng thử lại.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleClearSavedDraft = () => {
+    clearTourBookingDraft(draftContext);
+    setRecoveredDraftAt(null);
+    toast.info('Da xoa ban nhap luu tru cho hanh trinh nay.');
   };
 
   /* ── STATES ── */
@@ -250,7 +309,7 @@ function TourBookingInner() {
                   <div className={styles.infoCell}>
                     <span className={styles.infoCellLabel}>Số lượng khách</span>
                     <span className={styles.infoCellValue}>
-                      <FaUsers style={{ marginRight: 5 }} />
+                      <FaUsers className={styles.infoUsersIcon} />
                       {adults} người lớn, {children} trẻ em
                     </span>
                   </div>
@@ -281,6 +340,22 @@ function TourBookingInner() {
 
           {/* ══════════ RIGHT COL ══════════ */}
           <aside className={styles.rightCol}>
+            <div className={styles.recoveryBanner}>
+              <p className={styles.recoveryText}>
+                He thong tu dong luu ban nhap dat tour de ban tiep tuc neu roi trang giua chung.
+              </p>
+              {recoveredDraftAt && (
+                <p className={styles.recoveryMeta}>
+                  Da khoi phuc ban nhap luc {new Date(recoveredDraftAt).toLocaleString('vi-VN')}.
+                </p>
+              )}
+              {hasDraftableProgress && (
+                <button type="button" className={styles.recoveryBtn} onClick={handleClearSavedDraft}>
+                  Xoa ban nhap da luu
+                </button>
+              )}
+            </div>
+
             {/* Price summary */}
             <div className={styles.block}>
               <div className={styles.blockHeader}>
@@ -387,7 +462,7 @@ function TourBookingInner() {
                   ))}
                 </div>
 
-                <label className={styles.agreeRow} style={{ marginTop: 16 }}>
+                <label className={`${styles.agreeRow} ${styles.agreeRowSpaced}`}>
                   <input
                     type="checkbox"
                     className={styles.agreeCheckbox}
@@ -404,16 +479,15 @@ function TourBookingInner() {
 
                 <button
                   type="button"
-                  className={styles.submitBtn}
+                  className={`${styles.submitBtn} ${styles.submitBtnSpaced}`}
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  style={{ marginTop: 16 }}
                 >
                   {isSubmitting ? '⏳ Đang xử lý...' : '🎒 Xác nhận đặt tour'}
                 </button>
 
                 <p className={styles.secureNote}>
-                  <FaShieldAlt /> <FaCalendarAlt style={{ marginLeft: 4 }} />
+                  <FaShieldAlt /> <FaCalendarAlt className={styles.secureCalendarIcon} />
                   &nbsp;Thanh toán an toàn · Nhận mã booking ngay lập tức
                 </p>
               </div>
@@ -427,7 +501,7 @@ function TourBookingInner() {
 
 export default function TourBookingPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Đang tải...</div>}>
+    <Suspense fallback={<div className={styles.suspenseFallback}>Đang tải...</div>}>
       <TourBookingInner />
     </Suspense>
   );

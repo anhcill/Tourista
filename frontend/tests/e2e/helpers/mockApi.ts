@@ -9,12 +9,23 @@ type ApiPayload = {
 
 type ApiMockOptions = {
   loginRole?: 'USER' | 'ADMIN';
+  bookingCreateStatus?: 'success' | 'failure';
+  profileStatus?: 200 | 401;
+  refreshStatus?: 200 | 401;
+  vnpayVerifySuccess?: boolean;
+};
+
+const MOCK_CORS_HEADERS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+  'access-control-allow-headers': '*',
 };
 
 const respond = async (route: Route, status: number, payload: ApiPayload) => {
   await route.fulfill({
     status,
     contentType: 'application/json; charset=utf-8',
+    headers: MOCK_CORS_HEADERS,
     body: JSON.stringify({
       success: payload.success ?? status < 400,
       message: payload.message ?? (status < 400 ? 'OK' : 'Error'),
@@ -210,10 +221,14 @@ const adminTours = {
   size: 1,
 };
 
-const chatConversations = [];
+const chatConversations: Array<Record<string, unknown>> = [];
 
 export const mockApi = async (page: Page, options: ApiMockOptions = {}) => {
   const loginRole = options.loginRole ?? 'USER';
+  const bookingCreateStatus = options.bookingCreateStatus ?? 'success';
+  const profileStatus = options.profileStatus ?? 200;
+  const refreshStatus = options.refreshStatus ?? 200;
+  const vnpayVerifySuccess = options.vnpayVerifySuccess ?? true;
 
   await page.route('**/api/**', async (route) => {
     const req = route.request();
@@ -221,12 +236,37 @@ export const mockApi = async (page: Page, options: ApiMockOptions = {}) => {
     const url = new URL(req.url());
     const path = url.pathname;
 
+    // CORS preflight for cross-origin API base URL in browser tests.
+    if (method === 'OPTIONS') {
+      return route.fulfill({
+        status: 204,
+        headers: MOCK_CORS_HEADERS,
+      });
+    }
+
     // Auth
     if (path.endsWith('/api/auth/login') && method === 'POST') {
       return respond(route, 200, {
         data: {
           accessToken: 'mock-access-token',
           refreshToken: 'mock-refresh-token',
+          tokenType: 'Bearer',
+          expiresIn: 3600,
+          user: getLoginUser(loginRole),
+        },
+      });
+    }
+    if (path.endsWith('/api/auth/refresh') && method === 'POST') {
+      if (refreshStatus >= 400) {
+        return respond(route, refreshStatus, {
+          message: 'Refresh token expired',
+          data: null,
+        });
+      }
+      return respond(route, 200, {
+        data: {
+          accessToken: 'mock-access-token-refreshed',
+          refreshToken: 'mock-refresh-token-refreshed',
           tokenType: 'Bearer',
           expiresIn: 3600,
           user: getLoginUser(loginRole),
@@ -269,6 +309,12 @@ export const mockApi = async (page: Page, options: ApiMockOptions = {}) => {
 
     // Booking + payment
     if (path.endsWith('/api/bookings/tours') && method === 'POST') {
+      if (bookingCreateStatus === 'failure') {
+        return respond(route, 500, {
+          message: 'Khong the tao booking tour luc nay.',
+          data: null,
+        });
+      }
       return respond(route, 201, {
         data: {
           bookingId: 111,
@@ -281,12 +327,34 @@ export const mockApi = async (page: Page, options: ApiMockOptions = {}) => {
         },
       });
     }
+    if (path.endsWith('/api/payments/vnpay/return') && method === 'GET') {
+      return respond(route, 200, {
+        data: {
+          success: vnpayVerifySuccess,
+          message: vnpayVerifySuccess
+            ? 'Thanh toan thanh cong qua VNPay.'
+            : 'Giao dich bi huy hoac khong thanh cong.',
+          bookingCode: 'TRS-12345',
+          amount: 10300000,
+          transactionNo: 'VNP-998877',
+          bookingStatus: vnpayVerifySuccess ? 'CONFIRMED' : 'PENDING',
+          responseCode: vnpayVerifySuccess ? '00' : '24',
+          validSignature: true,
+        },
+      });
+    }
     if (path.endsWith('/api/bookings/my') && method === 'GET') {
       return respond(route, 200, { data: myBookings });
     }
 
     // User profile
     if (path.endsWith('/api/users/me') && method === 'GET') {
+      if (profileStatus >= 400) {
+        return respond(route, profileStatus, {
+          message: 'Unauthorized',
+          data: null,
+        });
+      }
       return respond(route, 200, { data: userProfile });
     }
     if (path.endsWith('/api/users/me') && method === 'PATCH') {

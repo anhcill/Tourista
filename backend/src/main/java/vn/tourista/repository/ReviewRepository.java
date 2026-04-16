@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.tourista.entity.Review;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
@@ -59,6 +60,18 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         Boolean getVerified();
 
         java.time.LocalDateTime getCreatedAt();
+    }
+
+    interface ReviewMediaProjection {
+        Long getReviewId();
+
+        String getUrl();
+    }
+
+    interface ReviewAggregateProjection {
+        BigDecimal getAvgRating();
+
+        Long getReviewCount();
     }
 
     @Query(value = """
@@ -145,4 +158,29 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             @Param("tourId") Long tourId,
             @Param("limit") Integer limit,
             @Param("offset") Integer offset);
+
+    @Query(value = """
+            SELECT
+                    ri.review_id AS reviewId,
+                    ri.url AS url
+            FROM review_images ri
+            WHERE ri.review_id IN (:reviewIds)
+                AND ri.url IS NOT NULL
+                AND TRIM(ri.url) <> ''
+            ORDER BY ri.review_id ASC, ri.id ASC
+            """, nativeQuery = true)
+    List<ReviewMediaProjection> findMediaByReviewIds(@Param("reviewIds") List<Long> reviewIds);
+
+    @Query(value = """
+            SELECT
+                    COALESCE(AVG(r.overall_rating), 0) AS avgRating,
+                    COUNT(*) AS reviewCount
+            FROM reviews r
+            WHERE r.target_type = :targetType
+                AND r.target_id = :targetId
+                AND r.is_published = TRUE
+            """, nativeQuery = true)
+    ReviewAggregateProjection findTargetRatingStats(
+            @Param("targetType") String targetType,
+            @Param("targetId") Long targetId);
 }

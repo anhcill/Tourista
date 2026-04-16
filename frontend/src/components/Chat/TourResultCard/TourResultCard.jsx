@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './TourResultCard.module.css';
@@ -25,11 +26,13 @@ const TourResultCard = ({ metadata }) => {
             {tours.map((tour) => (
                 <div key={tour.id} className={styles.card}>
                     <div className={styles.imageWrapper}>
-                        <img 
-                            src={tour.imageUrl || '/images/placeholders/tour-placeholder.jpg'} 
-                            alt={tour.title} 
+                        <Image
+                            src={typeof tour.imageUrl === 'string' && tour.imageUrl.trim() ? tour.imageUrl : '/images/placeholders/tour-placeholder.jpg'}
+                            alt={tour.title}
                             className={styles.image}
-                            onError={(e) => { e.target.src = '/images/placeholders/tour-placeholder.jpg' }}
+                            fill
+                            sizes="(max-width: 400px) 110px, 128px"
+                            unoptimized
                         />
                         <div className={styles.ratingBadge}>
                             ⭐ {Number(tour.avgRating ?? 0).toFixed(1)} <span>({tour.reviewCount ?? 0})</span>

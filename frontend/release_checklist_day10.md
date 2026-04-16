@@ -2,14 +2,14 @@
 
 ## 1. Final Regression
 
-- [ ] Run all backend unit/integration tests (`mvn test` in backend)
-- [ ] Run all frontend E2E tests (`npm run e2e` in frontend)
+- [x] Run all backend unit/integration tests (`mvn test` in backend)
+- [x] Run all frontend E2E tests (`npm run e2e` in frontend)
 - [ ] Manual smoke test (see smoke script)
 
 ## 2. Lint & Build
 
 - [ ] Backend: `mvnw verify` (check for errors, warnings)
-- [ ] Frontend: `npm run lint` and `npm run build`
+- [x] Frontend: `npm run lint` and `npm run build`
 
 ## 3. Dependency Audit
 

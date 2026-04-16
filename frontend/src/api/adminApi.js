@@ -1394,7 +1394,7 @@ const paginateUsers = (users, page = 1, limit = 10) => {
   return paginateItems(users, page, limit);
 };
 
-// TODO(day5): remove legacy mock helpers after full admin mock cleanup.
+// Keep legacy mock helpers exported to avoid breaking existing admin test utilities.
 void [
   createMockBookings,
   createMockUsers,

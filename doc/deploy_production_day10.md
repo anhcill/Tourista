@@ -22,6 +22,8 @@ Required values:
 - DB_USERNAME
 - DB_PASSWORD
 - JWT_SECRET
+- MAIL_USERNAME
+- MAIL_PASSWORD
 - FRONTEND_URL
 - APP_CORS_ALLOWED_ORIGINS
 - GOOGLE_CLIENT_ID
@@ -30,6 +32,17 @@ Required values:
 - VNPAY_HASH_SECRET
 - VNPAY_RETURN_URL
 - GEMINI_API_KEY
+
+Railway note:
+- Do not use mysql://... directly for Spring Boot datasource url.
+- Convert to jdbc:mysql://... format, or rely on Railway MYSQLHOST/MYSQLPORT/MYSQLDATABASE/MYSQLUSER/MYSQLPASSWORD variables.
+
+Example (from Railway public endpoint):
+- Input URI: mysql://root:<password>@maglev.proxy.rlwy.net:44405/railway
+- Spring env:
+	- DB_URL=jdbc:mysql://maglev.proxy.rlwy.net:44405/railway?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+	- DB_USERNAME=root
+	- DB_PASSWORD=<password>
 
 ### 3.2 Build
 From backend folder:

@@ -2,6 +2,7 @@ package vn.tourista.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,8 @@ import vn.tourista.dto.response.ConversationResponse;
 import vn.tourista.entity.*;
 import vn.tourista.repository.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -122,9 +125,15 @@ public class ChatService {
         public Page<ChatMessageResponse> getMessages(Long conversationId, String email, int page, int size) {
                 User me = getUserByEmail(email);
                 Conversation conv = getConversation(conversationId, me);
-                return chatMessageRepository
-                                .findByConversationOrderByCreatedAtAsc(conv, PageRequest.of(page, size))
-                                .map(ChatMessageResponse::from);
+                Page<ChatMessage> descPage = chatMessageRepository
+                                .findByConversationOrderByCreatedAtDesc(conv, PageRequest.of(page, size));
+
+                List<ChatMessageResponse> content = new ArrayList<>(descPage.getContent().stream()
+                                .map(ChatMessageResponse::from)
+                                .toList());
+                Collections.reverse(content);
+
+                return new PageImpl<>(content, descPage.getPageable(), descPage.getTotalElements());
         }
 
         /**

@@ -16,7 +16,9 @@ import vn.tourista.repository.ReviewRepository;
 import vn.tourista.repository.RoomTypeRepository;
 import vn.tourista.service.HotelService;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -163,8 +165,14 @@ public class HotelServiceImpl implements HotelService {
                 int safeLimit = (limit == null || limit < 1) ? 6 : Math.min(limit, 20);
                 int offset = (safePage - 1) * safeLimit;
 
-                return reviewRepository.findPublishedHotelReviews(hotelId, safeLimit, offset)
-                                .stream()
+                List<ReviewRepository.HotelReviewProjection> reviewItems = reviewRepository
+                                .findPublishedHotelReviews(hotelId, safeLimit, offset);
+                Map<Long, List<String>> mediaByReviewId = loadReviewMediaMap(reviewItems.stream()
+                                .map(ReviewRepository.HotelReviewProjection::getId)
+                                .filter(Objects::nonNull)
+                                .toList());
+
+                return reviewItems.stream()
                                 .map(item -> HotelReviewResponse.builder()
                                                 .id(item.getId())
                                                 .userName(item.getUserName())
@@ -174,8 +182,37 @@ public class HotelServiceImpl implements HotelService {
                                                 .verified(Boolean.TRUE.equals(item.getVerified()))
                                                 .createdAt(item.getCreatedAt())
                                                 .helpfulCount(0)
+                                                .mediaUrls(mediaByReviewId.getOrDefault(item.getId(),
+                                                                Collections.emptyList()))
                                                 .build())
                                 .toList();
+        }
+
+        private Map<Long, List<String>> loadReviewMediaMap(List<Long> reviewIds) {
+                if (reviewIds == null || reviewIds.isEmpty()) {
+                        return Collections.emptyMap();
+                }
+
+                try {
+                        Map<Long, List<String>> result = new LinkedHashMap<>();
+                        List<ReviewRepository.ReviewMediaProjection> mediaItems = reviewRepository
+                                        .findMediaByReviewIds(reviewIds);
+
+                        for (ReviewRepository.ReviewMediaProjection item : mediaItems) {
+                                if (item == null || item.getReviewId() == null || item.getUrl() == null
+                                                || item.getUrl().isBlank()) {
+                                        continue;
+                                }
+                                result.computeIfAbsent(item.getReviewId(), ignored -> new ArrayList<>())
+                                                .add(item.getUrl().trim());
+                        }
+
+                        return result;
+                } catch (RuntimeException ignored) {
+                        // Keep review endpoint stable even if legacy DB does not have review_images
+                        // table.
+                        return Collections.emptyMap();
+                }
         }
 
         private void validateSearchRequest(HotelSearchRequest request) {

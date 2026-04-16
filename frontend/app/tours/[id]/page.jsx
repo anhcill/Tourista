@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
 import tourApi from '@/api/tourApi';
+import reviewApi from '@/api/reviewApi';
 import styles from './page.module.css';
 
 /* ─────────────────── Static ─────────────────── */
@@ -62,6 +63,15 @@ const buildInitials = (name) => {
   return `${words[0].charAt(0)}${words[words.length - 1].charAt(0)}`.toUpperCase();
 };
 
+const DIRECT_VIDEO_EXT_RE = /\.(mp4|webm|mov|m4v|avi|mkv)(\?|#|$)/i;
+const YOUTUBE_URL_RE = /(youtube\.com|youtu\.be|vimeo\.com)/i;
+const MAX_REVIEW_MEDIA_FILES = 5;
+const MAX_REVIEW_MEDIA_FILE_SIZE = 25 * 1024 * 1024;
+const REVIEW_MEDIA_ACCEPT = 'image/*,video/*';
+
+const isDirectVideoUrl = (url) => DIRECT_VIDEO_EXT_RE.test(String(url || ''));
+const isLikelyVideoUrl = (url) => isDirectVideoUrl(url) || YOUTUBE_URL_RE.test(String(url || ''));
+
 const normalizeReview = (item, index) => {
   const name = item?.name || item?.userName || item?.guestName || 'Khách hàng';
   const rawDate = item?.date || item?.createdAt || null;
@@ -69,6 +79,13 @@ const normalizeReview = (item, index) => {
   const date = parsedDate && !Number.isNaN(parsedDate.getTime())
     ? parsedDate.toLocaleDateString('vi-VN')
     : (rawDate || '');
+  const mediaUrls = Array.isArray(item?.mediaUrls)
+    ? item.mediaUrls
+      .filter((url) => typeof url === 'string' && url.trim())
+      .map((url) => url.trim())
+    : [];
+  const videoUrls = mediaUrls.filter(isLikelyVideoUrl);
+  const imageUrls = mediaUrls.filter((url) => !isLikelyVideoUrl(url));
 
   return {
     id: item?.id ?? `${name}-${index}`,
@@ -78,6 +95,9 @@ const normalizeReview = (item, index) => {
     date,
     text: item?.text || item?.comment || item?.content || '',
     helpful: Number(item?.helpful ?? item?.helpfulCount ?? 0),
+    verified: Boolean(item?.verified),
+    imageUrls,
+    videoUrls,
   };
 };
 
@@ -91,6 +111,17 @@ const normalizeSimilarTour = (item) => ({
   rating: Number(item?.rating ?? item?.avgRating ?? 0),
   image: item?.image || item?.coverImage || null,
 });
+
+const formatFileSize = (bytes) => {
+  const value = Number(bytes || 0);
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const getReviewFileKey = (file, index) => (
+  `${file.name}-${file.size}-${file.lastModified}-${index}`
+);
 
 /* ─────────────────── Star Row ─────────────────── */
 function StarRow({ rating, size = 14 }) {
@@ -124,6 +155,15 @@ function TourDetailInner() {
   const [liked, setLiked] = useState(false);
   const [helpfulMap, setHelpfulMap] = useState({});
   const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [reviewDraft, setReviewDraft] = useState({ rating: 5, comment: '' });
+  const [reviewFiles, setReviewFiles] = useState([]);
+  const [reviewFilePreviews, setReviewFilePreviews] = useState([]);
+  const [reviewInputKey, setReviewInputKey] = useState(0);
+  const [reviewSubmitState, setReviewSubmitState] = useState({
+    loading: false,
+    error: '',
+    success: '',
+  });
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -213,6 +253,85 @@ function TourDetailInner() {
       children: String(Math.max(0, children)),
     });
     router.push(`/tours/${id}/book?${params.toString()}`);
+  };
+
+  const handleReviewFilesChange = (event) => {
+    const nextFiles = Array.from(event?.target?.files || []).slice(0, MAX_REVIEW_MEDIA_FILES);
+    const tooLarge = nextFiles.find((file) => Number(file?.size || 0) > MAX_REVIEW_MEDIA_FILE_SIZE);
+
+    if (tooLarge) {
+      setReviewSubmitState((prev) => ({
+        ...prev,
+        error: `File ${tooLarge.name} vuot qua gioi han 25MB.`,
+        success: '',
+      }));
+      return;
+    }
+
+    setReviewFiles(nextFiles);
+    setReviewSubmitState((prev) => ({ ...prev, error: '' }));
+  };
+
+  const handleRemoveReviewFile = (fileKey) => {
+    setReviewFiles((prev) => prev.filter((file, index) => getReviewFileKey(file, index) !== fileKey));
+  };
+
+  useEffect(() => {
+    const previews = reviewFiles.map((file, index) => ({
+      file,
+      key: getReviewFileKey(file, index),
+      url: URL.createObjectURL(file),
+      isVideo: String(file.type || '').startsWith('video/'),
+    }));
+
+    setReviewFilePreviews(previews);
+
+    return () => {
+      previews.forEach((preview) => {
+        URL.revokeObjectURL(preview.url);
+      });
+    };
+  }, [reviewFiles]);
+
+  const handleSubmitReview = async () => {
+    if (reviewSubmitState.loading) return;
+
+    const normalizedComment = String(reviewDraft.comment || '').trim();
+    if (!normalizedComment && reviewFiles.length === 0) {
+      setReviewSubmitState({ loading: false, error: 'Ban can nhap noi dung hoac dinh kem media.', success: '' });
+      return;
+    }
+
+    try {
+      setReviewSubmitState({ loading: true, error: '', success: '' });
+
+      await reviewApi.createReviewWithMedia({
+        reviewData: {
+          targetType: 'TOUR',
+          targetId: Number(id),
+          overallRating: Number(reviewDraft.rating || 5),
+          comment: normalizedComment || null,
+        },
+        files: reviewFiles,
+      });
+
+      const reviewData = await tourApi.getTourReviews(id, { page: 1, limit: 6 });
+      const reviewItems = Array.isArray(reviewData?.data)
+        ? reviewData.data
+        : (Array.isArray(reviewData?.data?.content) ? reviewData.data.content : []);
+      setReviews(reviewItems.map(normalizeReview));
+
+      setReviewDraft({ rating: 5, comment: '' });
+      setReviewFiles([]);
+      setReviewInputKey((prev) => prev + 1);
+      setReviewSubmitState({ loading: false, error: '', success: 'Da gui danh gia thanh cong.' });
+    } catch (err) {
+      setReviewSubmitState({
+        loading: false,
+        error: err?.message || 'Khong the gui danh gia luc nay.',
+        success: '',
+      });
+    }
   };
 
   /* Rating breakdown mock */
@@ -432,6 +551,80 @@ function TourDetailInner() {
               </div>
             </div>
 
+            <div className={styles.reviewComposeCard}>
+              <p className={styles.reviewComposeTitle}>Chia se trai nghiem chuyen di cua ban</p>
+              <div className={styles.reviewComposeRow}>
+                <label className={styles.reviewComposeLabel} htmlFor="tour-review-rating">Diem danh gia</label>
+                <select
+                  id="tour-review-rating"
+                  className={styles.reviewComposeSelect}
+                  value={reviewDraft.rating}
+                  onChange={(event) => setReviewDraft((prev) => ({ ...prev, rating: Number(event.target.value || 5) }))}
+                >
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>{value} sao</option>
+                  ))}
+                </select>
+              </div>
+              <textarea
+                className={styles.reviewComposeTextarea}
+                placeholder="Viet cam nhan sau chuyen di..."
+                value={reviewDraft.comment}
+                onChange={(event) => setReviewDraft((prev) => ({ ...prev, comment: event.target.value }))}
+              />
+              <div className={styles.reviewComposeRow}>
+                <label className={styles.reviewComposeLabel} htmlFor="tour-review-media">Anh/Video dinh kem</label>
+                <input
+                  key={reviewInputKey}
+                  id="tour-review-media"
+                  type="file"
+                  accept={REVIEW_MEDIA_ACCEPT}
+                  multiple
+                  className={styles.reviewComposeFileInput}
+                  onChange={handleReviewFilesChange}
+                />
+              </div>
+
+              {reviewFilePreviews.length > 0 && (
+                <div className={styles.reviewComposeFiles}>
+                  {reviewFilePreviews.map((preview) => (
+                    <article key={preview.key} className={styles.reviewComposePreviewCard}>
+                      <div className={styles.reviewComposePreviewMedia}>
+                        {preview.isVideo ? (
+                          <video src={preview.url} controls preload="metadata" className={styles.reviewComposePreviewVideo} />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={preview.url} alt={preview.file.name} className={styles.reviewComposePreviewImage} />
+                        )}
+                      </div>
+                      <div className={styles.reviewComposePreviewMeta}>
+                        <p className={styles.reviewComposeFileItem}>{preview.file.name}</p>
+                        <p className={styles.reviewComposeFileSize}>{formatFileSize(preview.file.size)}</p>
+                        <button
+                          type="button"
+                          className={styles.reviewComposeRemoveBtn}
+                          onClick={() => handleRemoveReviewFile(preview.key)}
+                        >
+                          Xoa file
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+
+              {reviewSubmitState.error && <p className={styles.reviewComposeError}>{reviewSubmitState.error}</p>}
+              {reviewSubmitState.success && <p className={styles.reviewComposeSuccess}>{reviewSubmitState.success}</p>}
+
+              <button
+                className={styles.reviewComposeBtn}
+                onClick={handleSubmitReview}
+                disabled={reviewSubmitState.loading}
+              >
+                {reviewSubmitState.loading ? 'Dang gui...' : 'Gui danh gia'}
+              </button>
+            </div>
+
             {/* Summary */}
             <div className={styles.reviewSummary}>
               <div className={styles.reviewScoreBig}>
@@ -462,7 +655,14 @@ function TourDetailInner() {
                     </div>
                     <div className={styles.reviewMeta}>
                       <strong className={styles.reviewName}>{rv.name || rv.guestName || 'Khách hàng'}</strong>
-                      <span className={styles.reviewDate}>{rv.date || rv.createdAt || ''}</span>
+                        <div className={styles.reviewMetaSubRow}>
+                          <span className={styles.reviewDate}>{rv.date || rv.createdAt || ''}</span>
+                          {rv.verified && (
+                            <span className={styles.reviewVerifiedBadge}>
+                              <FaShieldAlt size={11} /> Đã xác thực đã đi
+                            </span>
+                          )}
+                        </div>
                     </div>
                     <div className={styles.reviewStars}>
                       <StarRow rating={rv.rating} size={12} />
@@ -470,6 +670,48 @@ function TourDetailInner() {
                   </div>
                   {rv.tour && <p className={styles.reviewTour}>🎒 {rv.tour}</p>}
                   <p className={styles.reviewText}>{rv.text || rv.content || ''}</p>
+                    {(rv.imageUrls.length > 0 || rv.videoUrls.length > 0) && (
+                      <div className={styles.reviewMediaWrap}>
+                        {rv.imageUrls.length > 0 && (
+                          <div className={styles.reviewMediaGrid}>
+                            {rv.imageUrls.map((url, idx) => (
+                              <a key={`${rv.id}-img-${idx}`} href={url} target="_blank" rel="noreferrer" className={styles.reviewMediaItem}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={url} alt={`Review media ${idx + 1}`} className={styles.reviewMediaImage} />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+
+                        {rv.videoUrls.length > 0 && (
+                          <div className={styles.reviewVideoList}>
+                            {rv.videoUrls.map((url, idx) => (
+                              isDirectVideoUrl(url) ? (
+                                <video
+                                  key={`${rv.id}-video-${idx}`}
+                                  controls
+                                  preload="metadata"
+                                  className={styles.reviewVideoPlayer}
+                                >
+                                  <source src={url} />
+                                  Trình duyệt không hỗ trợ video.
+                                </video>
+                              ) : (
+                                <a
+                                  key={`${rv.id}-video-link-${idx}`}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={styles.reviewVideoLink}
+                                >
+                                  Xem video đính kèm
+                                </a>
+                              )
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   <button
                     className={`${styles.helpfulBtn} ${helpfulMap[rv.id] ? styles.helpfulBtnActive : ''}`}
                     onClick={() => setHelpfulMap((m) => ({ ...m, [rv.id]: !m[rv.id] }))}

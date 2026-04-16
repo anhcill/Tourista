@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
     FaStar, FaMapMarkerAlt, FaWifi, FaParking, FaUtensils,
     FaDumbbell, FaBath, FaConciergeBell, FaCoffee,
-    FaChevronDown, FaHeart, FaArrowLeft, FaBed, FaWalking, FaBus, FaRegCalendarAlt
+    FaChevronDown, FaHeart, FaArrowLeft, FaBed, FaWalking, FaBus, FaRegCalendarAlt, FaCheckCircle
 } from 'react-icons/fa';
 import { MdOutlinePool } from 'react-icons/md';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
@@ -85,6 +85,15 @@ const getTomorrowDate = () => {
     return toDateInput(nextDate);
 };
 
+const DIRECT_VIDEO_EXT_RE = /\.(mp4|webm|mov|m4v|avi|mkv)(\?|#|$)/i;
+const YOUTUBE_URL_RE = /(youtube\.com|youtu\.be|vimeo\.com)/i;
+const MAX_REVIEW_MEDIA_FILES = 5;
+const MAX_REVIEW_MEDIA_FILE_SIZE = 25 * 1024 * 1024;
+const REVIEW_MEDIA_ACCEPT = 'image/*,video/*';
+
+const isDirectVideoUrl = (url) => DIRECT_VIDEO_EXT_RE.test(String(url || ''));
+const isLikelyVideoUrl = (url) => isDirectVideoUrl(url) || YOUTUBE_URL_RE.test(String(url || ''));
+
 const formatRelativeWeeks = (dateString) => {
     if (!dateString) return 'Danh gia gan day';
     const date = new Date(dateString);
@@ -100,6 +109,13 @@ const mapReviewItem = (item, index) => {
     const userName = item?.userName || item?.authorName || `Du khach ${index + 1}`;
     const rawRating = Number(item?.overallRating ?? item?.rating ?? 0);
     const safeRating = Number.isFinite(rawRating) ? Math.max(0, Math.min(10, rawRating > 10 ? rawRating / 2 : rawRating)) : 0;
+    const mediaUrls = Array.isArray(item?.mediaUrls)
+        ? item.mediaUrls
+            .filter((url) => typeof url === 'string' && url.trim())
+            .map((url) => url.trim())
+        : [];
+    const videoUrls = mediaUrls.filter(isLikelyVideoUrl);
+    const imageUrls = mediaUrls.filter((url) => !isLikelyVideoUrl(url));
 
     return {
         id: item?.id || `review-${index}`,
@@ -114,8 +130,22 @@ const mapReviewItem = (item, index) => {
         comment: item?.comment || item?.content || 'Khach hang chua de lai noi dung chi tiet cho danh gia nay.',
         createdAt: item?.createdAt || null,
         helpfulCount: Number(item?.helpfulCount || 0),
+        verified: Boolean(item?.verified),
+        imageUrls,
+        videoUrls,
     };
 };
+
+const formatFileSize = (bytes) => {
+    const value = Number(bytes || 0);
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const getReviewFileKey = (file, index) => (
+    `${file.name}-${file.size}-${file.lastModified}-${index}`
+);
 
 const getNearbyData = (hotel) => {
     const city = String(hotel?.city || '').toLowerCase();
@@ -215,6 +245,15 @@ function HotelDetailInner() {
     const [reviewPage, setReviewPage] = useState(1);
     const [hasMoreReviews, setHasMoreReviews] = useState(false);
     const [reviewLoadingMore, setReviewLoadingMore] = useState(false);
+    const [reviewDraft, setReviewDraft] = useState({ rating: 5, comment: '' });
+    const [reviewFiles, setReviewFiles] = useState([]);
+    const [reviewFilePreviews, setReviewFilePreviews] = useState([]);
+    const [reviewFileInputKey, setReviewFileInputKey] = useState(0);
+    const [reviewSubmitState, setReviewSubmitState] = useState({
+        loading: false,
+        error: '',
+        success: '',
+    });
     const [recommendedHotels, setRecommendedHotels] = useState([]);
     const [recommendedHotelsLoading, setRecommendedHotelsLoading] = useState(false);
     const [chatModalOpen, setChatModalOpen] = useState(false);
@@ -395,6 +434,80 @@ function HotelDetailInner() {
             setReviewLoadingMore(false);
         }
     }, [hasMoreReviews, reviewLoadingMore, loadReviewPage, reviewPage]);
+
+    const handleReviewFilesChange = useCallback((event) => {
+        const nextFiles = Array.from(event?.target?.files || []).slice(0, MAX_REVIEW_MEDIA_FILES);
+        const tooLarge = nextFiles.find((file) => Number(file?.size || 0) > MAX_REVIEW_MEDIA_FILE_SIZE);
+
+        if (tooLarge) {
+            setReviewSubmitState((prev) => ({
+                ...prev,
+                error: `File ${tooLarge.name} vuot qua gioi han 25MB.`,
+                success: '',
+            }));
+            return;
+        }
+
+        setReviewFiles(nextFiles);
+        setReviewSubmitState((prev) => ({ ...prev, error: '' }));
+    }, []);
+
+    const handleRemoveReviewFile = useCallback((fileKey) => {
+        setReviewFiles((prev) => prev.filter((file, index) => getReviewFileKey(file, index) !== fileKey));
+    }, []);
+
+    useEffect(() => {
+        const previews = reviewFiles.map((file, index) => ({
+            file,
+            key: getReviewFileKey(file, index),
+            url: URL.createObjectURL(file),
+            isVideo: String(file.type || '').startsWith('video/'),
+        }));
+
+        setReviewFilePreviews(previews);
+
+        return () => {
+            previews.forEach((preview) => {
+                URL.revokeObjectURL(preview.url);
+            });
+        };
+    }, [reviewFiles]);
+
+    const handleSubmitReview = useCallback(async () => {
+        if (reviewSubmitState.loading) return;
+
+        const normalizedComment = String(reviewDraft.comment || '').trim();
+        if (!normalizedComment && reviewFiles.length === 0) {
+            setReviewSubmitState({ loading: false, error: 'Ban can nhap noi dung hoac dinh kem media.', success: '' });
+            return;
+        }
+
+        try {
+            setReviewSubmitState({ loading: true, error: '', success: '' });
+
+            await reviewApi.createReviewWithMedia({
+                reviewData: {
+                    targetType: 'HOTEL',
+                    targetId: Number(id),
+                    overallRating: Number(reviewDraft.rating || 5),
+                    comment: normalizedComment || null,
+                },
+                files: reviewFiles,
+            });
+
+            await loadReviewPage(1, false);
+            setReviewDraft({ rating: 5, comment: '' });
+            setReviewFiles([]);
+            setReviewFileInputKey((prev) => prev + 1);
+            setReviewSubmitState({ loading: false, error: '', success: 'Da gui danh gia thanh cong.' });
+        } catch (err) {
+            setReviewSubmitState({
+                loading: false,
+                error: err?.message || 'Khong the gui danh gia luc nay.',
+                success: '',
+            });
+        }
+    }, [id, loadReviewPage, reviewDraft.comment, reviewDraft.rating, reviewFiles, reviewSubmitState.loading]);
 
     const handleBookNow = useCallback((overrideRoom = null) => {
         const room = overrideRoom || selectedRoom;
@@ -795,6 +908,80 @@ function HotelDetailInner() {
                             </div>
                         </div>
 
+                        <div className={styles.reviewComposeCard}>
+                            <p className={styles.reviewComposeTitle}>Chia se trai nghiem luu tru cua ban</p>
+                            <div className={styles.reviewComposeRow}>
+                                <label className={styles.reviewComposeLabel} htmlFor="hotel-review-rating">Diem danh gia</label>
+                                <select
+                                    id="hotel-review-rating"
+                                    className={styles.reviewComposeSelect}
+                                    value={reviewDraft.rating}
+                                    onChange={(event) => setReviewDraft((prev) => ({ ...prev, rating: Number(event.target.value || 5) }))}
+                                >
+                                    {[5, 4, 3, 2, 1].map((value) => (
+                                        <option key={value} value={value}>{value} sao</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <textarea
+                                className={styles.reviewComposeTextarea}
+                                placeholder="Viet danh gia ve phong, vi tri, dich vu..."
+                                value={reviewDraft.comment}
+                                onChange={(event) => setReviewDraft((prev) => ({ ...prev, comment: event.target.value }))}
+                            />
+                            <div className={styles.reviewComposeRow}>
+                                <label className={styles.reviewComposeLabel} htmlFor="hotel-review-media">Anh/Video dinh kem</label>
+                                <input
+                                    key={reviewFileInputKey}
+                                    id="hotel-review-media"
+                                    type="file"
+                                    accept={REVIEW_MEDIA_ACCEPT}
+                                    multiple
+                                    className={styles.reviewComposeFileInput}
+                                    onChange={handleReviewFilesChange}
+                                />
+                            </div>
+
+                            {reviewFilePreviews.length > 0 && (
+                                <div className={styles.reviewComposeFiles}>
+                                    {reviewFilePreviews.map((preview) => (
+                                        <article key={preview.key} className={styles.reviewComposePreviewCard}>
+                                            <div className={styles.reviewComposePreviewMedia}>
+                                                {preview.isVideo ? (
+                                                    <video src={preview.url} controls preload="metadata" className={styles.reviewComposePreviewVideo} />
+                                                ) : (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={preview.url} alt={preview.file.name} className={styles.reviewComposePreviewImage} />
+                                                )}
+                                            </div>
+                                            <div className={styles.reviewComposePreviewMeta}>
+                                                <p className={styles.reviewComposeFileItem}>{preview.file.name}</p>
+                                                <p className={styles.reviewComposeFileSize}>{formatFileSize(preview.file.size)}</p>
+                                                <button
+                                                    type="button"
+                                                    className={styles.reviewComposeRemoveBtn}
+                                                    onClick={() => handleRemoveReviewFile(preview.key)}
+                                                >
+                                                    Xoa file
+                                                </button>
+                                            </div>
+                                        </article>
+                                    ))}
+                                </div>
+                            )}
+
+                            {reviewSubmitState.error && <p className={styles.reviewComposeError}>{reviewSubmitState.error}</p>}
+                            {reviewSubmitState.success && <p className={styles.reviewComposeSuccess}>{reviewSubmitState.success}</p>}
+
+                            <button
+                                className={styles.reviewComposeBtn}
+                                onClick={handleSubmitReview}
+                                disabled={reviewSubmitState.loading}
+                            >
+                                {reviewSubmitState.loading ? 'Dang gui...' : 'Gui danh gia'}
+                            </button>
+                        </div>
+
                         {reviewLoading && <div className={styles.reviewStatusBox}>Dang tai danh gia...</div>}
 
                         {!reviewLoading && reviews.length === 0 && (
@@ -814,8 +1001,65 @@ function HotelDetailInner() {
                                             <div className={styles.reviewTopMeta}>
                                                 <span className={styles.reviewRatingBadge}>{review.rating.toFixed(1)} / 10</span>
                                                 <span className={styles.reviewDate}>{formatRelativeWeeks(review.createdAt)}</span>
+                                                {review.verified && (
+                                                    <span className={styles.reviewVerifiedBadge}>
+                                                        <FaCheckCircle size={12} /> Da xac thuc da di
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className={styles.reviewComment}>{review.comment}</p>
+                                            {(review.imageUrls.length > 0 || review.videoUrls.length > 0) && (
+                                                <div className={styles.reviewMediaWrap}>
+                                                    {review.imageUrls.length > 0 && (
+                                                        <div className={styles.reviewMediaGrid}>
+                                                            {review.imageUrls.map((url, idx) => (
+                                                                <a
+                                                                    key={`${review.id}-image-${idx}`}
+                                                                    href={url}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className={styles.reviewMediaItem}
+                                                                >
+                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                    <img
+                                                                        src={url}
+                                                                        alt={`Review media ${idx + 1}`}
+                                                                        className={styles.reviewMediaImage}
+                                                                    />
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {review.videoUrls.length > 0 && (
+                                                        <div className={styles.reviewVideoList}>
+                                                            {review.videoUrls.map((url, idx) => (
+                                                                isDirectVideoUrl(url) ? (
+                                                                    <video
+                                                                        key={`${review.id}-video-${idx}`}
+                                                                        controls
+                                                                        preload="metadata"
+                                                                        className={styles.reviewVideoPlayer}
+                                                                    >
+                                                                        <source src={url} />
+                                                                        Trinh duyet khong ho tro video.
+                                                                    </video>
+                                                                ) : (
+                                                                    <a
+                                                                        key={`${review.id}-video-link-${idx}`}
+                                                                        href={url}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        className={styles.reviewVideoLink}
+                                                                    >
+                                                                        Xem video dinh kem
+                                                                    </a>
+                                                                )
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                             <p className={styles.reviewHelpful}>{review.helpfulCount} nguoi danh dau huu ich</p>
                                         </div>
                                     </article>

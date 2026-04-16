@@ -16,7 +16,7 @@ import { logout } from '../../../store/slices/authSlice';
 import authApi from '../../../api/authApi';
 import chatApi from '../../../api/chatApi';
 import tourApi from '../../../api/tourApi';
-import { STORAGE_KEYS } from '../../../utils/constants';
+import { getRefreshToken } from '../../../utils/authStorage';
 import Button from '../../Common/Button/Button';
 import useHotelAutocomplete from '../../../hooks/useHotelAutocomplete';
 import { setConversations } from '../../../store/slices/chatSlice';
@@ -209,7 +209,7 @@ const Header = () => {
 
         try {
             // Gọi API logout để invalidate refresh token ở backend
-            const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+            const refreshToken = getRefreshToken();
             if (refreshToken) {
                 await authApi.logout(refreshToken);
             }

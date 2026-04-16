@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import authApi from '@/api/authApi';
 import styles from './page.module.css';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const token = useMemo(() => (searchParams.get('token') || '').trim(), [searchParams]);
 
@@ -103,5 +103,13 @@ export default function ResetPasswordPage() {
         )}
       </section>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<main className={styles.page}><section className={styles.card}>Dang tai...</section></main>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

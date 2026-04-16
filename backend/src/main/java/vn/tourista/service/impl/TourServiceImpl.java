@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
 @Service
@@ -157,8 +158,14 @@ public class TourServiceImpl implements TourService {
         int safeLimit = (limit == null || limit < 1) ? 6 : Math.min(limit, 20);
         int offset = (safePage - 1) * safeLimit;
 
-        return reviewRepository.findPublishedTourReviews(tourId, safeLimit, offset)
-                .stream()
+        List<ReviewRepository.TourReviewProjection> reviewItems = reviewRepository
+                .findPublishedTourReviews(tourId, safeLimit, offset);
+        Map<Long, List<String>> mediaByReviewId = loadReviewMediaMap(reviewItems.stream()
+                .map(ReviewRepository.TourReviewProjection::getId)
+                .filter(Objects::nonNull)
+                .toList());
+
+        return reviewItems.stream()
                 .map(item -> TourReviewResponse.builder()
                         .id(item.getId())
                         .userName(item.getUserName())
@@ -168,8 +175,34 @@ public class TourServiceImpl implements TourService {
                         .verified(Boolean.TRUE.equals(item.getVerified()))
                         .createdAt(item.getCreatedAt())
                         .helpfulCount(0)
+                        .mediaUrls(mediaByReviewId.getOrDefault(item.getId(), Collections.emptyList()))
                         .build())
                 .toList();
+    }
+
+    private Map<Long, List<String>> loadReviewMediaMap(List<Long> reviewIds) {
+        if (reviewIds == null || reviewIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            Map<Long, List<String>> result = new LinkedHashMap<>();
+            List<ReviewRepository.ReviewMediaProjection> mediaItems = reviewRepository.findMediaByReviewIds(reviewIds);
+
+            for (ReviewRepository.ReviewMediaProjection item : mediaItems) {
+                if (item == null || item.getReviewId() == null || item.getUrl() == null || item.getUrl().isBlank()) {
+                    continue;
+                }
+                result.computeIfAbsent(item.getReviewId(), ignored -> new ArrayList<>())
+                        .add(item.getUrl().trim());
+            }
+
+            return result;
+        } catch (RuntimeException ignored) {
+            // Keep review endpoint stable even if legacy DB does not have review_images
+            // table.
+            return Collections.emptyMap();
+        }
     }
 
     @Override

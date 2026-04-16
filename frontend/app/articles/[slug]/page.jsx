@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FaChevronLeft, FaHeart, FaShareAlt, FaClock, FaCalendar, FaEye } from 'react-icons/fa';
+import DOMPurify from 'dompurify';
 import styles from './page.module.css';
 
 // Dữ liệu mẫu (sẽ được thay thế khi có Backend)
@@ -116,6 +118,9 @@ export default function ArticleDetail({ params }) {
     if (!article) return <div className={styles.loading}>Đang tải trang đọc bài viết...</div>;
 
     const articleContent = typeof article.content === 'string' ? article.content : '';
+    const safeHtmlContent = DOMPurify.sanitize(articleContent, {
+        USE_PROFILES: { html: true },
+    });
 
     return (
         <main className={styles.page}>
@@ -138,7 +143,7 @@ export default function ArticleDetail({ params }) {
                             
                             <div className={styles.metaData}>
                                 <div className={styles.authorBadge}>
-                                    <img src={article.author.avatar} alt="Avatar" className={styles.smallAvatar} />
+                                    <Image src={article.author.avatar} alt="Avatar" className={styles.smallAvatar} width={32} height={32} unoptimized />
                                     <span>{article.author.name}</span>
                                 </div>
                                 <span className={styles.metaItem}><FaCalendar /> {article.date}</span>
@@ -150,7 +155,14 @@ export default function ArticleDetail({ params }) {
                 </header>
 
                 <div className={styles.heroImageWrapper}>
-                    <img src={article.image} alt={article.title} className={styles.heroImage} loading="lazy" />
+                    <Image
+                        src={article.image}
+                        alt={article.title}
+                        className={styles.heroImage}
+                        fill
+                        sizes="(max-width: 1100px) 100vw, 1100px"
+                        unoptimized
+                    />
                 </div>
 
                 {/* Main Content Area */}
@@ -179,7 +191,7 @@ export default function ArticleDetail({ params }) {
                             {articleContent.includes('<p>') ? (
                                 <div 
                                     className={styles.htmlContent} 
-                                    dangerouslySetInnerHTML={{ __html: articleContent }} 
+                                    dangerouslySetInnerHTML={{ __html: safeHtmlContent }} 
                                 />
                             ) : (
                                 <div className={styles.plainContent}>
@@ -191,7 +203,7 @@ export default function ArticleDetail({ params }) {
                             
                             {/* Author Box */}
                             <div className={styles.authorBox}>
-                                <img src={article.author.avatar} alt={article.author.name} className={styles.largeAvatar} />
+                                <Image src={article.author.avatar} alt={article.author.name} className={styles.largeAvatar} width={80} height={80} unoptimized />
                                 <div className={styles.authorInfo}>
                                     <h3>{article.author.name}</h3>
                                     <span className={styles.authorRole}>{article.author.role || 'Thành viên Tourista'}</span>
@@ -204,7 +216,7 @@ export default function ArticleDetail({ params }) {
                                 <h3 className={styles.commentsTitle}>Bình luận & Thảo luận ({comments.length})</h3>
                                 
                                 <form className={styles.commentForm} onSubmit={handleAddComment}>
-                                    <img src="https://i.pravatar.cc/150?u=current_user" alt="Me" className={styles.commentAvatar} />
+                                    <Image src="https://i.pravatar.cc/150?u=current_user" alt="Me" className={styles.commentAvatar} width={44} height={44} unoptimized />
                                     <div className={styles.commentInputWrapper}>
                                         <input 
                                             type="text" 
@@ -220,7 +232,7 @@ export default function ArticleDetail({ params }) {
                                 <div className={styles.commentsList}>
                                     {comments.map(c => (
                                         <div key={c.id} className={styles.commentBubble}>
-                                            <img src={c.avatar} alt={c.user} className={styles.commentAvatar} />
+                                            <Image src={c.avatar} alt={c.user} className={styles.commentAvatar} width={44} height={44} unoptimized />
                                             <div className={styles.commentContent}>
                                                 <div className={styles.commentHeader}>
                                                     <span className={styles.commentUser}>{c.user}</span>

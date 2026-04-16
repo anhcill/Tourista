@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaTiktok, FaLinkedin, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaYoutube, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCcVisa, FaCcMastercard, FaCcPaypal } from 'react-icons/fa';
 import { SOCIAL_LINKS, CONTACT_INFO } from '../../../utils/constants';
 import styles from './Footer.module.css';
 

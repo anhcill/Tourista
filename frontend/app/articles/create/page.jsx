@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { FaChevronLeft, FaImage, FaPaperPlane } from 'react-icons/fa';
 import styles from './page.module.css';
 

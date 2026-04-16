@@ -4,6 +4,16 @@ import { useState } from 'react';
 import styles from './FilterSidebar.module.css';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
+/**
+ * @typedef {Object} HotelFilters
+ * @property {number[]} budget
+ * @property {string[]} popular
+ * @property {string[]} facilities
+ * @property {string} guestRating
+ * @property {number[]} stars
+ * @property {number[]} sustainability
+ */
+
 const POPULAR_FILTERS = [
   { id: 'breakfast', label: 'Bao gồm bữa sáng' },
   { id: 'allInclusive', label: 'Tất cả đã bao gồm' },
@@ -29,13 +39,6 @@ const GUEST_RATINGS = [
   { id: 'pleasant', label: 'Dễ chịu: 6+' },
 ];
 
-const BED_TYPES = [
-  { id: 'single', label: 'Giường đơn' },
-  { id: 'double', label: 'Giường đôi' },
-  { id: 'twin', label: 'Giường đôi riêng' },
-  { id: 'king', label: 'Giường king size' },
-];
-
 const STARS = [5, 4, 3, 2, 1];
 
 function CollapsibleSection({ title, children, defaultOpen = true }) {
@@ -51,6 +54,7 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
   );
 }
 
+/** @type {HotelFilters} */
 const DEFAULT_FILTERS = {
   budget: [0, 20000000],
   popular: [],
@@ -60,6 +64,9 @@ const DEFAULT_FILTERS = {
   sustainability: [],
 };
 
+/**
+ * @param {{ filters?: HotelFilters; setFilters?: (next: HotelFilters) => void }} props
+ */
 export default function FilterSidebar({ filters = DEFAULT_FILTERS, setFilters = () => {} }) {
   const [showAllFilters, setShowAllFilters] = useState(false);
 

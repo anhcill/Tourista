@@ -7,6 +7,11 @@ import FilterSidebar from '@/components/Hotels/FilterSidebar/FilterSidebar';
 import SearchResultsHeader from '@/components/Hotels/SearchResultsHeader/SearchResultsHeader';
 import HotelCard from '@/components/Hotels/HotelCard/HotelCard';
 import hotelApi from '@/api/hotelApi';
+import {
+  findPriceAlertForQuery,
+  removePriceAlertById,
+  upsertPriceAlert,
+} from '@/utils/conversionStorage';
 import styles from './search.module.css';
 import { FaGift } from 'react-icons/fa';
 
@@ -41,6 +46,12 @@ type SearchHotelCardItem = {
   urgency: string;
 };
 
+type HotelPriceAlert = {
+  id: string;
+  targetPrice: number;
+  createdAt: string;
+};
+
 const getToday = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -70,6 +81,28 @@ const getRatingLabel = (rating: number) => {
   return 'Ổn';
 };
 
+const AMENITY_KEYWORDS: Record<string, string[]> = {
+  breakfast: ['bữa sáng'],
+  allInclusive: ['tất cả đã bao gồm'],
+  freeCancellation: ['hủy miễn phí'],
+  pool: ['hồ bơi'],
+  petFriendly: ['thú cưng'],
+  wifi: ['wi-fi', 'wifi'],
+  aircon: ['điều hòa'],
+  balcony: ['ban công'],
+  bathtub: ['bồn tắm'],
+  kitchen: ['bếp'],
+  washingMachine: ['máy giặt'],
+};
+
+const hasAmenityTag = (hotel: SearchHotelCardItem, amenityId: string) => {
+  const keywords = AMENITY_KEYWORDS[amenityId] || [];
+  if (keywords.length === 0) return false;
+
+  const amenityText = hotel.amenities.join(' ').toLowerCase();
+  return keywords.some((keyword) => amenityText.includes(keyword.toLowerCase()));
+};
+
 function HotelMap({ city }: { city: string }) {
   const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(
     city + ' hotels'
@@ -81,7 +114,6 @@ function HotelMap({ city }: { city: string }) {
         src={mapUrl}
         width="100%"
         height="100%"
-        style={{ border: 0 }}
         allowFullScreen={false}
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
@@ -96,6 +128,9 @@ function HotelSearchResultInner() {
   const [hotels, setHotels] = useState<SearchHotelCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [targetPrice, setTargetPrice] = useState('');
+  const [activePriceAlert, setActivePriceAlert] = useState<HotelPriceAlert | null>(null);
+  const [triggeredPrice, setTriggeredPrice] = useState<number | null>(null);
 
   const [filters, setFilters] = useState({
     budget: [0, 20000000],
@@ -134,6 +169,36 @@ function HotelSearchResultInner() {
     };
   }, [searchParams]);
 
+  const normalizedQuery = useMemo(
+    () => ({
+      city: query.city,
+      checkIn: query.checkIn,
+      checkOut: query.checkOut,
+      adults: query.adults,
+      rooms: query.rooms,
+      children: query.children,
+    }),
+    [query],
+  );
+
+  useEffect(() => {
+    const matchedAlert = findPriceAlertForQuery(normalizedQuery);
+    if (!matchedAlert) {
+      setActivePriceAlert(null);
+      setTargetPrice('');
+      setTriggeredPrice(null);
+      return;
+    }
+
+    setActivePriceAlert({
+      id: String(matchedAlert.id),
+      targetPrice: Number(matchedAlert.targetPrice || 0),
+      createdAt: String(matchedAlert.createdAt || ''),
+    });
+    setTargetPrice(String(Number(matchedAlert.targetPrice || 0)));
+    setTriggeredPrice(null);
+  }, [normalizedQuery]);
+
   useEffect(() => {
     const fetchHotels = async () => {
       if (!query.city) {
@@ -162,20 +227,39 @@ function HotelSearchResultInner() {
           const rating = Number(item.avgRating || 0);
           const availableTypes = Number(item.availableRoomTypes || 0);
           const availableRooms = Number(item.availableRooms || 0);
+          const amenityTags: string[] = [];
+
+          if (availableRooms > 0) {
+            amenityTags.push('Hủy miễn phí');
+          }
+          if (Number(item.starRating || 0) >= 4) {
+            amenityTags.push('Wi-Fi miễn phí', 'Hồ bơi', 'Bữa sáng');
+          }
+          if (Number(item.starRating || 0) >= 3) {
+            amenityTags.push('Điều hòa nhiệt độ');
+          }
+          if (availableTypes >= 2) {
+            amenityTags.push('Bếp / Bếp nhỏ');
+          }
+          if (availableTypes >= 3) {
+            amenityTags.push('Ban công');
+          }
 
           return {
             id: item.id,
             name: item.name,
             location: item.address,
             image: item.coverImage,
-            amenities:
-              availableTypes > 0
+            amenities: [
+              ...amenityTags,
+              ...(availableTypes > 0
                 ? [
                     availableRooms > 0
                       ? `${availableRooms} phòng trống (${availableTypes} loại phòng)`
                       : `${availableTypes} loại phòng còn trống`,
                   ]
-                : ['Đang hết phòng'],
+                : ['Đang hết phòng']),
+            ],
             guests: `${query.adults} Người lớn${query.children ? `, ${query.children} Trẻ em` : ''}`,
             nights: Math.max(1, Math.ceil((new Date(query.checkOut).getTime() - new Date(query.checkIn).getTime()) / (1000 * 60 * 60 * 24))),
             originalPrice,
@@ -230,33 +314,73 @@ function HotelSearchResultInner() {
         if (!filters.sustainability.includes(hotel.sustainableLevel)) return false;
       }
 
-      // Mock utility for array matching
-      const mockHasAmenity = (amenityId: string) => {
-        const hash = hotel.id + amenityId.length;
-        return hash % 2 === 0;
-      };
-
       // 5. Popular Filters
       if (filters.popular.length > 0) {
         for (const p of filters.popular) {
-          if (p === 'freeCancellation') {
-            if (hotel.id % 3 === 0) return false;
-          } else {
-            if (!mockHasAmenity(p)) return false;
-          }
+          if (!hasAmenityTag(hotel, p)) return false;
         }
       }
 
       // 6. Facilities
       if (filters.facilities.length > 0) {
         for (const f of filters.facilities) {
-          if (!mockHasAmenity(`fac_${f}`)) return false;
+          if (!hasAmenityTag(hotel, f)) return false;
         }
       }
 
       return true;
     });
   }, [hotels, filters]);
+
+  const lowestPrice = useMemo(() => {
+    const prices = hotels
+      .map((hotel) => Number(hotel.discountPrice || 0))
+      .filter((price) => Number.isFinite(price) && price > 0);
+    if (prices.length === 0) return null;
+    return Math.min(...prices);
+  }, [hotels]);
+
+  const hasTriggeredAlert =
+    activePriceAlert && lowestPrice != null && lowestPrice <= activePriceAlert.targetPrice;
+
+  useEffect(() => {
+    if (!activePriceAlert || lowestPrice == null) return;
+
+    if (lowestPrice <= activePriceAlert.targetPrice && triggeredPrice !== lowestPrice) {
+      setTriggeredPrice(lowestPrice);
+    }
+    if (lowestPrice > activePriceAlert.targetPrice && triggeredPrice != null) {
+      setTriggeredPrice(null);
+    }
+  }, [activePriceAlert, lowestPrice, triggeredPrice]);
+
+  const handleSavePriceAlert = () => {
+    const numericTarget = Math.floor(Number(targetPrice || 0));
+    if (!Number.isFinite(numericTarget) || numericTarget <= 0) {
+      return;
+    }
+
+    const nextAlert = upsertPriceAlert({
+      query: normalizedQuery,
+      targetPrice: numericTarget,
+    });
+
+    setActivePriceAlert({
+      id: String(nextAlert.id),
+      targetPrice: Number(nextAlert.targetPrice || 0),
+      createdAt: String(nextAlert.createdAt || ''),
+    });
+    setTargetPrice(String(numericTarget));
+    setTriggeredPrice(null);
+  };
+
+  const handleRemovePriceAlert = () => {
+    if (!activePriceAlert) return;
+    removePriceAlertById(activePriceAlert.id);
+    setActivePriceAlert(null);
+    setTargetPrice('');
+    setTriggeredPrice(null);
+  };
 
   return (
     <div className={styles.pageWrapper}>
@@ -274,6 +398,53 @@ function HotelSearchResultInner() {
 
           <div className={styles.resultsList}>
             <SearchResultsHeader city={query.city || 'Điểm đến'} count={displayedHotels.length} />
+
+            <section className={styles.priceAlertCard}>
+              <div className={styles.priceAlertHeader}>
+                <h3 className={styles.priceAlertTitle}>Price Alert</h3>
+                {activePriceAlert && (
+                  <span className={styles.priceAlertBadge}>Dang theo doi</span>
+                )}
+              </div>
+
+              <p className={styles.priceAlertDesc}>
+                Dat nguong gia de nhan thong bao khi co khach san tu muc ban mong muon.
+              </p>
+
+              <div className={styles.priceAlertControls}>
+                <input
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  className={styles.priceAlertInput}
+                  aria-label="Nguong gia mong muon"
+                  placeholder="Vi du: 1500000"
+                  value={targetPrice}
+                  onChange={(e) => setTargetPrice(e.target.value)}
+                />
+                <button className={styles.priceAlertPrimaryBtn} onClick={handleSavePriceAlert}>
+                  {activePriceAlert ? 'Cap nhat nguong' : 'Bat theo doi'}
+                </button>
+                {activePriceAlert && (
+                  <button className={styles.priceAlertGhostBtn} onClick={handleRemovePriceAlert}>
+                    Tat theo doi
+                  </button>
+                )}
+              </div>
+
+              {activePriceAlert && (
+                <p className={styles.priceAlertMeta}>
+                  Dang theo doi: gia {'<='} {activePriceAlert.targetPrice.toLocaleString('vi-VN')} VND cho
+                  hanh trinh {query.city || 'khong xac dinh'} ({query.checkIn} - {query.checkOut}).
+                </p>
+              )}
+
+              {hasTriggeredAlert && (
+                <p className={styles.priceAlertSuccess}>
+                  Da co gia phu hop! Muc thap nhat hien tai la {(lowestPrice || 0).toLocaleString('vi-VN')} VND.
+                </p>
+              )}
+            </section>
 
             {loading && <div className={styles.statusBox}>Đang tải danh sách khách sạn...</div>}
 

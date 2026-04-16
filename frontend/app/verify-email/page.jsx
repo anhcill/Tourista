@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import authApi from '@/api/authApi';
 import styles from './page.module.css';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = useMemo(() => (searchParams.get('token') || '').trim(), [searchParams]);
 
@@ -53,5 +53,13 @@ export default function VerifyEmailPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<main className={styles.page}><section className={styles.card}>Dang tai...</section></main>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
