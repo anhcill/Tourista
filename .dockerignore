@@ -45,7 +45,6 @@ Thumbs.db
 
 # Backend local files
 backend/.env
-backend/.mvn/wrapper/maven-wrapper.properties
 
 # Frontend
 frontend/.eslintrc*
