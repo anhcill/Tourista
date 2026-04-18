@@ -8,18 +8,17 @@
 # ---------- Stage 1: Backend ----------
 FROM eclipse-temurin:21-jdk-alpine AS backend-builder
 
+RUN apk add --no-cache maven
+
 WORKDIR /app
 
-# Copy Maven wrapper + pom.xml for dependency caching
-COPY backend/mvnw backend/.mvn backend/pom.xml ./
-RUN chmod +x mvnw
-
 # Download dependencies (cached if pom.xml unchanged)
-RUN ./mvnw dependency:go-offline -B
+COPY backend/pom.xml ./
+RUN mvn dependency:go-offline -B
 
-# Copy source and build
+# Build
 COPY backend/src ./src
-RUN ./mvnw package -DskipTests -q
+RUN mvn package -DskipTests -q
 
 # ---------- Stage 2: Frontend ----------
 FROM node:20-alpine AS frontend-builder
