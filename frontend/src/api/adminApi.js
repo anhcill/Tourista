@@ -1774,6 +1774,54 @@ const adminApi = {
       "Xoa promotion that bai.",
     );
   },
+
+  // ===================== HOTEL CRUD =====================
+
+  getHotelById: async (hotelId) => {
+    const response = await safeRequest(
+      () => axiosClient.get(`/admin/hotels/${hotelId}`),
+      "Khong the tai chi tiet hotel.",
+    );
+    return response?.data?.result || response?.data;
+  },
+
+  createHotel: async (payload) => {
+    return safeRequest(
+      () => axiosClient.post("/admin/hotels", payload),
+      "Tao hotel that bai.",
+    );
+  },
+
+  updateHotel: async (hotelId, payload) => {
+    return safeRequest(
+      () => axiosClient.put(`/admin/hotels/${hotelId}`, payload),
+      "Cap nhat hotel that bai.",
+    );
+  },
+
+  // ===================== TOUR CRUD =====================
+
+  getTourById: async (tourId) => {
+    const response = await safeRequest(
+      () => axiosClient.get(`/admin/tours/${tourId}`),
+      "Khong the tai chi tiet tour.",
+    );
+    return response?.data?.result || response?.data;
+  },
+
+  createTour: async (payload) => {
+    return safeRequest(
+      () => axiosClient.post("/admin/tours", payload),
+      "Tao tour that bai.",
+    );
+  },
+
+  updateTour: async (tourId, payload) => {
+    return safeRequest(
+      () => axiosClient.put(`/admin/tours/${tourId}`, payload),
+      "Cap nhat tour that bai.",
+    );
+  },
 };
 
 export default adminApi;

@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { FaBan, FaCheckCircle, FaRoute, FaSearch, FaSyncAlt, FaTimesCircle } from 'react-icons/fa';
+import { FaBan, FaCheckCircle, FaEdit, FaPlusCircle, FaRoute, FaSearch, FaSyncAlt, FaTimesCircle } from 'react-icons/fa';
+import Link from 'next/link';
 import adminApi from '@/api/adminApi';
 import type { AdminTourRow, AdminToursOverview, AdminTourStatus } from '../types';
 import styles from './page.module.css';
@@ -230,6 +231,10 @@ export default function AdminToursPage() {
 
         <div className={styles.heroMeta}>
           <span className={styles.totalBadge}>{totalToursText}</span>
+          <Link href="/admin/tours/create" className={styles.createButton}>
+            <FaPlusCircle />
+            Tao tour moi
+          </Link>
           <span className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}>
             {overview.hasMockFallback ? 'Mock fallback mode' : 'API live mode'}
           </span>
@@ -329,7 +334,7 @@ export default function AdminToursPage() {
                 <th>Seats</th>
                 <th>Status</th>
                 <th>Updated</th>
-                <th>Actions</th>
+                <th colSpan={2}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -379,6 +384,10 @@ export default function AdminToursPage() {
                     <td>{formatDateTime(tour.updatedAt || tour.createdAt)}</td>
                     <td>
                       <div className={styles.actionsWrap}>
+                        <Link href={`/admin/tours/${tour.id}/edit`} className={styles.editButton}>
+                          <FaEdit />
+                          Sua
+                        </Link>
                         <button
                           type="button"
                           className={`${styles.inlineButton} ${styles.approveButton}`}

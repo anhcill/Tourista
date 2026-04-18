@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import { MdOutlinePool } from 'react-icons/md';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
+import InlineFaqChat from '@/components/Chat/InlineFaqChat';
 import hotelApi from '@/api/hotelApi';
 import tourApi from '@/api/tourApi';
 import reviewApi from '@/api/reviewApi';
@@ -1078,18 +1079,10 @@ function HotelDetailInner() {
                         )}
                     </section>
 
-                    {/* FAQ */}
+                    {/* FAQ + AI Chat */}
                     <div className={styles.faqSection}>
                         <h3 className={styles.faqTitle}>Cau hoi thuong gap truoc khi dat phong</h3>
-                        {FAQS.map((faq, i) => (
-                            <div key={i} className={styles.faqItem}>
-                                <button className={styles.faqQ} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                                    {faq.q}
-                                    <FaChevronDown className={`${styles.chevron} ${openFaq === i ? styles.chevronOpen : ''}`} />
-                                </button>
-                                {openFaq === i && <p className={styles.faqA}>{faq.a}</p>}
-                            </div>
-                        ))}
+                        <InlineFaqChat context="HOTEL" />
                     </div>
                 </div>
 

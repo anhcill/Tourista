@@ -8,6 +8,7 @@ import {
   FaMountain, FaHeart, FaShare, FaThumbsUp,
 } from 'react-icons/fa';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
+import InlineFaqChat from '@/components/Chat/InlineFaqChat';
 import tourApi from '@/api/tourApi';
 import reviewApi from '@/api/reviewApi';
 import styles from './page.module.css';
@@ -523,21 +524,11 @@ function TourDetailInner() {
               </div>
             )}
 
-            {/* Tab 3: FAQ */}
+            {/* Tab 3: FAQ + AI Chat */}
             {activeTab === 3 && (
               <div className={styles.tabPanel}>
-                <h3 className={styles.sectionTitle}>Câu hỏi thường gặp</h3>
-                <div className={styles.faqSection}>
-                  {FAQS.map((faq, i) => (
-                    <div key={i} className={styles.faqItem}>
-                      <button className={styles.faqQ} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                        {faq.q}
-                        <FaChevronDown className={`${styles.faqChevron} ${openFaq === i ? styles.faqChevronOpen : ''}`} />
-                      </button>
-                      {openFaq === i && <p className={styles.faqA}>{faq.a}</p>}
-                    </div>
-                  ))}
-                </div>
+                <h3 className={styles.sectionTitle}>Cau hoi thuong gap</h3>
+                <InlineFaqChat context="TOUR" />
               </div>
             )}
           </div>

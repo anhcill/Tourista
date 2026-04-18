@@ -143,13 +143,16 @@ public class FavoriteServiceImpl implements FavoriteService {
 
         BigDecimal minPrice = roomTypeRepository.findMinBasePriceByHotelId(hotel.getId());
 
+        Object[] coverImg = hotelRepository.findCoverImageByHotelId(hotel.getId());
+        String coverUrl = (coverImg != null && coverImg.length > 1) ? (String) coverImg[1] : null;
+
         return FavoriteItemResponse.builder()
                 .id(favorite.getId())
                 .type(Favorite.TargetType.HOTEL.name())
                 .targetId(hotel.getId())
                 .title(hotel.getName())
                 .location(buildCityLabel(hotel.getCity()))
-                .imageUrl(hotelRepository.findCoverImageByHotelId(hotel.getId()).orElse(null))
+                .imageUrl(coverUrl)
                 .rating(hotel.getAvgRating())
                 .reviewCount(hotel.getReviewCount())
                 .priceFrom(minPrice)

@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { FaBan, FaCheckCircle, FaHotel, FaSearch, FaSyncAlt, FaTimesCircle } from 'react-icons/fa';
+import Link from 'next/link';
+import { FaBan, FaCheckCircle, FaEdit, FaHotel, FaPlusCircle, FaSearch, FaSyncAlt, FaTimesCircle } from 'react-icons/fa';
 import adminApi from '@/api/adminApi';
 import type { AdminHotelRow, AdminHotelsOverview, AdminHotelStatus } from '../types';
 import styles from './page.module.css';
@@ -221,6 +222,10 @@ export default function AdminHotelsPage() {
 
         <div className={styles.heroMeta}>
           <span className={styles.totalBadge}>{totalHotelsText}</span>
+          <Link href="/admin/hotels/create" className={styles.createButton}>
+            <FaPlusCircle />
+            Tao khach san moi
+          </Link>
           <span
             className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}
           >
@@ -305,13 +310,13 @@ export default function AdminHotelsPage() {
                 <th>Rating</th>
                 <th>Status</th>
                 <th>Updated</th>
-                <th>Actions</th>
+                <th colSpan={2}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {overview.hotels.length === 0 ? (
                 <tr>
-                  <td className={styles.emptyCell} colSpan={7}>
+                  <td className={styles.emptyCell} colSpan={8}>
                     <FaHotel />
                     <span>Khong co hotel phu hop bo loc hien tai.</span>
                   </td>
@@ -352,6 +357,10 @@ export default function AdminHotelsPage() {
                     <td>{formatDateTime(hotel.updatedAt || hotel.createdAt)}</td>
                     <td>
                       <div className={styles.actionsWrap}>
+                        <Link href={`/admin/hotels/${hotel.id}/edit`} className={styles.editButton}>
+                          <FaEdit />
+                          Sua
+                        </Link>
                         <button
                           type="button"
                           className={`${styles.inlineButton} ${styles.approveButton}`}

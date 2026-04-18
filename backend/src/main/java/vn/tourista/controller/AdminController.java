@@ -12,24 +12,29 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import vn.tourista.dto.request.admin.AdminHotelStatusUpdateRequest;
 import vn.tourista.dto.request.admin.AdminBookingStatusUpdateRequest;
+import vn.tourista.dto.request.admin.AdminHotelStatusUpdateRequest;
+import vn.tourista.dto.request.admin.AdminHotelUpsertRequest;
 import vn.tourista.dto.request.admin.AdminPromotionStatusUpdateRequest;
 import vn.tourista.dto.request.admin.AdminPromotionUpsertRequest;
 import vn.tourista.dto.request.admin.AdminReasonRequest;
 import vn.tourista.dto.request.admin.AdminTourStatusUpdateRequest;
+import vn.tourista.dto.request.admin.AdminTourUpsertRequest;
 import vn.tourista.dto.request.admin.AdminUserRoleUpdateRequest;
 import vn.tourista.dto.request.admin.AdminUserStatusUpdateRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.admin.AdminAuditLogItemResponse;
 import vn.tourista.dto.response.admin.AdminBookingItemResponse;
+import vn.tourista.dto.response.admin.AdminHotelDetailResponse;
 import vn.tourista.dto.response.admin.AdminHotelItemResponse;
 import vn.tourista.dto.response.admin.AdminPageResponse;
 import vn.tourista.dto.response.admin.AdminPromotionItemResponse;
+import vn.tourista.dto.response.admin.AdminTourDetailResponse;
 import vn.tourista.dto.response.admin.AdminTourItemResponse;
 import vn.tourista.dto.response.admin.AdminUserItemResponse;
 import vn.tourista.service.AdminService;
@@ -263,6 +268,64 @@ public class AdminController {
 
         adminService.deletePromotion(promotionId, request.getReason(), resolveActor(authentication));
         return ResponseEntity.ok(ApiResponse.ok("Xoa promotion thanh cong"));
+    }
+
+    // ===================== HOTEL CRUD =====================
+
+    @GetMapping("/hotels/{hotelId}")
+    public ResponseEntity<ApiResponse<AdminHotelDetailResponse>> getHotelById(@PathVariable Long hotelId) {
+        AdminHotelDetailResponse data = adminService.getHotelById(hotelId);
+        return ResponseEntity.ok(ApiResponse.ok("Lay chi tiet hotel thanh cong", data));
+    }
+
+    @PostMapping("/hotels")
+    public ResponseEntity<ApiResponse<AdminHotelItemResponse>> createHotel(
+            @Valid @RequestBody AdminHotelUpsertRequest request,
+            Authentication authentication) {
+
+        AdminHotelItemResponse data = adminService.createHotel(request, resolveActor(authentication));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Tao hotel thanh cong", data));
+    }
+
+    @PutMapping("/hotels/{hotelId}")
+    public ResponseEntity<ApiResponse<AdminHotelItemResponse>> updateHotel(
+            @PathVariable Long hotelId,
+            @Valid @RequestBody AdminHotelUpsertRequest request,
+            Authentication authentication) {
+
+        AdminHotelItemResponse data = adminService.updateHotel(hotelId, request, resolveActor(authentication));
+        return ResponseEntity.ok(ApiResponse.ok("Cap nhat hotel thanh cong", data));
+    }
+
+    // ===================== TOUR CRUD =====================
+
+    @GetMapping("/tours/{tourId}")
+    public ResponseEntity<ApiResponse<AdminTourDetailResponse>> getTourById(@PathVariable Long tourId) {
+        AdminTourDetailResponse data = adminService.getTourById(tourId);
+        return ResponseEntity.ok(ApiResponse.ok("Lay chi tiet tour thanh cong", data));
+    }
+
+    @PostMapping("/tours")
+    public ResponseEntity<ApiResponse<AdminTourItemResponse>> createTour(
+            @Valid @RequestBody AdminTourUpsertRequest request,
+            Authentication authentication) {
+
+        AdminTourItemResponse data = adminService.createTour(request, resolveActor(authentication));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Tao tour thanh cong", data));
+    }
+
+    @PutMapping("/tours/{tourId}")
+    public ResponseEntity<ApiResponse<AdminTourItemResponse>> updateTour(
+            @PathVariable Long tourId,
+            @Valid @RequestBody AdminTourUpsertRequest request,
+            Authentication authentication) {
+
+        AdminTourItemResponse data = adminService.updateTour(tourId, request, resolveActor(authentication));
+        return ResponseEntity.ok(ApiResponse.ok("Cap nhat tour thanh cong", data));
     }
 
     private String resolveActor(Authentication authentication) {

@@ -1,6 +1,8 @@
 package vn.tourista.service;
 
 import vn.tourista.dto.request.admin.AdminHotelStatusUpdateRequest;
+import vn.tourista.dto.request.admin.AdminHotelUpsertRequest;
+import vn.tourista.dto.request.admin.AdminTourUpsertRequest;
 import vn.tourista.dto.request.admin.AdminBookingStatusUpdateRequest;
 import vn.tourista.dto.request.admin.AdminPromotionStatusUpdateRequest;
 import vn.tourista.dto.request.admin.AdminPromotionUpsertRequest;
@@ -9,9 +11,11 @@ import vn.tourista.dto.request.admin.AdminUserRoleUpdateRequest;
 import vn.tourista.dto.request.admin.AdminUserStatusUpdateRequest;
 import vn.tourista.dto.response.admin.AdminBookingItemResponse;
 import vn.tourista.dto.response.admin.AdminAuditLogItemResponse;
+import vn.tourista.dto.response.admin.AdminHotelDetailResponse;
 import vn.tourista.dto.response.admin.AdminHotelItemResponse;
 import vn.tourista.dto.response.admin.AdminPageResponse;
 import vn.tourista.dto.response.admin.AdminPromotionItemResponse;
+import vn.tourista.dto.response.admin.AdminTourDetailResponse;
 import vn.tourista.dto.response.admin.AdminTourItemResponse;
 import vn.tourista.dto.response.admin.AdminUserItemResponse;
 
@@ -85,4 +89,16 @@ public interface AdminService {
                         String actorEmail);
 
         void deletePromotion(Long promotionId, String reason, String actorEmail);
+
+        AdminHotelDetailResponse getHotelById(Long hotelId);
+
+        AdminHotelItemResponse createHotel(AdminHotelUpsertRequest request, String actorEmail);
+
+        AdminHotelItemResponse updateHotel(Long hotelId, AdminHotelUpsertRequest request, String actorEmail);
+
+        AdminTourDetailResponse getTourById(Long tourId);
+
+        AdminTourItemResponse createTour(AdminTourUpsertRequest request, String actorEmail);
+
+        AdminTourItemResponse updateTour(Long tourId, AdminTourUpsertRequest request, String actorEmail);
 }

@@ -1,0 +1,504 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import HttpBackend from 'i18next-http-backend';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+const resources = {
+  vi: {
+    translation: {
+      // ============================================================
+      // Common
+      // ============================================================
+      common: {
+        loading: 'Đang tải...',
+        error: 'Đã xảy ra lỗi',
+        retry: 'Thử lại',
+        cancel: 'Hủy',
+        save: 'Lưu',
+        delete: 'Xóa',
+        edit: 'Sửa',
+        create: 'Tạo mới',
+        search: 'Tìm kiếm',
+        filter: 'Lọc',
+        sort: 'Sắp xếp',
+        all: 'Tất cả',
+        none: 'Không có',
+        yes: 'Có',
+        no: 'Không',
+        confirm: 'Xác nhận',
+        back: 'Quay lại',
+        next: 'Tiếp theo',
+        prev: 'Trước',
+        submit: 'Gửi',
+        close: 'Đóng',
+        view: 'Xem',
+        apply: 'Áp dụng',
+        reset: 'Đặt lại',
+        more: 'Xem thêm',
+        less: 'Thu gọn',
+        required: 'Bắt buộc',
+        optional: 'Tùy chọn',
+        success: 'Thành công',
+        failed: 'Thất bại',
+        pending: 'Đang chờ',
+        processing: 'Đang xử lý',
+      },
+
+      // ============================================================
+      // Navigation
+      // ============================================================
+      nav: {
+        home: 'Trang chủ',
+        hotels: 'Khách sạn',
+        tours: 'Tours',
+        blog: 'Blog',
+        about: 'Giới thiệu',
+        contact: 'Liên hệ',
+        login: 'Đăng nhập',
+        register: 'Đăng ký',
+        logout: 'Đăng xuất',
+        profile: 'Tài khoản',
+        bookings: 'Lịch sử đặt',
+        favorites: 'Yêu thích',
+        settings: 'Cài đặt',
+        dashboard: 'Bảng điều khiển',
+        admin: 'Quản trị',
+        chat: 'Hỗ trợ',
+      },
+
+      // ============================================================
+      // Auth
+      // ============================================================
+      auth: {
+        loginTitle: 'Chào mừng trở lại',
+        registerTitle: 'Tạo tài khoản mới',
+        email: 'Email',
+        password: 'Mật khẩu',
+        confirmPassword: 'Xác nhận mật khẩu',
+        forgotPassword: 'Quên mật khẩu?',
+        noAccount: 'Chưa có tài khoản?',
+        hasAccount: 'Đã có tài khoản?',
+        loginButton: 'Đăng nhập',
+        registerButton: 'Đăng ký',
+        loginSuccess: 'Đăng nhập thành công',
+        loginFailed: 'Đăng nhập thất bại',
+        registerSuccess: 'Đăng ký thành công',
+        registerFailed: 'Đăng ký thất bại',
+        invalidCredentials: 'Email hoặc mật khẩu không đúng',
+        emailRequired: 'Vui lòng nhập email',
+        passwordRequired: 'Vui lòng nhập mật khẩu',
+        passwordMinLength: 'Mật khẩu phải có ít nhất 6 ký tự',
+        passwordMismatch: 'Mật khẩu xác nhận không khớp',
+        fullName: 'Họ và tên',
+        fullNameRequired: 'Vui lòng nhập họ tên',
+      },
+
+      // ============================================================
+      // Hotels
+      // ============================================================
+      hotel: {
+        title: 'Khách sạn',
+        searchPlaceholder: 'Tìm kiếm khách sạn...',
+        filters: {
+          city: 'Thành phố',
+          starRating: 'Hạng sao',
+          priceRange: 'Khoảng giá',
+          amenities: 'Tiện nghi',
+          sortBy: 'Sắp xếp theo',
+          priceAsc: 'Giá thấp đến cao',
+          priceDesc: 'Giá cao đến thấp',
+          ratingDesc: 'Đánh giá cao nhất',
+          popular: 'Phổ biến nhất',
+        },
+        card: {
+          perNight: '/đêm',
+          reviews: 'đánh giá',
+          bookNow: 'Đặt ngay',
+          viewDetails: 'Xem chi tiết',
+        },
+        detail: {
+          overview: 'Tổng quan',
+          rooms: 'Loại phòng',
+          amenities: 'Tiện nghi',
+          reviews: 'Đánh giá',
+          location: 'Vị trí',
+          policies: 'Chính sách',
+          checkIn: 'Nhận phòng',
+          checkOut: 'Trả phòng',
+          contact: 'Liên hệ',
+          address: 'Địa chỉ',
+          phone: 'Điện thoại',
+          email: 'Email',
+          website: 'Website',
+        },
+        room: {
+          adults: 'Người lớn',
+          children: 'Trẻ em',
+          maxGuests: 'Tối đa',
+          pricePerNight: 'Giá / đêm',
+          selectRoom: 'Chọn phòng',
+          available: 'Còn phòng',
+          unavailable: 'Hết phòng',
+        },
+      },
+
+      // ============================================================
+      // Tours
+      // ============================================================
+      tour: {
+        title: 'Tour du lịch',
+        searchPlaceholder: 'Tìm kiếm tour...',
+        filters: {
+          city: 'Điểm đến',
+          category: 'Loại tour',
+          duration: 'Thời gian',
+          priceRange: 'Khoảng giá',
+          difficulty: 'Độ khó',
+          sortBy: 'Sắp xếp theo',
+        },
+        card: {
+          days: 'ngày',
+          nights: 'đêm',
+          perPerson: '/người',
+          bookNow: 'Đặt tour',
+          viewDetails: 'Xem chi tiết',
+          availableSlots: 'chỗ trống',
+          departures: 'Lịch khởi hành',
+        },
+        detail: {
+          overview: 'Tổng quan',
+          itinerary: 'Lịch trình',
+          inclusions: 'Bao gồm',
+          exclusions: 'Không bao gồm',
+          highlights: 'Điểm nổi bật',
+          reviews: 'Đánh giá',
+          departureDates: 'Ngày khởi hành',
+          bookNow: 'Đặt tour',
+          selectDeparture: 'Chọn ngày khởi hành',
+          adults: 'Người lớn',
+          children: 'Trẻ em',
+          total: 'Tổng cộng',
+          duration: 'Thời gian',
+          groupSize: 'Quy mô nhóm',
+          difficulty: 'Độ khó',
+          easy: 'Dễ',
+          medium: 'Trung bình',
+          hard: 'Khó',
+        },
+        itinerary: {
+          day: 'Ngày',
+          activities: 'Hoạt động',
+        },
+      },
+
+      // ============================================================
+      // Booking
+      // ============================================================
+      booking: {
+        title: 'Đặt chỗ',
+        cart: 'Giỏ hàng',
+        checkout: 'Thanh toán',
+        summary: 'Tóm tắt đặt chỗ',
+        bookingCode: 'Mã đặt chỗ',
+        status: 'Trạng thái',
+        date: 'Ngày đặt',
+        total: 'Tổng tiền',
+        payment: 'Thanh toán',
+        paymentMethod: 'Phương thức thanh toán',
+        paymentStatus: 'Trạng thái thanh toán',
+        paid: 'Đã thanh toán',
+        unpaid: 'Chưa thanh toán',
+        pending: 'Đang chờ',
+        confirmed: 'Đã xác nhận',
+        cancelled: 'Đã hủy',
+        completed: 'Hoàn thành',
+        guestInfo: 'Thông tin khách',
+        specialRequests: 'Yêu cầu đặc biệt',
+        confirmBooking: 'Xác nhận đặt chỗ',
+        bookingSuccess: 'Đặt chỗ thành công!',
+        bookingFailed: 'Đặt chỗ thất bại',
+      },
+
+      // ============================================================
+      // Review
+      // ============================================================
+      review: {
+        title: 'Đánh giá',
+        write: 'Viết đánh giá',
+        rating: 'Điểm đánh giá',
+        comment: 'Nhận xét',
+        submit: 'Gửi đánh giá',
+        submitted: 'Đã gửi đánh giá',
+        pending: 'Đang chờ duyệt',
+        helpful: 'Hữu ích',
+        report: 'Báo cáo',
+        noReviews: 'Chưa có đánh giá nào',
+        beFirst: 'Hãy là người đầu tiên đánh giá',
+      },
+
+      // ============================================================
+      // Admin
+      // ============================================================
+      admin: {
+        dashboard: 'Bảng điều khiển',
+        users: 'Người dùng',
+        hotels: 'Khách sạn',
+        tours: 'Tours',
+        bookings: 'Đặt chỗ',
+        reviews: 'Đánh giá',
+        promotions: 'Khuyến mãi',
+        statistics: 'Thống kê',
+        settings: 'Cài đặt',
+        create: 'Tạo mới',
+        edit: 'Sửa',
+        delete: 'Xóa',
+        approve: 'Duyệt',
+        reject: 'Từ chối',
+        suspend: 'Tạm khóa',
+        status: 'Trạng thái',
+        actions: 'Hành động',
+        pending: 'Đang chờ duyệt',
+        approved: 'Đã duyệt',
+        rejected: 'Bị từ chối',
+        suspended: 'Tạm khóa',
+        active: 'Hoạt động',
+        inactive: 'Không hoạt động',
+        totalUsers: 'Tổng người dùng',
+        totalHotels: 'Tổng khách sạn',
+        totalTours: 'Tổng tours',
+        totalBookings: 'Tổng đặt chỗ',
+        revenue: 'Doanh thu',
+      },
+
+      // ============================================================
+      // Chatbot
+      // ============================================================
+      chatbot: {
+        title: 'Tourista Travel Buddy',
+        placeholder: 'Nhắn điểm đến, ngân sách hoặc mã TRS-...',
+        welcome: 'Lên kế hoạch chuyến đi chỉ trong vài tin nhắn',
+        loginRequired: 'Đăng nhập để sử dụng tính năng này',
+        typing: 'Đang nhập...',
+      },
+
+      // ============================================================
+      // Error pages
+      // ============================================================
+      error: {
+        notFound: 'Không tìm thấy',
+        notFoundMessage: 'Trang bạn đang tìm kiếm không tồn tại.',
+        serverError: 'Lỗi server',
+        serverErrorMessage: 'Đã xảy ra lỗi phía server. Vui lòng thử lại sau.',
+        goHome: 'Về trang chủ',
+        goBack: 'Quay lại',
+      },
+
+      // ============================================================
+      // Pagination
+      // ============================================================
+      pagination: {
+        page: 'Trang',
+        of: 'của',
+        showing: 'Hiển thị',
+        items: 'mục',
+        prev: 'Trước',
+        next: 'Sau',
+      },
+
+      // ============================================================
+      // Footer
+      // ============================================================
+      footer: {
+        about: 'Về Tourista',
+        aboutText: 'Nền tảng đặt tour và khách sạn hàng đầu Việt Nam.',
+        quickLinks: 'Liên kết nhanh',
+        support: 'Hỗ trợ',
+        contact: 'Liên hệ',
+        faq: 'Câu hỏi thường gặp',
+        terms: 'Điều khoản sử dụng',
+        privacy: 'Chính sách bảo mật',
+        copyright: '© 2026 Tourista. Mọi quyền được bảo lưu.',
+      },
+    },
+  },
+  en: {
+    translation: {
+      common: {
+        loading: 'Loading...',
+        error: 'An error occurred',
+        retry: 'Retry',
+        cancel: 'Cancel',
+        save: 'Save',
+        delete: 'Delete',
+        edit: 'Edit',
+        create: 'Create',
+        search: 'Search',
+        filter: 'Filter',
+        sort: 'Sort',
+        all: 'All',
+        none: 'None',
+        yes: 'Yes',
+        no: 'No',
+        confirm: 'Confirm',
+        back: 'Back',
+        next: 'Next',
+        prev: 'Previous',
+        submit: 'Submit',
+        close: 'Close',
+        view: 'View',
+        apply: 'Apply',
+        reset: 'Reset',
+        more: 'Show more',
+        less: 'Show less',
+        required: 'Required',
+        optional: 'Optional',
+        success: 'Success',
+        failed: 'Failed',
+        pending: 'Pending',
+        processing: 'Processing',
+      },
+      nav: {
+        home: 'Home',
+        hotels: 'Hotels',
+        tours: 'Tours',
+        blog: 'Blog',
+        about: 'About',
+        contact: 'Contact',
+        login: 'Login',
+        register: 'Register',
+        logout: 'Logout',
+        profile: 'Account',
+        bookings: 'Bookings',
+        favorites: 'Favorites',
+        settings: 'Settings',
+        dashboard: 'Dashboard',
+        admin: 'Admin',
+        chat: 'Support',
+      },
+      auth: {
+        loginTitle: 'Welcome back',
+        registerTitle: 'Create new account',
+        email: 'Email',
+        password: 'Password',
+        confirmPassword: 'Confirm password',
+        forgotPassword: 'Forgot password?',
+        noAccount: "Don't have an account?",
+        hasAccount: 'Already have an account?',
+        loginButton: 'Login',
+        registerButton: 'Register',
+        loginSuccess: 'Login successful',
+        loginFailed: 'Login failed',
+        registerSuccess: 'Registration successful',
+        registerFailed: 'Registration failed',
+        invalidCredentials: 'Invalid email or password',
+        emailRequired: 'Email is required',
+        passwordRequired: 'Password is required',
+        passwordMinLength: 'Password must be at least 6 characters',
+        passwordMismatch: 'Password confirmation does not match',
+        fullName: 'Full name',
+        fullNameRequired: 'Full name is required',
+      },
+      hotel: {
+        title: 'Hotels',
+        searchPlaceholder: 'Search hotels...',
+        card: {
+          perNight: '/night',
+          reviews: 'reviews',
+          bookNow: 'Book now',
+          viewDetails: 'View details',
+        },
+      },
+      tour: {
+        title: 'Tours',
+        searchPlaceholder: 'Search tours...',
+        card: {
+          days: 'days',
+          nights: 'nights',
+          perPerson: '/person',
+          bookNow: 'Book tour',
+          viewDetails: 'View details',
+        },
+      },
+      booking: {
+        title: 'Booking',
+        summary: 'Booking Summary',
+        bookingCode: 'Booking Code',
+        status: 'Status',
+        total: 'Total',
+        payment: 'Payment',
+        confirmed: 'Confirmed',
+        cancelled: 'Cancelled',
+      },
+      review: {
+        title: 'Reviews',
+        write: 'Write a review',
+        rating: 'Rating',
+        comment: 'Comment',
+        submit: 'Submit review',
+        noReviews: 'No reviews yet',
+        beFirst: 'Be the first to review',
+      },
+      admin: {
+        dashboard: 'Dashboard',
+        users: 'Users',
+        hotels: 'Hotels',
+        tours: 'Tours',
+        bookings: 'Bookings',
+        reviews: 'Reviews',
+        promotions: 'Promotions',
+        statistics: 'Statistics',
+      },
+      error: {
+        notFound: 'Not Found',
+        notFoundMessage: 'The page you are looking for does not exist.',
+        serverError: 'Server Error',
+        serverErrorMessage: 'An error occurred on the server. Please try again later.',
+        goHome: 'Go to home',
+        goBack: 'Go back',
+      },
+      pagination: {
+        page: 'Page',
+        of: 'of',
+        showing: 'Showing',
+        items: 'items',
+        prev: 'Previous',
+        next: 'Next',
+      },
+      footer: {
+        about: 'About Tourista',
+        aboutText: 'Leading tour and hotel booking platform in Vietnam.',
+        quickLinks: 'Quick Links',
+        support: 'Support',
+        contact: 'Contact',
+        faq: 'FAQ',
+        terms: 'Terms of Service',
+        privacy: 'Privacy Policy',
+        copyright: '© 2026 Tourista. All rights reserved.',
+      },
+    },
+  },
+};
+
+i18n
+  .use(HttpBackend)
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'vi',
+    supportedLngs: ['vi', 'en'],
+    debug: false,
+    interpolation: {
+      escapeValue: false,
+    },
+    detection: {
+      order: ['localStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage'],
+      lookupLocalStorage: 'tourista-language',
+    },
+    backend: {
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
+    },
+  });
+
+export default i18n;

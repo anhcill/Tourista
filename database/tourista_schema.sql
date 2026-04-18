@@ -161,6 +161,7 @@ CREATE TABLE hotels (
     website             VARCHAR(300),
     is_featured         BOOLEAN             NOT NULL DEFAULT FALSE,
     is_trending         BOOLEAN             NOT NULL DEFAULT FALSE,
+    admin_status       ENUM('PENDING','APPROVED','REJECTED','SUSPENDED') NOT NULL DEFAULT 'APPROVED',
     is_active           BOOLEAN             NOT NULL DEFAULT TRUE,
     created_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
+import type { ScenarioChoiceMetadata, ScenarioChoice } from '../../../types/chat';
 import styles from './ScenarioChoiceCard.module.css';
 
-const ScenarioChoiceCard = ({ metadata, onChoice }) => {
-    const [selectedId, setSelectedId] = useState(null);
+interface ScenarioChoiceCardProps {
+    metadata: string | null | undefined;
+    onChoice: (payload: string) => void;
+}
 
-    // metadata là 1 JSON string từ backend
-    let data;
-    try {
-        data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-    } catch (e) {
-        console.error("Lỗi parse ScenarioChoiceCard metadata:", e);
-        return null;
-    }
+const ScenarioChoiceCard = ({ metadata, onChoice }: ScenarioChoiceCardProps) => {
+    const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    if (!data || !data.choices) return null;
-
-    const handleSelect = (choice) => {
-        if (selectedId) return; // Chỉ cho chọn 1 lần
-        setSelectedId(choice.id);
-        if (onChoice) {
-            onChoice(choice.payload);
+    const data: ScenarioChoiceMetadata | null = React.useMemo(() => {
+        if (!metadata) return null;
+        try {
+            return typeof metadata === 'string' ? (JSON.parse(metadata) as ScenarioChoiceMetadata) : (metadata as ScenarioChoiceMetadata);
+        } catch {
+            console.error('Loi parse ScenarioChoiceCard metadata:', metadata);
+            return null;
         }
+    }, [metadata]);
+
+    if (!data || !data.choices || data.choices.length === 0) return null;
+
+    const handleSelect = (choice: ScenarioChoice) => {
+        if (selectedId !== null) return;
+        setSelectedId(choice.id);
+        onChoice(choice.payload);
     };
 
     return (
@@ -29,12 +34,12 @@ const ScenarioChoiceCard = ({ metadata, onChoice }) => {
                 <div className={styles.question}>{data.question}</div>
                 {data.subtitle && <div className={styles.subtitle}>{data.subtitle}</div>}
             </div>
-            
+
             <div className={styles.grid}>
                 {data.choices.map((choice) => {
                     const isSelected = selectedId === choice.id;
                     const isDisabled = selectedId !== null && !isSelected;
-                    
+
                     return (
                         <button
                             key={choice.id}

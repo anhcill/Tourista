@@ -127,6 +127,12 @@ public class HotelServiceImpl implements HotelService {
                 List<RoomType> roomTypes = roomTypeRepository
                                 .findByHotel_IdAndIsActiveTrueOrderByBasePricePerNightAsc(hotelId);
 
+                String coverImg = null;
+                Object[] coverRow = hotelRepository.findCoverImageByHotelId(hotel.getId());
+                if (coverRow != null && coverRow.length > 1) {
+                    coverImg = (String) coverRow[1];
+                }
+
                 return HotelDetailResponse.builder()
                                 .id(hotel.getId())
                                 .name(hotel.getName())
@@ -138,7 +144,7 @@ public class HotelServiceImpl implements HotelService {
                                 .starRating(hotel.getStarRating())
                                 .avgRating(hotel.getAvgRating())
                                 .reviewCount(hotel.getReviewCount())
-                                .coverImage(hotelRepository.findCoverImageByHotelId(hotel.getId()).orElse(null))
+                                .coverImage(coverImg)
                                 .description(hotel.getDescription())
                                 .checkInTime(hotel.getCheckInTime())
                                 .checkOutTime(hotel.getCheckOutTime())

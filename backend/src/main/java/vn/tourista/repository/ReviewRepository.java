@@ -1,5 +1,7 @@
 package vn.tourista.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -183,4 +185,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     ReviewAggregateProjection findTargetRatingStats(
             @Param("targetType") String targetType,
             @Param("targetId") Long targetId);
+
+    List<Review> findByAdminStatusOrderByCreatedAtDesc(Review.AdminStatus status);
+
+    Page<Review> findByAdminStatusOrderByCreatedAtDesc(Review.AdminStatus status, Pageable pageable);
+
+    Page<Review> findByTargetTypeOrderByCreatedAtDesc(Review.TargetType targetType, Pageable pageable);
+
+    Page<Review> findByAdminStatusAndTargetTypeOrderByCreatedAtDesc(
+            Review.AdminStatus status, Review.TargetType targetType, Pageable pageable);
+
+    long countByAdminStatus(Review.AdminStatus status);
+
+    long countByAdminStatusAndTargetType(Review.AdminStatus status, Review.TargetType targetType);
 }

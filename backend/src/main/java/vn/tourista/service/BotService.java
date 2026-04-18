@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,12 +105,15 @@ public class BotService {
     private final TourRepository tourRepository;
     private final TourImageRepository tourImageRepository;
     private final ConversationRepository conversationRepository;
+    private final ConversationSessionRepository conversationSessionRepository;
+    private final SessionRecommendationStateRepository recommendationStateRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ObjectMapper objectMapper;
     private final GeminiService geminiService;
+    private final TourRecommendationService tourRecommendationService;
     private volatile List<FaqRule> faqRules = List.of();
     private volatile String defaultFaqAnswer = DEFAULT_FAQ_ANSWER;
-    private final Map<Long, RecommendationState> recommendationStates = new ConcurrentHashMap<>();
+    private final ThreadLocal<String> currentConversationContext = new ThreadLocal<>();
 
     @PostConstruct
     void loadFaqRules() {
@@ -164,6 +166,7 @@ public class BotService {
     @Async("botTaskExecutor")
     @Transactional
     public void handleBotMessage(Long conversationId, String inputText, String clientEmail) {
+        String contextForGemini = null;
         try {
             // Mô phỏng độ trễ "đang nhập..." (750ms) cho UX chân thực
             try {
@@ -178,11 +181,9 @@ public class BotService {
             String canonicalInput = canonicalize(normalizedInput);
 
             if (matcher.find()) {
-                // Luồng 1: Tra cứu booking theo mã
                 String code = matcher.group().toUpperCase();
                 processBookingLookup(conversationId, code, clientEmail);
             } else if (isHotTourIntent(canonicalInput)) {
-                // Luồng 2b: Tour hot
                 pushHotTours(conversationId, clientEmail);
             } else {
                 if (!hasActiveRecommendation(conversationId)
@@ -191,14 +192,12 @@ public class BotService {
                 }
 
                 if (hasActiveRecommendation(conversationId)) {
-                    // Luồng 2: Slot-filling đang chạy
                     processRecommendationFlow(conversationId, inputText, canonicalInput, clientEmail);
                 } else if (isRecommendationIntent(canonicalInput)) {
-                    // Luồng 2: Bắt đầu gợi ý tour
                     startRecommendationFlow(conversationId, inputText, clientEmail);
                 } else {
-                    // Luồng 3: FAQ + AI fallback
-                    processFaqFallback(conversationId, inputText, clientEmail);
+                    contextForGemini = currentConversationContext.get();
+                    processFaqFallback(conversationId, inputText, clientEmail, contextForGemini);
                 }
             }
         } catch (Exception ex) {
@@ -208,6 +207,10 @@ public class BotService {
                     ex);
             pushBotText(conversationId, clientEmail,
                     "⚠️ Hệ thống đang bận, bạn vui lòng thử lại sau ít phút.");
+        } finally {
+            String recentCtx = buildRecentConversationContext(conversationId);
+            currentConversationContext.set(recentCtx);
+            updateConversationSession(conversationId, recentCtx);
         }
     }
 
@@ -385,21 +388,6 @@ public class BotService {
         CityAlias city = parseCityAlias(canonicalInput);
         Integer maxDurationDays = parseMaxDurationDays(inputText);
 
-        if (budgetVnd != null && travelers != null) {
-            RecommendationState state = new RecommendationState(
-                    budgetVnd,
-                    travelers,
-                    city != null ? city.queryValue() : null,
-                    city != null ? city.displayValue() : null,
-                    maxDurationDays,
-                    LocalDateTime.now());
-            recommendationStates.put(conversationId, state);
-            pushBotText(conversationId, clientEmail, "✨ Mình đang tìm tour phù hợp...");
-            pushTourCards(conversationId, clientEmail, state);
-            return;
-        }
-
-        // Chưa đủ thông tin → hiện kịch bản gợi ý
         RecommendationState state = new RecommendationState(
                 budgetVnd,
                 travelers,
@@ -407,20 +395,28 @@ public class BotService {
                 city != null ? city.displayValue() : null,
                 maxDurationDays,
                 LocalDateTime.now());
-        recommendationStates.put(conversationId, state);
+
+        if (budgetVnd != null && travelers != null) {
+            saveRecommendationState(conversationId, state);
+            pushBotText(conversationId, clientEmail, "✨ Mình đang tìm tour phù hợp...");
+            pushTourCards(conversationId, clientEmail, state);
+            return;
+        }
+
+        saveRecommendationState(conversationId, state);
         pushScenarioChoice(conversationId, clientEmail);
     }
 
     private void processRecommendationFlow(Long conversationId, String inputText, String canonicalInput,
             String clientEmail) {
         if (containsAny(canonicalInput, List.of("dung", "thoi", "thoat", "exit", "cancel", "huy"))) {
-            recommendationStates.remove(conversationId);
+            recommendationStateRepository.deleteByConversationId(conversationId);
             pushBotText(conversationId, clientEmail,
                     "✅ Mình đã dừng phiên tư vấn tour. Khi cần gợi ý lại, bạn chỉ cần nhắn: **gợi ý tour**.");
             return;
         }
 
-        RecommendationState state = recommendationStates.get(conversationId);
+        RecommendationState state = loadRecommendationState(conversationId);
         if (state == null) {
             startRecommendationFlow(conversationId, inputText, clientEmail);
             return;
@@ -458,13 +454,14 @@ public class BotService {
         }
 
         if (budgetVnd == null) {
-            recommendationStates.put(conversationId, new RecommendationState(
+            RecommendationState updated = new RecommendationState(
                     null,
                     travelers,
                     cityQuery,
                     cityDisplay,
                     maxDurationDays,
-                    LocalDateTime.now()));
+                    LocalDateTime.now());
+            saveRecommendationState(conversationId, updated);
             pushBotText(conversationId, clientEmail,
                     "💰 Mình chưa đọc được ngân sách. Bạn thử nhập lại theo dạng:\n" +
                             "**8tr**, **10 triệu**, **12000000 VND** nhé.");
@@ -472,13 +469,14 @@ public class BotService {
         }
 
         if (travelers == null) {
-            recommendationStates.put(conversationId, new RecommendationState(
+            RecommendationState updated = new RecommendationState(
                     budgetVnd,
                     null,
                     cityQuery,
                     cityDisplay,
                     maxDurationDays,
-                    LocalDateTime.now()));
+                    LocalDateTime.now());
+            saveRecommendationState(conversationId, updated);
             pushBotText(conversationId, clientEmail,
                     "👥 Cảm ơn! Bạn cho mình xin **số người đi** (ví dụ: **2 người**, **4 người**) nhé.");
             return;
@@ -491,7 +489,7 @@ public class BotService {
                 cityDisplay,
                 maxDurationDays,
                 LocalDateTime.now());
-        recommendationStates.put(conversationId, updatedState);
+        saveRecommendationState(conversationId, updatedState);
         pushBotText(conversationId, clientEmail, "✨ Mình đang tìm tour phù hợp...");
         pushTourCards(conversationId, clientEmail, updatedState);
     }
@@ -568,12 +566,12 @@ public class BotService {
                 LocalDate.now(), PageRequest.of(0, 3));
 
         if (ids.isEmpty()) {
+            String altSuggestion = tourRecommendationService.suggestAlternativeDestinations(
+                    cityDisplay, budgetVnd, travelers);
             String noResultMsg = "🔍 Ngân sách **" + formatVnd(budgetVnd) + "** cho **" + travelers + " người**" +
                     (cityDisplay != null ? " tại **" + cityDisplay + "**" : "") +
                     " hiện chưa có tour phù hợp.\n\n" +
-                    "Bạn có thể:\n" +
-                    "- Tăng ngân sách thêm 10-20%\n" +
-                    "- Hoặc nhắn **xóa lọc** để tìm rộng hơn.";
+                    altSuggestion;
             pushBotText(conversationId, clientEmail, noResultMsg);
             return;
         }
@@ -664,13 +662,13 @@ public class BotService {
     }
 
     private boolean hasActiveRecommendation(Long conversationId) {
-        RecommendationState state = recommendationStates.get(conversationId);
+        RecommendationState state = loadRecommendationState(conversationId);
         if (state == null) {
             return false;
         }
 
         if (state.updatedAt().isBefore(LocalDateTime.now().minusMinutes(RECOMMENDATION_STATE_TIMEOUT_MINUTES))) {
-            recommendationStates.remove(conversationId);
+            recommendationStateRepository.deleteByConversationId(conversationId);
             return false;
         }
 
@@ -770,13 +768,15 @@ public class BotService {
             return;
         }
 
-        recommendationStates.put(conversationId, new RecommendationState(
+        recommendationStateRepository.deleteByConversationId(conversationId);
+        RecommendationState restored = new RecommendationState(
                 budgetVnd,
                 travelers,
                 cityQuery,
                 cityDisplay,
                 maxDurationDays,
-                LocalDateTime.now()));
+                LocalDateTime.now());
+        saveRecommendationState(conversationId, restored);
     }
 
     private boolean isHotTourIntent(String canonicalInput) {
@@ -949,7 +949,7 @@ public class BotService {
     // LUONG 2: FAQ fallback (data-driven)
     // =====================================================================
 
-    private void processFaqFallback(Long conversationId, String inputText, String clientEmail) {
+    private void processFaqFallback(Long conversationId, String inputText, String clientEmail, String conversationContext) {
         String lower = normalizeInput(inputText);
         String canonical = canonicalize(lower);
         String answer = null;
@@ -967,15 +967,16 @@ public class BotService {
 
         // Bước 2: Nếu không khớp FAQ nào và Gemini đang bật → dùng AI
         if ((answer == null || answer.isBlank()) && geminiService.isEnabled()) {
-            log.info("BotService: Không khớp FAQ, chuyển sang Gemini AI. conversationId={}", conversationId);
+            log.info("BotService: Khong khop FAQ, chuyen sang Gemini AI. conversationId={}", conversationId);
             try {
-                String context = buildRecentConversationContext(conversationId);
-                String aiAnswer = geminiService.ask(inputText, context);
+                String ctx = conversationContext != null ? conversationContext
+                        : buildRecentConversationContext(conversationId);
+                String aiAnswer = geminiService.ask(inputText, ctx);
                 if (aiAnswer != null && !aiAnswer.isBlank()) {
                     answer = "🤖 " + aiAnswer;
                 }
             } catch (Exception ex) {
-                log.warn("BotService: Gemini fallback lỗi — {}", ex.getMessage());
+                log.warn("BotService: Gemini fallback loi — {}", ex.getMessage());
             }
         }
 
@@ -1127,6 +1128,80 @@ public class BotService {
             return null;
         }
         return text.replaceAll("[\\x{10000}-\\x{10FFFF}]", "");
+    }
+
+    // =====================================================================
+    // CONVERSATION CONTEXT PERSISTENCE (Phase 3.1.2)
+    // =====================================================================
+
+    /**
+     * Lưu trạng thái slot-filling vào DB.
+     * Upsert: update nếu đã tồn tại, insert nếu chưa.
+     */
+    private void saveRecommendationState(Long conversationId, RecommendationState state) {
+        SessionRecommendationState entity = recommendationStateRepository
+                .findByConversationId(conversationId)
+                .orElseGet(() -> {
+                    Conversation conv = conversationRepository.findById(conversationId)
+                            .orElse(null);
+                    if (conv == null) return null;
+                    return SessionRecommendationState.builder()
+                            .conversation(conv)
+                            .build();
+                });
+
+        if (entity == null) return;
+
+        entity.setBudgetVnd(state.budgetVnd());
+        entity.setTravelers(state.travelers());
+        entity.setCityQuery(state.cityQuery());
+        entity.setCityDisplay(state.cityDisplay());
+        entity.setMaxDurationDays(state.maxDurationDays());
+        recommendationStateRepository.save(entity);
+    }
+
+    /**
+     * Load trạng thái slot-filling từ DB.
+     * Trả về null nếu không tìm thấy hoặc đã expired.
+     */
+    private RecommendationState loadRecommendationState(Long conversationId) {
+        return recommendationStateRepository.findByConversationId(conversationId)
+                .filter(e -> !e.isExpired())
+                .map(e -> new RecommendationState(
+                        e.getBudgetVnd(),
+                        e.getTravelers(),
+                        e.getCityQuery(),
+                        e.getCityDisplay(),
+                        e.getMaxDurationDays(),
+                        e.getUpdatedAt()))
+                .orElse(null);
+    }
+
+    /**
+     * Cập nhật context summary của phiên vào ConversationSession.
+     * Được gọi sau mỗi tin nhắn bot để Gemini có thể đọc nhanh thay vì query nhiều ChatMessage.
+     */
+    private void updateConversationSession(Long conversationId, String recentContext) {
+        try {
+            Conversation conv = conversationRepository.findById(conversationId).orElse(null);
+            if (conv == null) return;
+
+            ConversationSession session = conversationSessionRepository
+                    .findByConversation(conv)
+                    .orElseGet(() -> ConversationSession.builder()
+                            .conversation(conv)
+                            .sessionStartedAt(LocalDateTime.now())
+                            .messageCount(0)
+                            .build());
+
+            session.incrementMessageCount();
+            if (recentContext != null && !recentContext.isBlank()) {
+                session.appendToContextSummary(recentContext);
+            }
+            conversationSessionRepository.save(session);
+        } catch (Exception ex) {
+            log.debug("BotService: Khong the cap nhat conversation session context — {}", ex.getMessage());
+        }
     }
 
     private record FaqConfig(List<FaqItem> rules, String defaultAnswer) {

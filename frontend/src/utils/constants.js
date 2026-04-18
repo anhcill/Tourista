@@ -75,6 +75,19 @@ export const API_ENDPOINTS = {
     REVIEWS: "/reviews/my",
     FAVORITES: "/favorites",
   },
+
+  // Articles
+  ARTICLES: {
+    LIST: "/articles",
+    FEATURED: "/articles/featured",
+    DETAIL: "/articles/:slug",
+    CREATE: "/articles",
+    UPDATE: "/articles/:id",
+    DELETE: "/articles/:id",
+    LIKE: "/articles/:id/like",
+    COMMENTS: "/articles/:id/comments",
+    COMMENT_DELETE: "/articles/comments/:commentId",
+  },
 };
 
 // App Routes
@@ -112,11 +125,11 @@ export const SORT_OPTIONS = {
 // Filter Options
 export const FILTER_OPTIONS = {
   PRICE_RANGES: [
-    { label: "Under $50", min: 0, max: 50 },
-    { label: "$50 - $100", min: 50, max: 100 },
-    { label: "$100 - $200", min: 100, max: 200 },
-    { label: "$200 - $500", min: 200, max: 500 },
-    { label: "Over $500", min: 500, max: 999999 },
+    { label: "Dưới 500K", min: 0, max: 500000 },
+    { label: "500K - 1 Triệu", min: 500000, max: 1000000 },
+    { label: "1 Triệu - 2.5 Triệu", min: 1000000, max: 2500000 },
+    { label: "2.5 Triệu - 5 Triệu", min: 2500000, max: 5000000 },
+    { label: "Trên 5 Triệu", min: 5000000, max: 999999999 },
   ],
 
   RATINGS: [
@@ -151,9 +164,9 @@ export const DATE_FORMAT = {
 
 // Currency
 export const CURRENCY = {
-  SYMBOL: "$",
-  CODE: "USD",
-  LOCALE: "en-US",
+  SYMBOL: "₫",
+  CODE: "VND",
+  LOCALE: "vi-VN",
 };
 
 // Toast Messages
@@ -204,18 +217,18 @@ export const PLACEHOLDERS = {
 
 // Social Links
 export const SOCIAL_LINKS = {
-  FACEBOOK: "https://www.facebook.com/le.uc.anh.607536",
+  FACEBOOK: "https://www.facebook.com/tourista",
   TWITTER: "https://twitter.com/tourista",
-  INSTAGRAM: "https://www.instagram.com/sweetpi_2807/",
-  YOUTUBE: "https://www.youtube.com/@ucanhle513",
+  INSTAGRAM: "https://www.instagram.com/tourista",
+  YOUTUBE: "https://www.youtube.com/tourista",
   TIKTOK: "https://www.tiktok.com/@tourista",
   LINKEDIN: "https://www.linkedin.com/company/tourista",
 };
 
 // Contact Info
 export const CONTACT_INFO = {
-  EMAIL: "ducanhle28072003@gmail.com",
-  PHONE: "0815913408",
-  ZALO: "https://zalo.me/0815913408",
-  ADDRESS: "207 Đồng Tâm, Giải Phóng, Hà Nội",
+  EMAIL: "contact@tourista.vn",
+  PHONE: "1900-xxxx",
+  ZALO: "https://zalo.me/tourista",
+  ADDRESS: "Hà Nội, Việt Nam",
 };

@@ -334,7 +334,7 @@ export default function ToursLandingPage() {
           {!loading && !error && featuredTours.length > 0 && (
             <div className={styles.cardList}>
               {featuredTours.map((tour) => (
-                <TourCard key={tour.id} tour={tour} onClick={undefined} />
+                <TourCard key={tour.id} tour={tour} />
               ))}
             </div>
           )}

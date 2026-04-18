@@ -16,37 +16,58 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import vn.tourista.dto.request.admin.AdminBookingStatusUpdateRequest;
 import vn.tourista.dto.request.admin.AdminHotelStatusUpdateRequest;
+import vn.tourista.dto.request.admin.AdminHotelUpsertRequest;
 import vn.tourista.dto.request.admin.AdminPromotionStatusUpdateRequest;
 import vn.tourista.dto.request.admin.AdminPromotionUpsertRequest;
 import vn.tourista.dto.request.admin.AdminTourStatusUpdateRequest;
+import vn.tourista.dto.request.admin.AdminTourUpsertRequest;
 import vn.tourista.dto.request.admin.AdminUserRoleUpdateRequest;
 import vn.tourista.dto.request.admin.AdminUserStatusUpdateRequest;
 import vn.tourista.dto.response.admin.AdminAuditLogItemResponse;
 import vn.tourista.dto.response.admin.AdminBookingItemResponse;
+import vn.tourista.dto.response.admin.AdminHotelDetailResponse;
 import vn.tourista.dto.response.admin.AdminHotelItemResponse;
 import vn.tourista.dto.response.admin.AdminPageResponse;
 import vn.tourista.dto.response.admin.AdminPromotionItemResponse;
+import vn.tourista.dto.response.admin.AdminTourDetailResponse;
 import vn.tourista.dto.response.admin.AdminTourItemResponse;
 import vn.tourista.dto.response.admin.AdminUserItemResponse;
+import vn.tourista.entity.Amenity;
 import vn.tourista.entity.AuditLog;
 import vn.tourista.entity.Booking;
 import vn.tourista.entity.BookingHotelDetail;
 import vn.tourista.entity.BookingTourDetail;
+import vn.tourista.entity.City;
 import vn.tourista.entity.Hotel;
+import vn.tourista.entity.HotelImage;
 import vn.tourista.entity.Promotion;
 import vn.tourista.entity.Role;
+import vn.tourista.entity.RoomType;
 import vn.tourista.entity.Tour;
+import vn.tourista.entity.TourCategory;
+import vn.tourista.entity.TourDeparture;
+import vn.tourista.entity.TourImage;
+import vn.tourista.entity.TourItinerary;
 import vn.tourista.entity.User;
+import vn.tourista.repository.AmenityRepository;
 import vn.tourista.repository.AuditLogRepository;
 import vn.tourista.repository.BookingHotelDetailRepository;
 import vn.tourista.repository.BookingRepository;
 import vn.tourista.repository.BookingTourDetailRepository;
+import vn.tourista.repository.CityRepository;
+import vn.tourista.repository.HotelImageRepository;
 import vn.tourista.repository.HotelRepository;
 import vn.tourista.repository.PromotionRepository;
 import vn.tourista.repository.RoleRepository;
+import vn.tourista.repository.RoomTypeRepository;
+import vn.tourista.repository.TourCategoryRepository;
+import vn.tourista.repository.TourDepartureRepository;
+import vn.tourista.repository.TourImageRepository;
+import vn.tourista.repository.TourItineraryRepository;
 import vn.tourista.repository.TourRepository;
 import vn.tourista.repository.UserRepository;
 import vn.tourista.service.AdminService;
+import vn.tourista.util.SlugUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -95,6 +116,30 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private CityRepository cityRepository;
+
+    @Autowired
+    private TourCategoryRepository tourCategoryRepository;
+
+    @Autowired
+    private HotelImageRepository hotelImageRepository;
+
+    @Autowired
+    private RoomTypeRepository roomTypeRepository;
+
+    @Autowired
+    private AmenityRepository amenityRepository;
+
+    @Autowired
+    private TourImageRepository tourImageRepository;
+
+    @Autowired
+    private TourItineraryRepository tourItineraryRepository;
+
+    @Autowired
+    private TourDepartureRepository tourDepartureRepository;
 
     @Override
     public AdminPageResponse<AdminUserItemResponse> getUsers(
@@ -771,6 +816,440 @@ public class AdminServiceImpl implements AdminService {
                 "deleted", true,
                 "id", promotionId);
         saveAudit(actorEmail, "DELETE_PROMOTION", "PROMOTIONS", promotionId, before, after, normalizedReason);
+    }
+
+    // ===================== HOTEL CRUD =====================
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminHotelDetailResponse getHotelById(Long hotelId) {
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay hotel"));
+
+        List<HotelImage> images = hotelImageRepository.findByHotel_IdOrderBySortOrderAscIdAsc(hotelId);
+        List<RoomType> allRoomTypes = roomTypeRepository.findAll();
+        List<RoomType> hotelRoomTypes = allRoomTypes.stream()
+                .filter(rt -> rt.getHotel() != null && rt.getHotel().getId().equals(hotelId))
+                .toList();
+
+        return buildHotelDetail(hotel, images, hotelRoomTypes);
+    }
+
+    @Override
+    @Transactional
+    public AdminHotelItemResponse createHotel(AdminHotelUpsertRequest request, String actorEmail) {
+        String reason = normalizeReason(request.getReason());
+
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay city"));
+
+        User owner = null;
+        if (request.getOwnerId() != null) {
+            owner = userRepository.findById(request.getOwnerId()).orElse(null);
+        }
+
+        String slug = SlugUtil.toSlug(request.getName()) + "-" + System.currentTimeMillis();
+
+        Hotel hotel = Hotel.builder()
+                .city(city)
+                .owner(owner)
+                .name(request.getName().trim())
+                .slug(slug)
+                .description(request.getDescription())
+                .address(request.getAddress().trim())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .starRating(request.getStarRating())
+                .avgRating(java.math.BigDecimal.ZERO)
+                .reviewCount(0)
+                .checkInTime(request.getCheckInTime() != null ? request.getCheckInTime() : java.time.LocalTime.of(14, 0))
+                .checkOutTime(request.getCheckOutTime() != null ? request.getCheckOutTime() : java.time.LocalTime.of(12, 0))
+                .phone(request.getPhone())
+                .email(request.getEmail())
+                .website(request.getWebsite())
+                .isFeatured(Boolean.TRUE.equals(request.getIsFeatured()))
+                .isTrending(Boolean.TRUE.equals(request.getIsTrending()))
+                .isActive(request.getIsActive() == null ? Boolean.TRUE : request.getIsActive())
+                .adminStatus(Hotel.AdminStatus.APPROVED)
+                .build();
+        hotel.setCreatedAt(LocalDateTime.now());
+        hotel.setUpdatedAt(LocalDateTime.now());
+
+        Hotel saved = hotelRepository.save(hotel);
+
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            saveHotelImages(saved, request.getImageUrls());
+        }
+
+        if (request.getRoomTypes() != null && !request.getRoomTypes().isEmpty()) {
+            saveHotelRoomTypes(saved, request.getRoomTypes());
+        }
+
+        AdminHotelItemResponse after = toHotelItem(saved, null);
+        saveAudit(actorEmail, "CREATE_HOTEL", "HOTELS", saved.getId(), null, after, reason);
+        return after;
+    }
+
+    @Override
+    @Transactional
+    public AdminHotelItemResponse updateHotel(Long hotelId, AdminHotelUpsertRequest request, String actorEmail) {
+        String reason = normalizeReason(request.getReason());
+
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay hotel"));
+
+        AdminHotelItemResponse before = toHotelItem(hotel, null);
+
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay city"));
+        hotel.setCity(city);
+
+        if (request.getOwnerId() != null) {
+            User owner = userRepository.findById(request.getOwnerId()).orElse(null);
+            hotel.setOwner(owner);
+        }
+
+        hotel.setName(request.getName().trim());
+        hotel.setDescription(request.getDescription());
+        hotel.setAddress(request.getAddress().trim());
+        hotel.setLatitude(request.getLatitude());
+        hotel.setLongitude(request.getLongitude());
+        hotel.setStarRating(request.getStarRating());
+        if (request.getCheckInTime() != null) {
+            hotel.setCheckInTime(request.getCheckInTime());
+        }
+        if (request.getCheckOutTime() != null) {
+            hotel.setCheckOutTime(request.getCheckOutTime());
+        }
+        hotel.setPhone(request.getPhone());
+        hotel.setEmail(request.getEmail());
+        hotel.setWebsite(request.getWebsite());
+        hotel.setIsFeatured(Boolean.TRUE.equals(request.getIsFeatured()));
+        hotel.setIsTrending(Boolean.TRUE.equals(request.getIsTrending()));
+        if (request.getIsActive() != null) {
+            hotel.setIsActive(request.getIsActive());
+        }
+
+        if (StringUtils.hasText(request.getStatus())) {
+            Hotel.AdminStatus adminStatus = parseEnum(Hotel.AdminStatus.class, request.getStatus(), "hotels.status");
+            hotel.setAdminStatus(adminStatus);
+            hotel.setIsActive(adminStatus == Hotel.AdminStatus.APPROVED);
+        }
+
+        Hotel saved = hotelRepository.save(hotel);
+
+        if (request.getImageUrls() != null) {
+            hotelImageRepository.deleteByHotel_Id(hotelId);
+            saveHotelImages(saved, request.getImageUrls());
+        }
+
+        AdminHotelItemResponse after = toHotelItem(saved, null);
+        saveAudit(actorEmail, "UPDATE_HOTEL", "HOTELS", saved.getId(), before, after, reason);
+        return after;
+    }
+
+    // ===================== TOUR CRUD =====================
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminTourDetailResponse getTourById(Long tourId) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay tour"));
+
+        List<TourImage> images = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(tourId);
+        List<TourItinerary> itinerary = tourItineraryRepository.findByTour_IdOrderByDayNumberAscIdAsc(tourId);
+        List<TourDeparture> departures = tourDepartureRepository.findByTour_IdOrderByDepartureDateAsc(tourId);
+
+        return buildTourDetail(tour, images, itinerary, departures);
+    }
+
+    @Override
+    @Transactional
+    public AdminTourItemResponse createTour(AdminTourUpsertRequest request, String actorEmail) {
+        String reason = normalizeReason(request.getReason());
+
+        TourCategory category = tourCategoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay category"));
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay city"));
+
+        User operator = null;
+        if (request.getOperatorId() != null) {
+            operator = userRepository.findById(request.getOperatorId()).orElse(null);
+        }
+
+        String slug = SlugUtil.toSlug(request.getTitle()) + "-" + System.currentTimeMillis();
+        Tour.Difficulty difficulty = parseEnum(Tour.Difficulty.class, request.getDifficulty(), "tours.difficulty");
+
+        Tour tour = Tour.builder()
+                .category(category)
+                .city(city)
+                .operator(operator)
+                .title(request.getTitle().trim())
+                .slug(slug)
+                .description(request.getDescription())
+                .highlights(request.getHighlights())
+                .includes(request.getIncludes())
+                .excludes(request.getExcludes())
+                .durationDays(request.getDurationDays())
+                .durationNights(request.getDurationNights() != null ? request.getDurationNights() : request.getDurationDays() - 1)
+                .maxGroupSize(request.getMaxGroupSize())
+                .minGroupSize(request.getMinGroupSize())
+                .difficulty(difficulty)
+                .pricePerAdult(request.getPricePerAdult())
+                .pricePerChild(request.getPricePerChild() != null ? request.getPricePerChild() : java.math.BigDecimal.ZERO)
+                .avgRating(java.math.BigDecimal.ZERO)
+                .reviewCount(0)
+                .isFeatured(Boolean.TRUE.equals(request.getIsFeatured()))
+                .isActive(request.getIsActive() == null ? Boolean.TRUE : request.getIsActive())
+                .build();
+        tour.setCreatedAt(LocalDateTime.now());
+        tour.setUpdatedAt(LocalDateTime.now());
+
+        Tour saved = tourRepository.save(tour);
+
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            saveTourImages(saved, request.getImageUrls());
+        }
+        if (request.getItineraryItems() != null && !request.getItineraryItems().isEmpty()) {
+            saveTourItinerary(saved, request.getItineraryItems());
+        }
+        if (request.getDepartureDates() != null && !request.getDepartureDates().isEmpty()) {
+            saveTourDepartures(saved, request.getDepartureDates());
+        }
+
+        AdminTourItemResponse after = toTourItem(saved, null);
+        saveAudit(actorEmail, "CREATE_TOUR", "TOURS", saved.getId(), null, after, reason);
+        return after;
+    }
+
+    @Override
+    @Transactional
+    public AdminTourItemResponse updateTour(Long tourId, AdminTourUpsertRequest request, String actorEmail) {
+        String reason = normalizeReason(request.getReason());
+
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay tour"));
+
+        AdminTourItemResponse before = toTourItem(tour, null);
+
+        TourCategory category = tourCategoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay category"));
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay city"));
+
+        tour.setCategory(category);
+        tour.setCity(city);
+
+        if (request.getOperatorId() != null) {
+            User operator = userRepository.findById(request.getOperatorId()).orElse(null);
+            tour.setOperator(operator);
+        }
+
+        tour.setTitle(request.getTitle().trim());
+        tour.setDescription(request.getDescription());
+        tour.setHighlights(request.getHighlights());
+        tour.setIncludes(request.getIncludes());
+        tour.setExcludes(request.getExcludes());
+        tour.setDurationDays(request.getDurationDays());
+        tour.setDurationNights(request.getDurationNights() != null ? request.getDurationNights() : request.getDurationDays() - 1);
+        tour.setMaxGroupSize(request.getMaxGroupSize());
+        tour.setMinGroupSize(request.getMinGroupSize());
+        tour.setDifficulty(parseEnum(Tour.Difficulty.class, request.getDifficulty(), "tours.difficulty"));
+        tour.setPricePerAdult(request.getPricePerAdult());
+        if (request.getPricePerChild() != null) {
+            tour.setPricePerChild(request.getPricePerChild());
+        }
+        tour.setIsFeatured(Boolean.TRUE.equals(request.getIsFeatured()));
+        if (request.getIsActive() != null) {
+            tour.setIsActive(request.getIsActive());
+        }
+
+        if (StringUtils.hasText(request.getStatus())) {
+            String normalized = request.getStatus().trim().toUpperCase(Locale.ROOT);
+            tour.setIsActive("APPROVED".equals(normalized) || "ACTIVE".equals(normalized));
+        }
+
+        Tour saved = tourRepository.save(tour);
+
+        if (request.getImageUrls() != null) {
+            List<TourImage> existingImages = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(tourId);
+            tourImageRepository.deleteAll(existingImages);
+            saveTourImages(saved, request.getImageUrls());
+        }
+
+        AdminTourItemResponse after = toTourItem(saved, null);
+        saveAudit(actorEmail, "UPDATE_TOUR", "TOURS", saved.getId(), before, after, reason);
+        return after;
+    }
+
+    // ===================== PRIVATE HELPERS =====================
+
+    private void saveHotelImages(Hotel hotel, List<String> urls) {
+        for (int i = 0; i < urls.size(); i++) {
+            HotelImage image = HotelImage.builder()
+                    .hotel(hotel)
+                    .url(urls.get(i))
+                    .isCover(i == 0)
+                    .sortOrder(i)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            hotelImageRepository.save(image);
+        }
+    }
+
+    private void saveHotelRoomTypes(Hotel hotel, List<AdminHotelUpsertRequest.RoomTypeRequest> roomTypeRequests) {
+        for (AdminHotelUpsertRequest.RoomTypeRequest rtReq : roomTypeRequests) {
+            RoomType rt = RoomType.builder()
+                    .hotel(hotel)
+                    .name(rtReq.getName().trim())
+                    .description(rtReq.getDescription())
+                    .maxAdults(rtReq.getMaxAdults())
+                    .maxChildren(rtReq.getMaxChildren())
+                    .bedType(rtReq.getBedType())
+                    .areaSqm(rtReq.getAreaSqm())
+                    .basePricePerNight(rtReq.getBasePricePerNight())
+                    .totalRooms(rtReq.getTotalRooms())
+                    .isActive(rtReq.getIsActive() == null ? Boolean.TRUE : rtReq.getIsActive())
+                    .build();
+            rt.setCreatedAt(LocalDateTime.now());
+            rt.setUpdatedAt(LocalDateTime.now());
+            roomTypeRepository.save(rt);
+        }
+    }
+
+    private void saveTourImages(Tour tour, List<String> urls) {
+        for (int i = 0; i < urls.size(); i++) {
+            TourImage image = TourImage.builder()
+                    .tour(tour)
+                    .url(urls.get(i))
+                    .isCover(i == 0)
+                    .sortOrder(i)
+                    .build();
+            tourImageRepository.save(image);
+        }
+    }
+
+    private void saveTourItinerary(Tour tour, List<AdminTourUpsertRequest.ItineraryRequest> itineraryRequests) {
+        for (AdminTourUpsertRequest.ItineraryRequest itinReq : itineraryRequests) {
+            TourItinerary itinerary = TourItinerary.builder()
+                    .tour(tour)
+                    .dayNumber(itinReq.getDayNumber())
+                    .title(itinReq.getTitle().trim())
+                    .description(itinReq.getDescription())
+                    .build();
+            tourItineraryRepository.save(itinerary);
+        }
+    }
+
+    private void saveTourDepartures(Tour tour, List<AdminTourUpsertRequest.DepartureRequest> departureRequests) {
+        for (AdminTourUpsertRequest.DepartureRequest depReq : departureRequests) {
+            TourDeparture departure = TourDeparture.builder()
+                    .tour(tour)
+                    .departureDate(depReq.getDepartureDate())
+                    .availableSlots(depReq.getAvailableSlots())
+                    .priceOverride(depReq.getPriceOverride())
+                    .build();
+            tourDepartureRepository.save(departure);
+        }
+    }
+
+    private AdminHotelDetailResponse buildHotelDetail(Hotel hotel, List<HotelImage> images, List<RoomType> roomTypes) {
+        return AdminHotelDetailResponse.builder()
+                .id(hotel.getId())
+                .cityId(hotel.getCity() != null ? hotel.getCity().getId() : null)
+                .cityName(hotel.getCity() != null ? firstNotBlank(hotel.getCity().getNameVi(), hotel.getCity().getNameEn()) : null)
+                .ownerId(hotel.getOwner() != null ? hotel.getOwner().getId() : null)
+                .ownerName(hotel.getOwner() != null ? hotel.getOwner().getFullName() : null)
+                .ownerEmail(hotel.getOwner() != null ? hotel.getOwner().getEmail() : null)
+                .name(hotel.getName())
+                .slug(hotel.getSlug())
+                .description(hotel.getDescription())
+                .address(hotel.getAddress())
+                .latitude(hotel.getLatitude())
+                .longitude(hotel.getLongitude())
+                .starRating(hotel.getStarRating())
+                .avgRating(hotel.getAvgRating())
+                .reviewCount(hotel.getReviewCount())
+                .checkInTime(hotel.getCheckInTime())
+                .checkOutTime(hotel.getCheckOutTime())
+                .phone(hotel.getPhone())
+                .email(hotel.getEmail())
+                .website(hotel.getWebsite())
+                .isFeatured(hotel.getIsFeatured())
+                .isTrending(hotel.getIsTrending())
+                .isActive(hotel.getIsActive())
+                .status(hotel.getAdminStatus() != null ? hotel.getAdminStatus().name() : null)
+                .createdAt(hotel.getCreatedAt())
+                .updatedAt(hotel.getUpdatedAt())
+                .imageUrls(images.stream().map(HotelImage::getUrl).toList())
+                .amenityNames(List.of())
+                .roomTypes(roomTypes.stream()
+                        .map(rt -> AdminHotelDetailResponse.RoomTypeDetail.builder()
+                                .id(rt.getId())
+                                .name(rt.getName())
+                                .description(rt.getDescription())
+                                .maxAdults(rt.getMaxAdults())
+                                .maxChildren(rt.getMaxChildren())
+                                .bedType(rt.getBedType())
+                                .areaSqm(rt.getAreaSqm())
+                                .basePricePerNight(rt.getBasePricePerNight())
+                                .totalRooms(rt.getTotalRooms())
+                                .isActive(rt.getIsActive())
+                                .imageUrls(List.of())
+                                .build())
+                        .toList())
+                .build();
+    }
+
+    private AdminTourDetailResponse buildTourDetail(Tour tour, List<TourImage> images, List<TourItinerary> itinerary, List<TourDeparture> departures) {
+        return AdminTourDetailResponse.builder()
+                .id(tour.getId())
+                .categoryId(tour.getCategory() != null ? tour.getCategory().getId() : null)
+                .categoryName(tour.getCategory() != null ? firstNotBlank(tour.getCategory().getNameVi(), tour.getCategory().getNameEn()) : null)
+                .cityId(tour.getCity() != null ? tour.getCity().getId() != null ? Long.valueOf(tour.getCity().getId()) : null : null)
+                .cityName(tour.getCity() != null ? firstNotBlank(tour.getCity().getNameVi(), tour.getCity().getNameEn()) : null)
+                .operatorId(tour.getOperator() != null ? tour.getOperator().getId() : null)
+                .operatorName(tour.getOperator() != null ? tour.getOperator().getFullName() : null)
+                .operatorEmail(tour.getOperator() != null ? tour.getOperator().getEmail() : null)
+                .title(tour.getTitle())
+                .slug(tour.getSlug())
+                .description(tour.getDescription())
+                .highlights(tour.getHighlights())
+                .includes(tour.getIncludes())
+                .excludes(tour.getExcludes())
+                .durationDays(tour.getDurationDays())
+                .durationNights(tour.getDurationNights())
+                .maxGroupSize(tour.getMaxGroupSize())
+                .minGroupSize(tour.getMinGroupSize())
+                .difficulty(tour.getDifficulty() != null ? tour.getDifficulty().name() : null)
+                .pricePerAdult(tour.getPricePerAdult())
+                .pricePerChild(tour.getPricePerChild())
+                .avgRating(tour.getAvgRating())
+                .reviewCount(tour.getReviewCount())
+                .isFeatured(tour.getIsFeatured())
+                .isActive(tour.getIsActive())
+                .status(Boolean.TRUE.equals(tour.getIsActive()) ? "APPROVED" : "SUSPENDED")
+                .createdAt(tour.getCreatedAt())
+                .updatedAt(tour.getUpdatedAt())
+                .imageUrls(images.stream().map(TourImage::getUrl).toList())
+                .itinerary(itinerary.stream()
+                        .map(it -> AdminTourDetailResponse.ItineraryDetail.builder()
+                                .id(it.getId())
+                                .dayNumber(it.getDayNumber())
+                                .title(it.getTitle())
+                                .description(it.getDescription())
+                                .build())
+                        .toList())
+                .departures(departures.stream()
+                        .map(d -> AdminTourDetailResponse.DepartureDetail.builder()
+                                .id(d.getId())
+                                .departureDate(d.getDepartureDate())
+                                .availableSlots(d.getAvailableSlots())
+                                .priceOverride(d.getPriceOverride())
+                                .build())
+                        .toList())
+                .build();
     }
 
     private void applyPromotionPayload(Promotion promotion, AdminPromotionUpsertRequest request, boolean isCreate) {

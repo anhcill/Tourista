@@ -1,0 +1,143 @@
+.wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.trigger:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.flag {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.code {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.arrow {
+  font-size: 8px;
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  z-index: 101;
+  overflow: hidden;
+  min-width: 160px;
+  animation: slideDown 0.15s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.option:hover {
+  background: #f8fafc;
+}
+
+.option.selected {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.option .flag {
+  font-size: 18px;
+}
+
+/* Inline variant */
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.inlineBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.15s;
+}
+
+.inlineBtn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.inlineBtn.active {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.inlineBtn .flag {
+  font-size: 16px;
+}
+
+.inlineBtn .label {
+  font-size: 13px;
+}

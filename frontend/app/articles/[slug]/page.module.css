@@ -8,6 +8,38 @@
   background-color: #f8fafc;
 }
 
+.errorBox {
+  text-align: center;
+  padding: 60px 20px;
+  color: #dc2626;
+  background: #fef2f2;
+  border-radius: 12px;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 500px;
+  margin: 40px auto;
+}
+
+.retryBtn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.commentsLoading {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
 .page {
   background-color: #f8fafc;
   min-height: 100vh;

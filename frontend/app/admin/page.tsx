@@ -22,10 +22,10 @@ const formatDateTime = (value: string | null) => {
 };
 
 const statusLabelMap: Record<string, string> = {
-  PENDING: 'Dang cho',
-  CONFIRMED: 'Da xac nhan',
-  COMPLETED: 'Hoan tat',
-  CANCELLED: 'Da huy',
+  PENDING: 'Đang chờ',
+  CONFIRMED: 'Đã xác nhận',
+  COMPLETED: 'Hoàn tất',
+  CANCELLED: 'Đã hủy',
 };
 
 const statusClassMap: Record<string, string> = {
@@ -72,8 +72,8 @@ export default function AdminDashboardPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Dashboard Tong quan</h2>
-          <p>Dang tai du lieu dashboard...</p>
+          <h2>Tổng quan Dashboard</h2>
+          <p>Đang tải dữ liệu dashboard...</p>
         </div>
       </section>
     );
@@ -83,8 +83,8 @@ export default function AdminDashboardPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Dashboard Tong quan</h2>
-          <p>{error || 'Khong co du lieu dashboard.'}</p>
+          <h2>Tổng quan Dashboard</h2>
+          <p>{error || 'Không có dữ liệu dashboard.'}</p>
         </div>
       </section>
     );
@@ -92,30 +92,30 @@ export default function AdminDashboardPage() {
 
   const statCards = [
     {
-      title: 'Tong doanh thu',
+      title: 'Tổng doanh thu',
       value: `${formatVnd(overview.stats.totalRevenue)} VND`,
-      note: 'Tong doanh thu tu danh sach booking hien co',
+      note: 'Tổng doanh thu từ danh sách booking hiện có',
       icon: <FaMoneyBillWave />,
       tone: 'cyan',
     },
     {
-      title: 'Booking hom nay',
+      title: 'Booking hôm nay',
       value: String(overview.stats.bookingsToday),
-      note: 'So booking duoc tao trong ngay',
+      note: 'Số booking được tạo trong ngày',
       icon: <FaCalendarDay />,
       tone: 'emerald',
     },
     {
-      title: 'Tong so hotel',
+      title: 'Tổng số khách sạn',
       value: String(overview.stats.hotelCount),
-      note: 'So hotel lay duoc tu API',
+      note: 'Số khách sạn lấy được từ API',
       icon: <FaBuilding />,
       tone: 'amber',
     },
     {
-      title: 'Tong so tour',
+      title: 'Tổng số tour',
       value: String(overview.stats.tourCount),
-      note: 'So tour lay duoc tu API',
+      note: 'Số tour lấy được từ API',
       icon: <FaPlaneDeparture />,
       tone: 'slate',
     },
@@ -125,12 +125,12 @@ export default function AdminDashboardPage() {
     <section className={styles.page}>
       <div className={styles.hero}>
         <div>
-          <h2>Dashboard Tong quan</h2>
-          <p>Day 2: da ket noi dashboard data, chart doanh thu 6 thang va recent bookings.</p>
+          <h2>Tổng quan Dashboard</h2>
+          <p>Đã kết nối dữ liệu dashboard, biểu đồ doanh thu 6 tháng và recent bookings.</p>
         </div>
 
         <span className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}>
-          {overview.hasMockFallback ? 'Dang dung du lieu mock fallback' : 'Dang dung du lieu API'}
+          {overview.hasMockFallback ? 'Đang dùng dữ liệu mock fallback' : 'Đang dùng dữ liệu API'}
         </span>
       </div>
 
@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
       <div className={styles.panelGrid}>
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h3>Doanh thu 6 thang gan nhat</h3>
+            <h3>Doanh thu 6 tháng gần nhất</h3>
             <p>Don vi: VND</p>
           </div>
 
@@ -174,8 +174,8 @@ export default function AdminDashboardPage() {
 
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h3>Recent Bookings</h3>
-            <p>Top 6 booking moi nhat</p>
+            <h3>Các Booking gần đây</h3>
+            <p>Top 6 booking mới nhất</p>
           </div>
 
           <div className={styles.tableWrap}>

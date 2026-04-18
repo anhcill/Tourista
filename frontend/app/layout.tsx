@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import AppShellClient from "@/components/Layout/AppShellClient";
+import I18nProvider from "@/components/I18nProvider/I18nProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,7 +50,9 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={`${inter.variable} ${poppins.variable}`}>
-        <AppShellClient>{children}</AppShellClient>
+        <I18nProvider>
+          <AppShellClient>{children}</AppShellClient>
+        </I18nProvider>
       </body>
     </html>
   );

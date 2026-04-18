@@ -59,6 +59,12 @@ public class Hotel {
     @Column(name = "address", nullable = false, length = 300)
     private String address;
 
+    @Column(name = "latitude", precision = 10, scale = 7)
+    private java.math.BigDecimal latitude;
+
+    @Column(name = "longitude", precision = 10, scale = 7)
+    private java.math.BigDecimal longitude;
+
     @Column(name = "star_rating", nullable = false)
     private Integer starRating;
 
@@ -76,6 +82,21 @@ public class Hotel {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
+
+    @Column(name = "is_featured", nullable = false)
+    private Boolean isFeatured;
+
+    @Column(name = "is_trending", nullable = false)
+    private Boolean isTrending;
+
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Column(name = "email", length = 150)
+    private String email;
+
+    @Column(name = "website", length = 300)
+    private String website;
 
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     @Column(name = "admin_status", length = 20)

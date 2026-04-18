@@ -1,0 +1,60 @@
+# Dependencies
+node_modules
+.mvn/wrapper/maven-wrapper.jar
+
+# Build artifacts
+backend/target
+frontend/.next
+frontend/out
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Git
+.git
+.gitignore
+
+# Docs
+*.md
+!README.md
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Railway
+railway.json
+start.sh
+
+# Database
+database/*.php
+database/*.sql
+
+# Misc
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Backend local files
+backend/.env
+backend/.mvn/wrapper/maven-wrapper.properties
+
+# Frontend
+frontend/.eslintrc*
+frontend/.prettierrc*
+frontend/playwright.config*
+frontend/tests
+frontend/e2e
+
+# Admin/docs
+admin
+doc

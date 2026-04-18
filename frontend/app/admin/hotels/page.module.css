@@ -62,6 +62,24 @@
   border: 1px solid #fcd34d;
 }
 
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0ea5e9;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid #0284c7;
+}
+
+.createButton:hover {
+  background: #0284c7;
+}
+
 .panel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -175,6 +193,25 @@
   color: #92400e;
   border-color: #fcd34d;
   background: #fffbeb;
+}
+
+.editButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  border-radius: 10px;
+  min-height: 34px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 10px;
+  text-decoration: none;
+}
+
+.editButton:hover {
+  background: #f1f5f9;
 }
 
 .successBox,

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 import styles from './HeaderDropdowns.module.css';
 
 const LANGUAGES = [
@@ -13,9 +14,8 @@ const CURRENCIES = [
 ];
 
 export default function CurrencyLangDropdown() {
+    const { i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
-    const [lang, setLang] = useState('vi');
-    const [currency, setCurrency] = useState('VND');
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -29,23 +29,29 @@ export default function CurrencyLangDropdown() {
     }, []);
 
     const handleSelectLang = (code) => {
-        setLang(code);
+        i18n.changeLanguage(code);
+        localStorage.setItem('tourista-language', code);
     };
 
     const handleSelectCurrency = (code) => {
-        setCurrency(code);
-        setIsOpen(false); // Đóng menu sau khi chọn xong
+        localStorage.setItem('tourista-currency', code);
+        setIsOpen(false);
     };
+
+    const currentLang = i18n.language || 'vi';
+    const currentCurrency = typeof window !== 'undefined'
+        ? (localStorage.getItem('tourista-currency') || 'VND')
+        : 'VND';
 
     return (
         <div className={styles.dropdownContainer} ref={dropdownRef}>
-            <button 
-                type="button" 
+            <button
+                type="button"
                 className={styles.triggerBtn}
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
             >
-                {currency} | {lang.toUpperCase()}
+                {currentCurrency} | {currentLang.toUpperCase()}
             </button>
 
             {isOpen && (
@@ -57,7 +63,7 @@ export default function CurrencyLangDropdown() {
                         {LANGUAGES.map((l) => (
                             <button
                                 key={l.code}
-                                className={`${styles.menuItem} ${lang === l.code ? styles.active : ''}`}
+                                className={`${styles.menuItem} ${currentLang === l.code ? styles.active : ''}`}
                                 onClick={() => handleSelectLang(l.code)}
                             >
                                 <div className={styles.menuItemLeft}>
@@ -66,7 +72,7 @@ export default function CurrencyLangDropdown() {
                                     </span>
                                     <span>{l.label}</span>
                                 </div>
-                                {lang === l.code && <FaCheck style={{ color: '#0f7fb6' }} />}
+                                {currentLang === l.code && <FaCheck style={{ color: '#0f7fb6' }} />}
                             </button>
                         ))}
                     </div>
@@ -80,14 +86,14 @@ export default function CurrencyLangDropdown() {
                         {CURRENCIES.map((c) => (
                             <button
                                 key={c.code}
-                                className={`${styles.menuItem} ${currency === c.code ? styles.active : ''}`}
+                                className={`${styles.menuItem} ${currentCurrency === c.code ? styles.active : ''}`}
                                 onClick={() => handleSelectCurrency(c.code)}
                             >
                                 <div className={styles.menuItemLeft}>
                                     <span style={{ fontWeight: 700, width: '32px' }}>{c.code}</span>
                                     <span style={{ color: '#648392' }}>{c.label}</span>
                                 </div>
-                                {currency === c.code && <FaCheck style={{ color: '#0f7fb6' }} />}
+                                {currentCurrency === c.code && <FaCheck style={{ color: '#0f7fb6' }} />}
                             </button>
                         ))}
                     </div>
