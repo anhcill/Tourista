@@ -12,5 +12,5 @@ public interface CityRepository extends JpaRepository<City, Integer> {
 
     Optional<City> findBySlug(String slug);
 
-    List<City> findByIsPopularTrueOrderByNameViAsc();
+    List<City> findByNameViContainingIgnoreCaseOrNameEnContainingIgnoreCase(String nameVi, String nameEn);
 }
