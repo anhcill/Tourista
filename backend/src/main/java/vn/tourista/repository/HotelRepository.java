@@ -39,13 +39,13 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
             @Param("adults") Integer adults,
             @Param("rooms") Integer rooms);
 
-    @Query(value = "SELECT h.id, COALESCE(hi.image_url, (SELECT image_url FROM hotel_images WHERE hotel_id = h.id LIMIT 1)) " +
+    @Query(value = "SELECT h.id, COALESCE(hi.url, (SELECT url FROM hotel_images WHERE hotel_id = h.id LIMIT 1)) " +
             "FROM hotels h LEFT JOIN hotel_images hi ON h.id = hi.hotel_id AND hi.is_cover = true " +
             "WHERE h.id IN :hotelIds",
             nativeQuery = true)
     List<Object[]> findCoverImagesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
 
-    @Query(value = "SELECT hi.hotel_id, hi.image_url FROM hotel_images hi " +
+    @Query(value = "SELECT hi.hotel_id, hi.url FROM hotel_images hi " +
             "WHERE hi.hotel_id = :hotelId AND hi.is_cover = true LIMIT 1",
             nativeQuery = true)
     Object[] findCoverImageByHotelId(@Param("hotelId") Long hotelId);
