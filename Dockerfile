@@ -12,6 +12,7 @@ WORKDIR /app
 
 # Copy Maven wrapper + pom.xml for dependency caching
 COPY backend/mvnw backend/.mvn backend/pom.xml ./
+RUN chmod +x mvnw
 
 # Download dependencies (cached if pom.xml unchanged)
 RUN ./mvnw dependency:go-offline -B
