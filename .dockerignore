@@ -27,7 +27,6 @@ docker-compose*
 
 # Railway
 railway.json
-start.sh
 
 # Database
 database/*.php
