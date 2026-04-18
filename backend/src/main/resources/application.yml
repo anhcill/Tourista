@@ -53,7 +53,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: "{baseUrl}/api/auth/google/callback"
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
 
 # ===== JWT + APP CONFIG =====
 app:
@@ -70,7 +70,7 @@ app:
     login-per-minute: 5 # Tối đa 5 lần login / phút / IP
     register-per-minute: 3 # Tối đa 3 lần register / phút / IP
 
-  frontend-url: ${FRONTEND_URL:http://localhost:3000} # URL frontend (dùng cho redirect OAuth2, email link)
+  frontend-url: ${APP_FRONTEND_URL:${FRONTEND_URL:http://localhost:3000}} # URL frontend (dùng cho redirect OAuth2, email link)
 
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
