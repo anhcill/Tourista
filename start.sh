@@ -3,27 +3,13 @@ set -e
 
 echo "===== Tourista on Railway ====="
 
-# Build backend if JAR not present
-if [ ! -f backend/target/backend-1.0.0.jar ]; then
-  echo "Building backend..."
-  cd backend
-  ./mvnw package -DskipTests -q
-  cd ..
-fi
-
-# Build frontend if not built
-if [ ! -d frontend/.next ]; then
-  echo "Building frontend..."
-  cd frontend
-  npm install
-  npm run build
-  cd ..
-fi
+# JAR is pre-built and copied to ./backend/app.jar
+# .next is pre-built and copied to ./.next
 
 # Start backend (port 8080)
 echo "Starting backend on :8080..."
 cd backend
-java -jar target/backend-1.0.0.jar &
+java -jar app.jar &
 BACKEND_PID=$!
 cd ..
 
@@ -33,7 +19,6 @@ sleep 15
 
 # Start frontend (port 3000)
 echo "Starting frontend on :3000..."
-cd frontend
 PORT=3000 npm start &
 FRONTEND_PID=$!
 

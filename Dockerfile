@@ -47,10 +47,13 @@ COPY --from=backend-builder /app/target/backend-1.0.0.jar ./backend/app.jar
 COPY start.sh ./
 RUN chmod +x start.sh
 
-# Copy built frontend
+# Copy frontend build
 COPY --from=frontend-builder /app/.next ./.next
 COPY --from=frontend-builder /app/public ./public
 COPY --from=frontend-builder /app/package.json ./
+
+# Install frontend production dependencies (needed for next start)
+COPY --from=frontend-builder /app/node_modules ./node_modules
 
 # Expose both ports
 EXPOSE 8080 3000
