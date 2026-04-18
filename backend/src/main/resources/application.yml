@@ -53,7 +53,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            redirect-uri: "{baseUrl}/api/auth/google/callback"
 
 # ===== JWT + APP CONFIG =====
 app:
