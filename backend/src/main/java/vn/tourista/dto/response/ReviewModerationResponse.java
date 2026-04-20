@@ -32,6 +32,9 @@ public class ReviewModerationResponse {
     private Review.AdminStatus adminStatus;
     private String adminReply;
     private LocalDateTime adminRepliedAt;
+    private Long partnerId;
+    private String partnerReply;
+    private LocalDateTime partnerRepliedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -39,10 +39,10 @@ const bookingApi = {
     return axiosClient.put(url, updateData);
   },
 
-  // Cancel booking
-  cancelBooking: (id) => {
-    const url = API_ENDPOINTS.BOOKINGS.CANCEL.replace(":id", id);
-    return axiosClient.post(url);
+  // Cancel booking (user-initiated)
+  cancelBooking: (id, reason = '') => {
+    const url = API_ENDPOINTS.BOOKINGS.CANCEL.replace(':id', id);
+    return axiosClient.post(url, reason ? { reason } : {});
   },
 };
 

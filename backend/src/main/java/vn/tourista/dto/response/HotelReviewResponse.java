@@ -23,4 +23,6 @@ public class HotelReviewResponse {
     private LocalDateTime createdAt;
     private Integer helpfulCount;
     private List<String> mediaUrls;
+    private String partnerReply;
+    private LocalDateTime partnerRepliedAt;
 }

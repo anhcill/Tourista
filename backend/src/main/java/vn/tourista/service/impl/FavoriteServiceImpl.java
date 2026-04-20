@@ -91,6 +91,29 @@ public class FavoriteServiceImpl implements FavoriteService {
         favoriteRepository.deleteByUser_IdAndTargetTypeAndTargetId(user.getId(), parsedType, targetId);
     }
 
+    @Override
+    public boolean isFavorited(String email, String targetType, Long targetId) {
+        if (email == null || email.isBlank() || targetType == null || targetType.isBlank() || targetId == null) {
+            return false;
+        }
+        User user;
+        try {
+            user = userRepository.findByEmail(email).orElse(null);
+        } catch (Exception e) {
+            return false;
+        }
+        if (user == null) {
+            return false;
+        }
+        Favorite.TargetType parsedType;
+        try {
+            parsedType = parseTargetType(targetType);
+        } catch (Exception e) {
+            return false;
+        }
+        return favoriteRepository.existsByUser_IdAndTargetTypeAndTargetId(user.getId(), parsedType, targetId);
+    }
+
     private User findUserByEmail(String email) {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("Thong tin xac thuc khong hop le");

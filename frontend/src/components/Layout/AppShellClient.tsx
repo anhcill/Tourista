@@ -8,6 +8,7 @@ import Footer from '@/components/Layout/Footer/Footer';
 import Toast from '@/components/Common/Toast/Toast';
 import DetailTopSearchBar from '@/components/Hotels/DetailTopSearchBar/DetailTopSearchBar';
 import BotChatWidget from '@/components/Chat/BotChatWidget';
+import { ThemeProvider } from '@/components/ThemeProvider/ThemeProvider';
 
 type AppShellClientProps = {
   children: ReactNode;
@@ -31,21 +32,23 @@ export default function AppShellClient({ children }: AppShellClientProps) {
   const isHotelDetailPage = /^\/hotels\/\d+$/.test(pathname || '');
 
   return (
-    <ReduxProvider>
-      {isAuthPage || isAdminRoute ? (
-        <>
-          {children}
-          <Toast />
-        </>
-      ) : (
-        <div className="app-shell">
-          {isHotelDetailPage ? <DetailTopSearchBar /> : <Header />}
-          <main className="app-main">{children}</main>
-          <Footer />
-          <Toast />
-          <BotChatWidget />
-        </div>
-      )}
-    </ReduxProvider>
+    <ThemeProvider>
+      <ReduxProvider>
+        {isAuthPage || isAdminRoute ? (
+          <>
+            {children}
+            <Toast />
+          </>
+        ) : (
+          <div className="app-shell">
+            {isHotelDetailPage ? <DetailTopSearchBar /> : <Header />}
+            <main className="app-main">{children}</main>
+            <Footer />
+            <Toast />
+            <BotChatWidget />
+          </div>
+        )}
+      </ReduxProvider>
+    </ThemeProvider>
   );
 }

@@ -1,0 +1,153 @@
+/* Availability Badges */
+
+/* Compact badge (single line) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badgeHIGH {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  animation: pulseBadge 2s ease-in-out infinite;
+}
+
+.badgeMEDIUM {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+@keyframes pulseBadge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Badge list (multiple rooms) */
+.badgeList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.badgeRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.badgeRowHIGH {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.badgeRowMEDIUM {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badgeText {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Icons */
+.iconFire {
+  color: #dc2626;
+  font-size: 12px;
+  animation: fireShake 1.5s ease-in-out infinite;
+}
+
+.iconClock {
+  color: #b45309;
+  font-size: 11px;
+}
+
+.iconCheck {
+  color: #166534;
+  font-size: 11px;
+}
+
+@keyframes fireShake {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Inline badge (for room cards) */
+.inlineBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.inlineBadge svg {
+  font-size: 10px;
+}
+
+.soldOut {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.badgeHigh {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  animation: pulseBadge 2s ease-in-out infinite;
+}
+
+.badgeMedium {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+/* Dark mode */
+[data-theme="dark"] .badgeHIGH,
+[data-theme="dark"] .badgeRowHIGH {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .badgeMEDIUM,
+[data-theme="dark"] .badgeRowMEDIUM {
+  background: rgba(180, 83, 9, 0.2);
+  border-color: rgba(253, 230, 138, 0.3);
+  color: #fde68a;
+}
+
+[data-theme="dark"] .soldOut {
+  background: rgba(100, 116, 139, 0.2);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .iconFire {
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .iconClock {
+  color: #fde68a;
+}

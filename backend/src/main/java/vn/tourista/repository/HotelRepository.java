@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vn.tourista.entity.Hotel;
+import vn.tourista.entity.User;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,8 +16,13 @@ import java.util.Optional;
 @Repository
 public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecificationExecutor<Hotel> {
 
+    List<Hotel> findByOwner(User owner);
+
     @Query("SELECT h.id FROM Hotel h WHERE h.isActive = true")
     List<Long> findActiveHotelIds(PageRequest pageRequest);
+
+    @Query("SELECT h.id FROM Hotel h WHERE h.owner.id = :partnerId")
+    List<Long> findIdsByPartnerId(@Param("partnerId") Long partnerId);
 
     @Query(value = "SELECT h.id FROM hotels h WHERE h.is_active = true " +
             "AND h.is_trending = true",
@@ -51,4 +57,25 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     Object[] findCoverImageByHotelId(@Param("hotelId") Long hotelId);
 
     Optional<Hotel> findByIdAndIsActiveTrue(Long id);
+
+    @Query(value = """
+            SELECT h.id, h.name, COALESCE(c.name_vi, c.name_en) AS city_name, h.address
+            FROM hotels h
+            LEFT JOIN cities c ON c.id = h.city_id
+            WHERE h.is_active = TRUE
+              AND (
+                  LOWER(h.name) LIKE LOWER(CONCAT('%', :query, '%'))
+                  OR LOWER(h.address) LIKE LOWER(CONCAT('%', :query, '%'))
+                  OR LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :query, '%'))
+                  OR LOWER(c.name_en) LIKE LOWER(CONCAT('%', :query, '%'))
+              )
+            ORDER BY
+                CASE
+                    WHEN LOWER(h.name) LIKE LOWER(CONCAT(:query, '%')) THEN 1
+                    ELSE 2
+                END,
+                h.avg_rating DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> searchHotelsAutocomplete(@Param("query") String query, @Param("limit") int limit);
 }

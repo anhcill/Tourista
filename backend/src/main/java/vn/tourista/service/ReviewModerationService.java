@@ -146,6 +146,9 @@ public class ReviewModerationService {
                 .adminStatus(r.getAdminStatus())
                 .adminReply(r.getAdminReply())
                 .adminRepliedAt(r.getAdminRepliedAt())
+                .partnerId(r.getPartnerId())
+                .partnerReply(r.getPartnerReply())
+                .partnerRepliedAt(r.getPartnerRepliedAt())
                 .createdAt(r.getCreatedAt())
                 .updatedAt(r.getUpdatedAt())
                 .build();

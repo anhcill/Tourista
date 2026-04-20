@@ -21,11 +21,8 @@ const formatVnd = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
 
 const PAYMENT_METHODS = [
-  { id: 'card_domestic', emoji: '💳', title: 'Thẻ nội địa / ATM', subtitle: 'Thanh toán bằng thẻ ngân hàng nội địa', enabled: true },
-  { id: 'momo',         emoji: '📱', title: 'Ví MoMo',             subtitle: 'Thanh toán qua ứng dụng MoMo',         enabled: true },
-  { id: 'zalopay',      emoji: '💜', title: 'ZaloPay',             subtitle: 'Thanh toán bằng ví ZaloPay',            enabled: true },
-  { id: 'bank_transfer',emoji: '🏦', title: 'Chuyển khoản ngân hàng', subtitle: 'Nhận thông tin CK và xác nhận',      enabled: true },
-  { id: 'vnpay',        emoji: '🔒', title: 'VNPay',               subtitle: 'Tạm khóa để bảo trì',                  enabled: false },
+  { id: 'vnpay',        emoji: '🔒', title: 'VNPay',                subtitle: 'Thanh toán qua cổng VNPay (ATM, Visa)',   enabled: true },
+  { id: 'bank_transfer',emoji: '🏦', title: 'Chuyển khoản ngân hàng', subtitle: 'Nhận thông tin CK và xác nhận thanh toán', enabled: true },
 ];
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=900&q=80';
@@ -35,7 +32,7 @@ const DEFAULT_FORM = {
   guestEmail: '',
   guestPhone: '',
   specialRequests: '',
-  paymentMethod: 'card_domestic',
+    paymentMethod: 'vnpay',
   agreeTerms: false,
 };
 
@@ -200,6 +197,21 @@ function TourBookingInner() {
       const booking = response?.data;
       if (!booking?.bookingCode) throw new Error('Hệ thống không trả về mã booking. Vui lòng thử lại.');
 
+      // VNPay: tạo payment URL và redirect
+      if (form.paymentMethod === 'vnpay') {
+        const vnpayRes = await bookingApi.createVnpayPayment({
+          bookingCode: booking.bookingCode,
+          returnUrl: `${window.location.origin}/payments/vnpay/return`,
+        });
+        const paymentUrl = vnpayRes?.data?.paymentUrl;
+        if (!paymentUrl) throw new Error('Không nhận được URL thanh toán VNPay.');
+        clearTourBookingDraft(draftContext);
+        window.location.href = paymentUrl;
+        return;
+      }
+
+      // Bank transfer: redirect sang trang thành công (COD - admin duyệt sau)
+      clearTourBookingDraft(draftContext);
       const successParams = new URLSearchParams({
         bookingCode: booking.bookingCode,
         method: form.paymentMethod,
@@ -208,7 +220,6 @@ function TourBookingInner() {
         bookingType: 'TOUR',
         tourId: String(id),
       });
-      clearTourBookingDraft(draftContext);
       router.push(`/payments/success?${successParams.toString()}`);
     } catch (err) {
       toast.error(err?.message || 'Không thể tạo booking tour. Vui lòng thử lại.');

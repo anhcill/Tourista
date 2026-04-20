@@ -1,0 +1,458 @@
+/* Partner Reviews Page */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Hero */
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.hero h2 {
+  margin: 0 0 4px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #102c41;
+}
+
+.hero p {
+  margin: 0;
+  font-size: 15px;
+  color: #557084;
+}
+
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #0f7fb6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.refreshBtn:hover {
+  background: #0d6fa0;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Stats */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  background: #fff;
+  border: 1px solid #e2ecf4;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.statCard strong {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f2b40;
+}
+
+.statCard span {
+  font-size: 13px;
+  color: #557084;
+  text-align: center;
+}
+
+.statHotel { border-top: 3px solid #1d4ed8; }
+.statTour { border-top: 3px solid #15803d; }
+.statReplied { border-top: 3px solid #d97706; }
+.statRating { border-top: 3px solid #be185d; }
+
+/* Loading / Error / Empty */
+.loadingState {
+  text-align: center;
+  padding: 60px;
+  font-size: 16px;
+  color: #557084;
+}
+
+.errorState {
+  text-align: center;
+  padding: 40px;
+  color: #dc2626;
+  font-size: 15px;
+  background: #fef2f2;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px;
+  color: #557084;
+  font-size: 15px;
+  background: #f7fbff;
+  border-radius: 12px;
+  border: 1px dashed #b7d9f0;
+}
+
+/* Review List */
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.reviewCard {
+  background: #fff;
+  border: 1px solid #e2ecf4;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.reviewMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 10px;
+}
+
+.typeHotel {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.typeTour {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.targetName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f2b40;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.starFilled {
+  color: #f59e0b;
+  font-size: 14px;
+}
+
+.starEmpty {
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.reviewComment {
+  margin: 0 0 10px;
+  font-size: 16px;
+  color: #1f2d3d;
+  line-height: 1.55;
+}
+
+.reviewFooter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.reviewAuthor {
+  font-size: 14px;
+  color: #557084;
+  font-weight: 500;
+}
+
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  border: 1px solid #9ae6b4;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+/* Existing Reply */
+.existingReply {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.existingReplyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.existingReplyLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.existingReplyDate {
+  font-size: 12px;
+  color: #4ade80;
+}
+
+.existingReplyText {
+  margin: 0;
+  font-size: 15px;
+  color: #14532d;
+  line-height: 1.55;
+}
+
+/* Reply Button */
+.replyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: none;
+  border: 1.5px solid #0f7fb6;
+  border-radius: 8px;
+  color: #0f7fb6;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.replyBtn:hover {
+  background: #eff6ff;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalBox {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalBox h3 {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #102c41;
+}
+
+.modalMeta {
+  font-size: 14px;
+  color: #557084;
+  margin: 0 0 10px;
+}
+
+.modalComment {
+  background: #f7fbff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 15px;
+  color: #1f2d3d;
+  line-height: 1.55;
+  margin: 12px 0;
+}
+
+.modalPrevReply {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #166534;
+  margin-bottom: 12px;
+}
+
+.replyLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2d3d;
+  margin-bottom: 16px;
+}
+
+.replyTextarea {
+  width: 100%;
+  min-height: 100px;
+  border: 1.5px solid #c6d7e5;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 15px;
+  color: #133347;
+  line-height: 1.55;
+  padding: 10px 12px;
+  resize: vertical;
+  font-family: 'Inter', sans-serif;
+}
+
+.replyTextarea:focus {
+  outline: none;
+  border-color: #0f7fb6;
+  box-shadow: 0 0 0 3px rgba(15,127,182,0.1);
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.primaryBtn {
+  padding: 10px 20px;
+  background: #0f7fb6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primaryBtn:hover {
+  background: #0d6fa0;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ghostBtn {
+  padding: 10px 20px;
+  background: none;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ghostBtn:hover {
+  background: #f9fafb;
+}
+
+/* Dark mode */
+[data-theme="dark"] .hero h2 { color: #e2e8f0; }
+[data-theme="dark"] .hero p { color: #94a3b8; }
+[data-theme="dark"] .statCard { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .statCard strong { color: #e2e8f0; }
+[data-theme="dark"] .statCard span { color: #94a3b8; }
+[data-theme="dark"] .reviewCard { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .reviewComment { color: #cbd5e1; }
+[data-theme="dark"] .reviewAuthor { color: #94a3b8; }
+[data-theme="dark"] .targetName { color: #e2e8f0; }
+[data-theme="dark"] .existingReply { background: rgba(22,101,52,0.15); border-color: rgba(34,197,94,0.3); }
+[data-theme="dark"] .existingReplyLabel { color: #86efac; }
+[data-theme="dark"] .existingReplyText { color: #dcfce7; }
+[data-theme="dark"] .modalBox { background: #1e293b; }
+[data-theme="dark"] .modalBox h3 { color: #e2e8f0; }
+[data-theme="dark"] .modalMeta { color: #94a3b8; }
+[data-theme="dark"] .modalComment { background: rgba(15,127,182,0.1); border-color: rgba(59,130,246,0.3); color: #cbd5e1; }
+[data-theme="dark"] .modalPrevReply { background: rgba(22,101,52,0.15); border-color: rgba(34,197,94,0.3); color: #86efac; }
+[data-theme="dark"] .replyLabel { color: #cbd5e1; }
+[data-theme="dark"] .replyTextarea { background: #0f172a; border-color: #334155; color: #cbd5e1; }
+[data-theme="dark"] .replyTextarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+[data-theme="dark"] .ghostBtn { border-color: #475569; color: #cbd5e1; }
+[data-theme="dark"] .ghostBtn:hover { background: #1e293b; }
+[data-theme="dark"] .replyBtn { border-color: #3b82f6; color: #3b82f6; }
+[data-theme="dark"] .replyBtn:hover { background: rgba(59,130,246,0.1); }
+[data-theme="dark"] .verifiedBadge { background: rgba(22,101,52,0.2); border-color: rgba(34,197,94,0.3); color: #86efac; }
+[data-theme="dark"] .typeHotel { background: rgba(29,78,216,0.2); color: #93c5fd; }
+[data-theme="dark"] .typeTour { background: rgba(21,128,61,0.2); color: #86efac; }
+[data-theme="dark"] .emptyState { background: rgba(15,127,182,0.05); border-color: rgba(59,130,246,0.3); color: #94a3b8; }
+[data-theme="dark"] .errorState { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.3); color: #fca5a5; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .statsGrid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 480px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .page { padding: 12px 16px 40px; }
+  .modalBox { padding: 20px; }
+}

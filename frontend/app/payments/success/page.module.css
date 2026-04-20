@@ -191,6 +191,15 @@
   color: #0f172a;
 }
 
+.shareSection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed #d1fae5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 760px) {
   .page {
     padding: 12px;

@@ -1,5 +1,6 @@
 package vn.tourista.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,7 +8,12 @@ import vn.tourista.dto.request.CreateVnpayPaymentRequest;
 import vn.tourista.dto.response.CreateVnpayPaymentResponse;
 import vn.tourista.dto.response.VnpayReturnResponse;
 import vn.tourista.entity.Booking;
+import vn.tourista.entity.BookingHotelDetail;
+import vn.tourista.entity.BookingTourDetail;
+import vn.tourista.repository.BookingHotelDetailRepository;
 import vn.tourista.repository.BookingRepository;
+import vn.tourista.repository.BookingTourDetailRepository;
+import vn.tourista.service.EmailService;
 import vn.tourista.service.VnpayService;
 
 import javax.crypto.Mac;
@@ -33,10 +39,14 @@ public class VnpayServiceImpl implements VnpayService {
     private static final String CURR_CODE = "VND";
     private static final String DEFAULT_ORDER_TYPE = "other";
     private static final String DEFAULT_LOCALE = "vn";
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter VNPAY_TIME = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final java.time.ZoneId VN_ZONE = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
 
     private final BookingRepository bookingRepository;
+    private final BookingHotelDetailRepository bookingHotelDetailRepository;
+    private final BookingTourDetailRepository bookingTourDetailRepository;
+    private final EmailService emailService;
 
     @Value("${app.vnpay.tmn-code:}")
     private String tmnCode;
@@ -56,8 +66,14 @@ public class VnpayServiceImpl implements VnpayService {
     @Value("${app.vnpay.locale:vn}")
     private String locale;
 
-    public VnpayServiceImpl(BookingRepository bookingRepository) {
+    public VnpayServiceImpl(BookingRepository bookingRepository,
+            BookingHotelDetailRepository bookingHotelDetailRepository,
+            BookingTourDetailRepository bookingTourDetailRepository,
+            EmailService emailService) {
         this.bookingRepository = bookingRepository;
+        this.bookingHotelDetailRepository = bookingHotelDetailRepository;
+        this.bookingTourDetailRepository = bookingTourDetailRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -154,6 +170,10 @@ public class VnpayServiceImpl implements VnpayService {
             booking.setStatus(Booking.BookingStatus.CONFIRMED);
             booking.setConfirmedAt(LocalDateTime.now());
             bookingRepository.save(booking);
+
+            // Gửi email xác nhận thanh toán thành công
+            String transactionNo = vnpParams.getOrDefault("vnp_TransactionNo", "N/A");
+            sendBookingConfirmationEmail(booking, "VNPAY", transactionNo);
             return response("00", "Confirm Success");
         }
 
@@ -314,6 +334,61 @@ public class VnpayServiceImpl implements VnpayService {
     private void ensureConfigured() {
         if (tmnCode == null || tmnCode.isBlank() || hashSecret == null || hashSecret.isBlank()) {
             throw new IllegalStateException("VNPAY chưa được cấu hình đầy đủ (tmn-code/hash-secret)");
+        }
+    }
+
+    private void sendBookingConfirmationEmail(Booking booking, String paymentMethod, String transactionNo) {
+        try {
+            String bookingType = booking.getBookingType() != null ? booking.getBookingType().name() : "HOTEL";
+            String serviceName = "";
+            String serviceSubtitle = "";
+            String checkIn = "";
+            String checkOut = "";
+            int adults = 0;
+            int children = 0;
+            int roomsOrSlots = 0;
+
+            if (bookingType.equals("HOTEL")) {
+                BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking(booking).orElse(null);
+                if (detail != null) {
+                    serviceName = detail.getHotelName();
+                    serviceSubtitle = "Phòng: " + detail.getRoomTypeName();
+                    checkIn = detail.getCheckInDate().format(DATE_FMT);
+                    checkOut = detail.getCheckOutDate().format(DATE_FMT);
+                    adults = detail.getAdults() != null ? detail.getAdults() : 0;
+                    children = detail.getChildren() != null ? detail.getChildren() : 0;
+                    roomsOrSlots = detail.getNumRooms() != null ? detail.getNumRooms() : 0;
+                }
+            } else {
+                BookingTourDetail detail = bookingTourDetailRepository.findByBooking(booking).orElse(null);
+                if (detail != null) {
+                    serviceName = detail.getTourTitle();
+                    serviceSubtitle = "Khởi hành: " + (detail.getDepartureDate() != null ? detail.getDepartureDate().format(DATE_FMT) : "");
+                    checkIn = detail.getDepartureDate() != null ? detail.getDepartureDate().format(DATE_FMT) : "";
+                    checkOut = "";
+                    adults = detail.getNumAdults() != null ? detail.getNumAdults() : 0;
+                    children = detail.getNumChildren() != null ? detail.getNumChildren() : 0;
+                    roomsOrSlots = adults + children;
+                }
+            }
+
+            emailService.sendBookingConfirmedEmail(
+                    booking.getGuestEmail(),
+                    booking.getBookingCode(),
+                    bookingType,
+                    serviceName,
+                    serviceSubtitle,
+                    checkIn,
+                    checkOut,
+                    adults,
+                    children,
+                    roomsOrSlots,
+                    booking.getTotalAmount(),
+                    booking.getCurrency(),
+                    paymentMethod,
+                    transactionNo != null ? transactionNo : "N/A");
+        } catch (Exception e) {
+            // Log lỗi nhưng không throw — email thất bại không được phép break payment flow
         }
     }
 }

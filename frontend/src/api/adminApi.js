@@ -16,6 +16,7 @@ const tryGetList = (value) => {
     "hotels",
     "tours",
     "bookings",
+    "reviews",
     "promotions",
     "auditLogs",
   ];
@@ -1481,55 +1482,78 @@ const adminApi = {
       return dashboardCache.data;
     }
 
-    const [bookingsResponse, hotelsResponse, toursResponse] = await Promise.all(
-      [
-        safeRequest(
-          () =>
-            axiosClient.get("/admin/bookings", {
-              params: { page: 1, limit: 80 },
-            }),
-          "Khong the tai bookings cho dashboard.",
-        ),
-        safeRequest(
-          () =>
-            axiosClient.get("/admin/hotels", {
-              params: { page: 1, limit: 1 },
-            }),
-          "Khong the tai hotels cho dashboard.",
-        ),
-        safeRequest(
-          () =>
-            axiosClient.get("/admin/tours", {
-              params: { page: 1, limit: 1 },
-            }),
-          "Khong the tai tours cho dashboard.",
-        ),
-      ],
-    );
+    let data;
 
-    const bookings = normalizeBookings(extractList(bookingsResponse));
-    const hotelList = extractList(hotelsResponse);
-    const tourList = extractList(toursResponse);
-    const hotelPaging = extractPaging(hotelsResponse, 1, 1, hotelList.length);
-    const tourPaging = extractPaging(toursResponse, 1, 1, tourList.length);
-    const revenueSeries = buildRevenueSeries(bookings);
+    try {
+      const statsResponse = await axiosClient.get("/admin/statistics/dashboard");
+      const stats = statsResponse?.data?.data || {};
 
-    const totalRevenue = bookings.reduce(
-      (sum, booking) => sum + Number(booking.totalAmount || 0),
-      0,
-    );
-    const data = {
-      stats: {
-        totalRevenue,
-        bookingsToday: countTodayBookings(bookings),
-        hotelCount: Number(hotelPaging.total || hotelList.length || 0),
-        tourCount: Number(tourPaging.total || tourList.length || 0),
-      },
-      revenueSeries,
-      recentBookings: bookings.slice(0, 6),
-      dataMode: "live",
-      hasMockFallback: false,
-    };
+      const revenueByMonth = Array.isArray(stats.revenueByMonth) ? stats.revenueByMonth : [];
+      const revenueSeries = revenueByMonth.map((item) => {
+        const monthMap = {
+          "01": "T1", "02": "T2", "03": "T3", "04": "T4",
+          "05": "T5", "06": "T6", "07": "T7", "08": "T8",
+          "09": "T9", "10": "T10", "11": "T11", "12": "T12",
+        };
+        const monthKey = String(item.month || "");
+        const parts = monthKey.split("-");
+        const label = parts.length === 2
+          ? `${monthMap[parts[1]] || parts[1]}/${parts[0].slice(2)}`
+          : monthKey;
+
+        return {
+          key: item.month || label,
+          label,
+          value: Number(item.revenue || 0),
+        };
+      });
+
+      const recentBookingsRaw = Array.isArray(stats.recentBookings) ? stats.recentBookings : [];
+      const recentBookings = recentBookingsRaw.map((b) => ({
+        bookingCode: b.booking_code || b.bookingCode || "",
+        bookingType: b.booking_type || b.bookingType || "",
+        guestName: b.user_name || b.guestName || b.userName || "",
+        createdAt: b.created_at || b.createdAt || null,
+        status: b.status || "",
+        totalAmount: Number(b.total_amount || b.totalAmount || 0),
+        currency: "VND",
+      }));
+
+      data = {
+        stats: {
+          totalRevenue: Number(stats.totalRevenue || 0),
+          bookingsToday: 0,
+          hotelCount: Number(stats.totalHotels || 0),
+          tourCount: Number(stats.totalTours || 0),
+          totalUsers: Number(stats.totalUsers || 0),
+          totalBookings: Number(stats.totalBookings || 0),
+          totalReviews: Number(stats.totalReviews || 0),
+          pendingReviews: Number(stats.pendingReviews || 0),
+          pendingHotels: Number(stats.pendingHotels || 0),
+          pendingTours: Number(stats.pendingTours || 0),
+          monthlyRevenue: Number(stats.monthlyRevenue || 0),
+        },
+        revenueSeries,
+        recentBookings,
+        topDestinations: Array.isArray(stats.topDestinations) ? stats.topDestinations : [],
+        bookingsByMonth: Array.isArray(stats.bookingsByMonth) ? stats.bookingsByMonth : [],
+        dataMode: "live",
+        hasMockFallback: false,
+      };
+    } catch {
+      data = {
+        stats: {
+          totalRevenue: 0,
+          bookingsToday: 0,
+          hotelCount: 0,
+          tourCount: 0,
+        },
+        revenueSeries: [],
+        recentBookings: [],
+        dataMode: "live",
+        hasMockFallback: false,
+      };
+    }
 
     dashboardCache = {
       fetchedAt: Date.now(),
@@ -1820,6 +1844,63 @@ const adminApi = {
     return safeRequest(
       () => axiosClient.put(`/admin/tours/${tourId}`, payload),
       "Cap nhat tour that bai.",
+    );
+  },
+
+  // ===================== REVIEW MODERATION =====================
+
+  /**
+   * @param {{ page?: number, size?: number, status?: string, targetType?: string }} options
+   */
+  getReviews: async ({ page = 0, size = 20, status, targetType } = {}) => {
+    const params = { page, size };
+    if (status) params.status = status;
+    if (targetType) params.targetType = targetType;
+    return safeRequest(
+      () => axiosClient.get('/admin/reviews', { params }),
+      "Khong the tai danh sach reviews.",
+    );
+  },
+
+  getReviewById: async (id) => {
+    return safeRequest(
+      () => axiosClient.get(`/admin/reviews/${id}`),
+      "Khong the tai chi tiet review.",
+    );
+  },
+
+  approveReview: async (id) => {
+    return safeRequest(
+      () => axiosClient.patch(`/admin/reviews/${id}/approve`),
+      "Duyet review that bai.",
+    );
+  },
+
+  rejectReview: async (id) => {
+    return safeRequest(
+      () => axiosClient.patch(`/admin/reviews/${id}/reject`),
+      "Tu choi review that bai.",
+    );
+  },
+
+  replyToReview: async (id, reply) => {
+    return safeRequest(
+      () => axiosClient.post(`/admin/reviews/${id}/reply`, { reply }),
+      "Phan hoi review that bai.",
+    );
+  },
+
+  deleteReview: async (id) => {
+    return safeRequest(
+      () => axiosClient.delete(`/admin/reviews/${id}`),
+      "Xoa review that bai.",
+    );
+  },
+
+  getReviewCounts: async () => {
+    return safeRequest(
+      () => axiosClient.get('/admin/reviews/counts'),
+      "Khong the tai so lieu review.",
     );
   },
 };

@@ -29,4 +29,12 @@ public interface TourDepartureRepository extends JpaRepository<TourDeparture, Lo
               AND available_slots >= :slots
             """, nativeQuery = true)
     int decrementAvailableSlots(@Param("departureId") Long departureId, @Param("slots") Integer slots);
+
+    @Modifying
+    @Query(value = """
+            UPDATE tour_departures
+            SET available_slots = available_slots + :slots
+            WHERE id = :departureId
+            """, nativeQuery = true)
+    int incrementAvailableSlots(@Param("departureId") Long departureId, @Param("slots") Integer slots);
 }

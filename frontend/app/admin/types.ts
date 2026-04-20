@@ -20,9 +20,29 @@ export type DashboardOverview = {
     bookingsToday: number;
     hotelCount: number;
     tourCount: number;
+    totalUsers?: number;
+    totalBookings?: number;
+    totalReviews?: number;
+    pendingReviews?: number;
+    pendingHotels?: number;
+    pendingTours?: number;
+    monthlyRevenue?: number;
   };
   revenueSeries: RevenuePoint[];
   recentBookings: AdminBookingRow[];
+  topDestinations?: Array<{
+    name: string;
+    tour_count: number;
+    avg_rating: number;
+    review_count: number;
+  }>;
+  bookingsByMonth?: Array<{
+    month: string;
+    total_bookings: number;
+    completed: number;
+    cancelled: number;
+    pending: number;
+  }>;
   dataMode: 'live-or-partial' | 'mock';
   hasMockFallback: boolean;
 };

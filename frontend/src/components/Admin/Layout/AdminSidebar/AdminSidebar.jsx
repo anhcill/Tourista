@@ -10,6 +10,7 @@ import {
   FaReceipt,
   FaTags,
   FaCog,
+  FaStar,
   FaArrowLeft,
 } from 'react-icons/fa';
 import styles from './AdminSidebar.module.css';
@@ -20,6 +21,7 @@ const MENU_ITEMS = [
   { label: 'Quan ly Hotel', href: '/admin/hotels', icon: <FaHotel /> },
   { label: 'Quan ly Tour', href: '/admin/tours', icon: <FaPlaneDeparture /> },
   { label: 'Quan ly Dat cho', href: '/admin/bookings', icon: <FaReceipt /> },
+  { label: 'Review Moderation', href: '/admin/reviews', icon: <FaStar /> },
   { label: 'Khuyen mai', href: '/admin/promotions', icon: <FaTags /> },
   { label: 'Cai dat', href: '/admin/settings', icon: <FaCog /> },
 ];

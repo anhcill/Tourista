@@ -13,4 +13,6 @@ public interface BookingTourDetailRepository extends JpaRepository<BookingTourDe
 
     // Lấy chi tiết tour theo booking (BotService dùng để lấy itinerary, thông tin chuyến)
     Optional<BookingTourDetail> findByBooking(Booking booking);
+
+    List<BookingTourDetail> findByTourIdIn(List<Long> tourIds);
 }

@@ -1,0 +1,234 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1200px;
+}
+
+.hero {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.hero p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.refreshBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning { animation: spin 1s linear infinite; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tabActive {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+/* Filter */
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.filterRow select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.totalCount {
+  margin-left: auto;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Table */
+.tableWrap {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow-x: auto;
+}
+
+.loadingState,
+.errorState,
+.emptyState {
+  text-align: center;
+  padding: 32px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.errorState { color: #dc2626; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 8px;
+  font-size: 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bookingCode {
+  font-weight: 700;
+  color: #0284c7;
+  font-size: 12px;
+}
+
+.guestInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.guestInfo strong { color: #0f172a; font-size: 12px; }
+.guestInfo span { color: #64748b; font-size: 11px; }
+
+.amount {
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+/* Badges */
+.badge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.statusPending { background: #fef3c7; color: #92400e; }
+.statusConfirmed { background: #dbeafe; color: #1d4ed8; }
+.statusCheckedIn { background: #ede9fe; color: #6d28d9; }
+.statusCompleted { background: #dcfce7; color: #15803d; }
+.statusCancelled { background: #fee2e2; color: #b91c1c; }
+.statusRefunded { background: #e2e8f0; color: #475569; }
+
+.paymentPaid { background: #dcfce7; color: #15803d; }
+.paymentPending { background: #fef3c7; color: #92400e; }
+.paymentFailed { background: #fee2e2; color: #b91c1c; }
+.paymentRefunded { background: #e2e8f0; color: #475569; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ghostButton {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ghostButton:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.ghostButton:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pagination span {
+  color: #334155;
+  font-size: 13px;
+}

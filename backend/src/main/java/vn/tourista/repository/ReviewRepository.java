@@ -26,6 +26,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         Boolean getVerified();
 
         java.time.LocalDateTime getCreatedAt();
+
+        Long getHelpfulCount();
+
+        String getPartnerReply();
+
+        java.time.LocalDateTime getPartnerRepliedAt();
     }
 
     interface HomeTestimonialProjection {
@@ -62,6 +68,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         Boolean getVerified();
 
         java.time.LocalDateTime getCreatedAt();
+
+        Long getHelpfulCount();
+
+        String getPartnerReply();
+
+        java.time.LocalDateTime getPartnerRepliedAt();
     }
 
     interface ReviewMediaProjection {
@@ -121,9 +133,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                     r.overall_rating AS overallRating,
                     r.comment AS comment,
                     r.is_verified AS verified,
-                    r.created_at AS createdAt
+                    r.created_at AS createdAt,
+                    COALESCE(hv.helpful_count, 0) AS helpfulCount,
+                    r.partner_reply AS partnerReply,
+                    r.partner_replied_at AS partnerRepliedAt
             FROM reviews r
             JOIN users u ON u.id = r.user_id
+            LEFT JOIN (
+                SELECT review_id, COUNT(*) AS helpful_count
+                FROM review_helpful_votes
+                GROUP BY review_id
+            ) hv ON hv.review_id = r.id
             WHERE r.target_type = 'HOTEL'
                 AND r.target_id = :hotelId
                 AND r.is_published = TRUE
@@ -145,9 +165,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                 r.overall_rating AS overallRating,
                 r.comment AS comment,
                 r.is_verified AS verified,
-                r.created_at AS createdAt
+                r.created_at AS createdAt,
+                COALESCE(hv.helpful_count, 0) AS helpfulCount,
+                r.partner_reply AS partnerReply,
+                r.partner_replied_at AS partnerRepliedAt
             FROM reviews r
             JOIN users u ON u.id = r.user_id
+            LEFT JOIN (
+                SELECT review_id, COUNT(*) AS helpful_count
+                FROM review_helpful_votes
+                GROUP BY review_id
+            ) hv ON hv.review_id = r.id
             WHERE r.target_type = 'TOUR'
             AND r.target_id = :tourId
             AND r.is_published = TRUE
@@ -198,4 +226,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     long countByAdminStatus(Review.AdminStatus status);
 
     long countByAdminStatusAndTargetType(Review.AdminStatus status, Review.TargetType targetType);
+
+    List<Review> findByTargetTypeAndTargetIdIn(Review.TargetType targetType, List<Long> targetIds);
 }

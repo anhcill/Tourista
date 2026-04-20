@@ -1,0 +1,509 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero h2 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.hero p {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statCard strong {
+  font-size: 24px;
+  color: #0f172a;
+}
+
+.statCard span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.statPending strong { color: #d97706; }
+.statApproved strong { color: #16a34a; }
+.statRejected strong { color: #dc2626; }
+
+/* Filters */
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filterRow select {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: #0f172a;
+  background: #ffffff;
+  font-size: 13px;
+}
+
+.pageInfo {
+  margin-left: auto;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Table */
+.tableWrap {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow-x: auto;
+}
+
+.loadingState,
+.errorState,
+.emptyState {
+  text-align: center;
+  padding: 32px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.errorState { color: #dc2626; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1100px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 8px;
+  font-size: 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  color: #64748b;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #f8fafc;
+}
+
+.table td { color: #0f172a; }
+
+.rowPending td {
+  background: #fffbeb;
+}
+
+/* User cell */
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.avatarFallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.userCell strong {
+  display: block;
+  color: #0f172a;
+  font-size: 12px;
+}
+
+.verifiedBadge {
+  display: inline-block;
+  font-size: 10px;
+  color: #16a34a;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Type badges */
+.typeBadge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  display: inline-block;
+}
+
+.typeHotel {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.typeTour {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Stars */
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.starFilled {
+  color: #f59e0b;
+  font-size: 12px;
+}
+
+.starEmpty {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+/* Comment cell */
+.commentCell {
+  max-width: 260px;
+}
+
+.commentCell p {
+  margin: 0;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.noComment {
+  color: #94a3b8 !important;
+  font-style: italic;
+}
+
+.adminReply {
+  margin-top: 4px !important;
+  color: #0369a1 !important;
+  background: #f0f9ff;
+  border-radius: 6px;
+  padding: 4px 6px !important;
+  font-size: 11px !important;
+}
+
+/* Status badges */
+.statusBadge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.statusPending { background: #fef3c7; color: #92400e; }
+.statusApproved { background: #dcfce7; color: #166534; }
+.statusRejected { background: #fee2e2; color: #b91c1c; }
+
+.dateCell {
+  color: #64748b;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Action buttons */
+.actionBtns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.actionBtns button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.actionBtns button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.approveBtn {
+  color: #16a34a;
+}
+
+.approveBtn:hover:not(:disabled) {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.rejectBtn {
+  color: #dc2626;
+}
+
+.rejectBtn:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.replyBtn {
+  font-size: 14px;
+  color: #0284c7;
+}
+
+.replyBtn:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+.deleteBtn {
+  color: #94a3b8;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ghostButton {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ghostButton:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.ghostButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #334155;
+  font-size: 13px;
+}
+
+/* Reply Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modalBox {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.modalBox h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.modalMeta {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.modalComment {
+  margin: 0;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.replyLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.replyTextarea {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 88px;
+  color: #0f172a;
+  transition: border-color 0.15s;
+}
+
+.replyTextarea:focus {
+  outline: none;
+  border-color: #38bdf8;
+}
+
+.modalActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.primaryButton {
+  border-radius: 10px;
+  border: none;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 18px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #0369a1;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .table {
+    min-width: 800px;
+  }
+}

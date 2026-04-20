@@ -11,4 +11,6 @@ public interface FavoriteService {
     FavoriteItemResponse addFavorite(String email, FavoriteUpsertRequest request);
 
     void removeFavorite(String email, String targetType, Long targetId);
+
+    boolean isFavorited(String email, String targetType, Long targetId);
 }

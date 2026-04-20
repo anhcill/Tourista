@@ -19,6 +19,13 @@ const favoriteApi = {
       params: { targetType, targetId },
     });
   },
+
+  checkFavorite: async (targetType, targetId) => {
+    const response = await axiosClient.get("/favorites/check", {
+      params: { targetType, targetId },
+    });
+    return response?.data ?? response ?? false;
+  },
 };
 
 export default favoriteApi;

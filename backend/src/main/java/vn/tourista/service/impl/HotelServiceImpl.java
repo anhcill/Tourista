@@ -187,9 +187,11 @@ public class HotelServiceImpl implements HotelService {
                                                 .comment(item.getComment())
                                                 .verified(Boolean.TRUE.equals(item.getVerified()))
                                                 .createdAt(item.getCreatedAt())
-                                                .helpfulCount(0)
+                                                .helpfulCount(item.getHelpfulCount() != null ? item.getHelpfulCount().intValue() : 0)
                                                 .mediaUrls(mediaByReviewId.getOrDefault(item.getId(),
                                                                 Collections.emptyList()))
+                                                .partnerReply(item.getPartnerReply())
+                                                .partnerRepliedAt(item.getPartnerRepliedAt())
                                                 .build())
                                 .toList();
         }

@@ -71,11 +71,16 @@ public class SecurityConfig {
                                                                 "/api/auth/forgot-password",
                                                                 "/api/auth/reset-password",
                                                                 "/api/auth/refresh",
+                                                                "/api/autocomplete/**",
                                                                 "/api/hotels/**",
                                                                 "/api/tours/**",
                                                                 "/api/home/**",
+                                                                "/api/availability/**",
+                                                                "/api/travel-plan/**",
                                                                 "/api/payments/vnpay/return",
                                                                 "/api/payments/vnpay/ipn",
+                                                                "/api/payments/momo/**",
+                                                                "/api/payments/zalopay/**",
                                                                 "/login/oauth2/**",
                                                                 "/oauth2/**",
                                                                 // WebSocket handshake endpoint (SockJS dùng HTTP trước
@@ -84,6 +89,8 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 // Admin APIs: chỉ cho role ADMIN
                                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                                // Partner APIs: cho PARTNER, HOST, hoặc ADMIN
+                                                .requestMatchers("/api/partner/**").hasAnyRole("PARTNER", "HOST", "ADMIN")
                                                 // Còn lại phải có JWT
                                                 .anyRequest().authenticated())
 

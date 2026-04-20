@@ -71,6 +71,15 @@ public class Review {
     @Column(name = "admin_replied_at")
     private LocalDateTime adminRepliedAt;
 
+    @Column(name = "partner_id")
+    private Long partnerId;
+
+    @Column(name = "partner_reply", columnDefinition = "TEXT")
+    private String partnerReply;
+
+    @Column(name = "partner_replied_at")
+    private LocalDateTime partnerRepliedAt;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

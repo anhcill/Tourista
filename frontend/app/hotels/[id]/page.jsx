@@ -5,14 +5,21 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
     FaStar, FaMapMarkerAlt, FaWifi, FaParking, FaUtensils,
     FaDumbbell, FaBath, FaConciergeBell, FaCoffee,
-    FaChevronDown, FaHeart, FaArrowLeft, FaBed, FaWalking, FaBus, FaRegCalendarAlt, FaCheckCircle
+    FaChevronDown, FaHeart, FaArrowLeft, FaBed, FaWalking, FaBus, FaRegCalendarAlt, FaCheckCircle, FaThumbsUp
 } from 'react-icons/fa';
 import { MdOutlinePool } from 'react-icons/md';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
 import InlineFaqChat from '@/components/Chat/InlineFaqChat';
+import PriceCalendar from '@/components/Hotels/PriceCalendar/PriceCalendar';
+import ShareButtons from '@/components/Common/ShareButtons/ShareButtons';
+import HotelMap from '@/components/Hotels/HotelMap/HotelMap';
+import AvailabilityBadge from '@/components/Hotels/AvailabilityBadge/AvailabilityBadge';
 import hotelApi from '@/api/hotelApi';
 import tourApi from '@/api/tourApi';
 import reviewApi from '@/api/reviewApi';
+import favoriteApi from '@/api/favoriteApi';
 import styles from './page.module.css';
 
 const TABS = ['Place Details', 'Info & Prices', 'Rooms & Beds', 'Place Rules'];
@@ -232,6 +239,7 @@ function HotelDetailInner() {
     const { id } = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { isAuthenticated } = useSelector((state) => state.auth);
 
     const [hotel, setHotel] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -258,6 +266,12 @@ function HotelDetailInner() {
     const [recommendedHotels, setRecommendedHotels] = useState([]);
     const [recommendedHotelsLoading, setRecommendedHotelsLoading] = useState(false);
     const [chatModalOpen, setChatModalOpen] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [favoriteLoading, setFavoriteLoading] = useState(false);
+    const [helpfulMap, setHelpfulMap] = useState({});
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [calendarCheckIn, setCalendarCheckIn] = useState(checkIn || '');
+    const [calendarCheckOut, setCalendarCheckOut] = useState(checkOut || '');
 
     const checkIn = searchParams.get('checkIn') || '';
     const checkOut = searchParams.get('checkOut') || '';
@@ -276,7 +290,23 @@ function HotelDetailInner() {
                 const res = await hotelApi.getHotelDetail(id);
                 const data = res?.data;
                 setHotel(data);
-                if (data?.roomTypes?.length > 0) setSelectedRoom(data.roomTypes[0]);
+
+                // Load selected room: from URL param first, else first room
+                const urlRoomTypeId = Number(searchParams.get('roomTypeId') || 0);
+                let initialRoom = null;
+                if (urlRoomTypeId && data?.roomTypes?.length > 0) {
+                    initialRoom = data.roomTypes.find((rt) => Number(rt.id) === urlRoomTypeId) || null;
+                }
+                if (!initialRoom && data?.roomTypes?.length > 0) {
+                    initialRoom = data.roomTypes[0];
+                }
+                setSelectedRoom(initialRoom);
+                if (initialRoom) {
+                    // Sync URL param with selected room
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set('roomTypeId', String(initialRoom.id));
+                    router.replace(`/hotels/${id}?${params.toString()}`, { scroll: false });
+                }
             } catch (err) {
                 setError(err?.message || 'Không thể tải thông tin khách sạn.');
             } finally {
@@ -381,6 +411,51 @@ function HotelDetailInner() {
 
         fetchRecommendedHotels();
     }, [hotel?.id, hotel?.city, checkIn, checkOut, adults, rooms]);
+
+    // Check if this hotel is favorited by the user
+    useEffect(() => {
+        if (!hotel?.id || !isAuthenticated) {
+            setIsFavorite(false);
+            return;
+        }
+
+        const checkFav = async () => {
+            try {
+                const result = await favoriteApi.checkFavorite('HOTEL', hotel.id);
+                setIsFavorite(Boolean(result));
+            } catch {
+                setIsFavorite(false);
+            }
+        };
+
+        checkFav();
+    }, [hotel?.id, isAuthenticated]);
+
+    const handleToggleFavorite = async () => {
+        if (!isAuthenticated) {
+            toast.info('Vui lòng đăng nhập để lưu vào danh sách yêu thích.');
+            router.push('/login');
+            return;
+        }
+        if (favoriteLoading || !hotel?.id) return;
+
+        setFavoriteLoading(true);
+        try {
+            if (isFavorite) {
+                await favoriteApi.removeFavorite('HOTEL', hotel.id);
+                setIsFavorite(false);
+                toast.success('Đã xóa khỏi danh sách yêu thích.');
+            } else {
+                await favoriteApi.addFavorite('HOTEL', hotel.id);
+                setIsFavorite(true);
+                toast.success('Đã thêm vào danh sách yêu thích!');
+            }
+        } catch (err) {
+            toast.error(err?.message || 'Không thể cập nhật yêu thích.');
+        } finally {
+            setFavoriteLoading(false);
+        }
+    };
 
     const loadReviewPage = useCallback(async (pageNumber, append = false) => {
         const response = await reviewApi.getHotelReviews(id, { page: pageNumber, limit: REVIEW_PAGE_SIZE });
@@ -609,6 +684,36 @@ function HotelDetailInner() {
                         ))}
                     </div>
 
+                    {/* Price Calendar Toggle */}
+                    <div className={styles.priceCalendarWrap}>
+                        <button
+                            className={`${styles.tab} ${showCalendar ? styles.tabActive : ''}`}
+                            onClick={() => setShowCalendar((v) => !v)}
+                            style={{ marginBottom: 12 }}
+                        >
+                            <FaRegCalendarAlt style={{ marginRight: 6 }} />
+                            Lịch giá
+                        </button>
+                        {showCalendar && selectedRoom && (
+                            <PriceCalendar
+                                basePricePerNight={Number(selectedRoom.basePricePerNight || 1000000)}
+                                pricingRules={[]}
+                                selectedCheckIn={calendarCheckIn || null}
+                                selectedCheckOut={calendarCheckOut || null}
+                                onSelectDates={(ci, co) => {
+                                    setCalendarCheckIn(ci || '');
+                                    setCalendarCheckOut(co || '');
+                                    if (ci && co) {
+                                        const params = new URLSearchParams(searchParams.toString());
+                                        params.set('checkIn', ci);
+                                        params.set('checkOut', co);
+                                        router.replace(`/hotels/${id}?${params.toString()}`, { scroll: false });
+                                    }
+                                }}
+                            />
+                        )}
+                    </div>
+
                     {/* Tab: Place Details */}
                     {activeTab === 0 && (
                         <div className={styles.tabPanel}>
@@ -651,7 +756,12 @@ function HotelDetailInner() {
                                     <div
                                         key={rt.id}
                                         className={`${styles.roomCard} ${selectedRoom?.id === rt.id ? styles.roomCardSelected : ''}`}
-                                        onClick={() => setSelectedRoom(rt)}
+                                        onClick={() => {
+                                            setSelectedRoom(rt);
+                                            const params = new URLSearchParams(searchParams.toString());
+                                            params.set('roomTypeId', String(rt.id));
+                                            router.replace(`/hotels/${id}?${params.toString()}`, { scroll: false });
+                                        }}
                                     >
                                         <div className={styles.roomCardLeft}>
                                             <div className={styles.roomIconWrap}><FaBed /></div>
@@ -659,6 +769,15 @@ function HotelDetailInner() {
                                                 <strong className={styles.roomName}>{rt.name}</strong>
                                                 <p className={styles.roomMeta}>Tối đa {rt.capacity} người lớn · {rt.totalRooms} phòng</p>
                                                 {rt.description && <p className={styles.roomDesc}>{rt.description}</p>}
+                                                <AvailabilityBadge
+                                                    hotelId={hotel?.id}
+                                                    checkIn={checkIn}
+                                                    checkOut={checkOut}
+                                                    adults={adults}
+                                                    rooms={rooms}
+                                                    roomTypeId={rt.id}
+                                                    compact
+                                                />
                                             </div>
                                         </div>
                                         <div className={styles.roomPriceCol}>
@@ -732,6 +851,9 @@ function HotelDetailInner() {
                                                 onClick={() => {
                                                     setSelectedRoom(room);
                                                     setActiveTab(2);
+                                                    const params = new URLSearchParams(searchParams.toString());
+                                                    params.set('roomTypeId', String(room.id));
+                                                    router.replace(`/hotels/${id}?${params.toString()}`, { scroll: false });
                                                 }}
                                             >
                                                 Chon phong nay
@@ -802,13 +924,7 @@ function HotelDetailInner() {
                             </p>
 
                             <div className={styles.mapFrameWrap}>
-                                <iframe
-                                    title={`Ban do xung quanh ${hotel.name}`}
-                                    src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    className={styles.mapFrame}
-                                />
+                                <HotelMap hotel={hotel} className={styles.mapFrame} />
                             </div>
 
                             <div className={styles.poiList}>
@@ -1061,8 +1177,45 @@ function HotelDetailInner() {
                                                     )}
                                                 </div>
                                             )}
-                                            <p className={styles.reviewHelpful}>{review.helpfulCount} nguoi danh dau huu ich</p>
+                                            <button
+                                                className={`${styles.helpfulBtn} ${helpfulMap[review.id] ? styles.helpfulBtnActive : ''}`}
+                                                onClick={async () => {
+                                                    if (!isAuthenticated) {
+                                                        toast.info('Vui lòng đăng nhập để đánh dấu hữu ích.');
+                                                        router.push('/login');
+                                                        return;
+                                                    }
+                                                    const wasVoted = helpfulMap[review.id];
+                                                    setHelpfulMap((m) => ({ ...m, [review.id]: !wasVoted }));
+                                                    try {
+                                                        const res = await reviewApi.toggleHelpful(review.id);
+                                                        const newCount = res?.data?.helpfulCount ?? (wasVoted ? Math.max(0, (review.helpfulCount || 0) - 1) : (review.helpfulCount || 0) + 1);
+                                                        setHelpfulMap((m) => ({ ...m, [review.id]: !wasVoted }));
+                                                        setReviews((prev) => prev.map((r) => r.id === review.id ? { ...r, helpfulCount: newCount } : r));
+                                                    } catch {
+                                                        setHelpfulMap((m) => ({ ...m, [review.id]: wasVoted }));
+                                                        toast.error('Không thể cập nhật. Vui lòng thử lại.');
+                                                    }
+                                                }}
+                                            >
+                                                <FaThumbsUp size={11} />
+                                                Hữu ích {helpfulMap[review.id] ? (review.helpfulCount || 0) + 1 : review.helpfulCount || 0}
+                                            </button>
                                         </div>
+
+                                        {review.partnerReply && (
+                                            <div className={styles.partnerReplyBox}>
+                                                <div className={styles.partnerReplyHeader}>
+                                                    <span className={styles.partnerReplyLabel}>Phản hồi từ đối tác</span>
+                                                    {review.partnerRepliedAt && (
+                                                        <span className={styles.partnerReplyDate}>
+                                                            {new Date(review.partnerRepliedAt).toLocaleDateString('vi-VN')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className={styles.partnerReplyText}>{review.partnerReply}</p>
+                                            </div>
+                                        )}
                                     </article>
                                 ))}
                             </div>
@@ -1099,6 +1252,15 @@ function HotelDetailInner() {
                             <span className={styles.ratingLabel}>{getRatingLabel(rating)}</span>
                             <span className={styles.reviewCount}>({(hotel.reviewCount || 0).toLocaleString('vi-VN')} đánh giá)</span>
                         </div>
+
+                        <AvailabilityBadge
+                            hotelId={hotel?.id}
+                            checkIn={checkIn}
+                            checkOut={checkOut}
+                            adults={adults}
+                            rooms={rooms}
+                            compact
+                        />
 
                         <hr className={styles.divider} />
 
@@ -1149,7 +1311,22 @@ function HotelDetailInner() {
                             </p>
                         )}
 
-                        <button className={styles.wishlistBtn}><FaHeart /> Lưu vào danh sách yêu thích</button>
+                        <button
+                            className={`${styles.wishlistBtn} ${isFavorite ? styles.wishlistBtnActive : ''}`}
+                            onClick={handleToggleFavorite}
+                            disabled={favoriteLoading}
+                        >
+                            <FaHeart />
+                            {isFavorite ? 'Đã lưu yêu thích' : 'Lưu vào danh sách yêu thích'}
+                        </button>
+
+                        <ShareButtons
+                            url={`${typeof window !== 'undefined' ? window.location.origin : ''}/hotels/${hotel?.id}`}
+                            title={`${hotel?.name} — Đặt phòng trên Tourista`}
+                            description={`${hotel?.name} ${hotel?.address ? 'tại ' + hotel.address : ''}. Giá chỉ từ ${hotel?.minPrice ? formatVND(hotel.minPrice) : 'liên hệ'}.`}
+                            image={hotel?.coverImage || hotel?.images?.[0]}
+                            size="sm"
+                        />
                     </div>
                 </div>
             </div>

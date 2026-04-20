@@ -5,16 +5,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import vn.tourista.entity.Tour;
+import vn.tourista.entity.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
 
   Optional<Tour> findByIdAndIsActiveTrue(Long id);
+
+  List<Tour> findByOperator(User operator);
+
+  @Query("SELECT t.id FROM Tour t WHERE t.operator.id = :partnerId")
+  List<Long> findIdsByPartnerId(@Param("partnerId") Long partnerId);
 
   @Query(value = """
       SELECT t.id
@@ -126,17 +134,37 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
   List<Long> findHotTourIds(@Param("today") LocalDate today, Pageable pageable);
 
   @Query(value = """
-      SELECT t.id
-      FROM tours t
-      WHERE t.is_active = TRUE
-        AND t.id <> :excludeTourId
-        AND (:cityId IS NULL OR t.city_id = :cityId)
-        AND (:categoryId IS NULL OR t.category_id = :categoryId)
-      ORDER BY t.avg_rating DESC, t.review_count DESC, t.id DESC
-      """, nativeQuery = true)
+          SELECT t.id
+          FROM tours t
+          WHERE t.is_active = TRUE
+            AND t.id <> :excludeTourId
+            AND (:cityId IS NULL OR t.city_id = :cityId)
+            AND (:categoryId IS NULL OR t.category_id = :categoryId)
+          ORDER BY t.avg_rating DESC, t.review_count DESC, t.id DESC
+          """, nativeQuery = true)
   List<Long> findSimilarTourIds(
       @Param("excludeTourId") Long excludeTourId,
       @Param("cityId") Integer cityId,
       @Param("categoryId") Long categoryId,
       Pageable pageable);
+
+  @Query(value = """
+          SELECT t.id, t.title, COALESCE(c.name_vi, c.name_en) AS city_name
+          FROM tours t
+          LEFT JOIN cities c ON c.id = t.city_id
+          WHERE t.is_active = TRUE
+            AND (
+                LOWER(t.title) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(c.name_en) LIKE LOWER(CONCAT('%', :query, '%'))
+            )
+          ORDER BY
+              CASE
+                  WHEN LOWER(t.title) LIKE LOWER(CONCAT(:query, '%')) THEN 1
+                  ELSE 2
+              END,
+              t.avg_rating DESC
+          LIMIT :limit
+          """, nativeQuery = true)
+  List<Object[]> searchToursAutocomplete(@Param("query") String query, @Param("limit") int limit);
 }

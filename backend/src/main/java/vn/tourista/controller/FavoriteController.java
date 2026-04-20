@@ -44,6 +44,15 @@ public class FavoriteController {
                 .body(ApiResponse.ok("Them favorite thanh cong", data));
     }
 
+    @GetMapping("/check")
+    public ResponseEntity<ApiResponse<Boolean>> checkFavorite(
+            @RequestParam String targetType,
+            @RequestParam Long targetId,
+            Authentication authentication) {
+        boolean favorited = favoriteService.isFavorited(resolveEmail(authentication), targetType, targetId);
+        return ResponseEntity.ok(ApiResponse.ok("Kiem tra favorite thanh cong", favorited));
+    }
+
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> removeFavorite(
             @RequestParam String targetType,

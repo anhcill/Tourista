@@ -5,11 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import vn.tourista.dto.request.CancelBookingRequest;
 import vn.tourista.dto.request.CreateBookingRequest;
 import vn.tourista.dto.request.CreateTourBookingRequest;
 import vn.tourista.dto.response.ApiResponse;
@@ -55,5 +52,15 @@ public class BookingController {
     public ResponseEntity<ApiResponse<List<MyBookingResponse>>> getMyBookings(Authentication authentication) {
         List<MyBookingResponse> data = bookingService.getMyBookings(authentication.getName());
         return ResponseEntity.ok(ApiResponse.ok("Lấy lịch sử booking thành công", data));
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<?>> cancelBooking(
+            @PathVariable Long id,
+            @RequestBody(required = false) CancelBookingRequest request,
+            Authentication authentication) {
+
+        ApiResponse<?> data = bookingService.cancelBooking(authentication.getName(), id, request);
+        return ResponseEntity.ok(data);
     }
 }

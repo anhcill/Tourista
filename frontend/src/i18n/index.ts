@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import HttpBackend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 const resources = {
@@ -109,6 +108,7 @@ const resources = {
           priceDesc: 'Giá cao đến thấp',
           ratingDesc: 'Đánh giá cao nhất',
           popular: 'Phổ biến nhất',
+          guestRating: 'Đánh giá khách',
         },
         card: {
           perNight: '/đêm',
@@ -130,6 +130,9 @@ const resources = {
           phone: 'Điện thoại',
           email: 'Email',
           website: 'Website',
+          nearBy: 'Địa điểm gần đó',
+          selectRoom: 'Chọn phòng',
+          priceFrom: 'Từ',
         },
         room: {
           adults: 'Người lớn',
@@ -139,6 +142,7 @@ const resources = {
           selectRoom: 'Chọn phòng',
           available: 'Còn phòng',
           unavailable: 'Hết phòng',
+          totalRooms: 'Tổng số phòng',
         },
       },
 
@@ -184,6 +188,11 @@ const resources = {
           easy: 'Dễ',
           medium: 'Trung bình',
           hard: 'Khó',
+          includes: 'Bao gồm',
+          excludes: 'Không bao gồm',
+          faq: 'Câu hỏi thường gặp',
+          gallery: 'Hình ảnh',
+          similarTours: 'Tour tương tự',
         },
         itinerary: {
           day: 'Ngày',
@@ -231,9 +240,16 @@ const resources = {
         submitted: 'Đã gửi đánh giá',
         pending: 'Đang chờ duyệt',
         helpful: 'Hữu ích',
+        helpfulCount: '{{count}} người đánh dấu hữu ích',
+        helpfulLoginRequired: 'Vui lòng đăng nhập để đánh dấu hữu ích',
         report: 'Báo cáo',
         noReviews: 'Chưa có đánh giá nào',
         beFirst: 'Hãy là người đầu tiên đánh giá',
+        verified: 'Đã xác thực đã đi',
+        all: 'Tất cả',
+        mostRecent: 'Mới nhất',
+        highestRated: 'Đánh giá cao nhất',
+        lowestRated: 'Đánh giá thấp nhất',
       },
 
       // ============================================================
@@ -401,22 +417,101 @@ const resources = {
       hotel: {
         title: 'Hotels',
         searchPlaceholder: 'Search hotels...',
+        filters: {
+          city: 'City',
+          starRating: 'Star rating',
+          priceRange: 'Price range',
+          amenities: 'Amenities',
+          sortBy: 'Sort by',
+          priceAsc: 'Price: Low to High',
+          priceDesc: 'Price: High to Low',
+          ratingDesc: 'Highest rated',
+          popular: 'Most popular',
+          guestRating: 'Guest rating',
+        },
         card: {
           perNight: '/night',
           reviews: 'reviews',
           bookNow: 'Book now',
           viewDetails: 'View details',
         },
+        detail: {
+          overview: 'Overview',
+          rooms: 'Room types',
+          amenities: 'Amenities',
+          reviews: 'Reviews',
+          location: 'Location',
+          policies: 'Policies',
+          checkIn: 'Check-in',
+          checkOut: 'Check-out',
+          contact: 'Contact',
+          address: 'Address',
+          phone: 'Phone',
+          email: 'Email',
+          website: 'Website',
+          nearBy: 'Nearby places',
+          selectRoom: 'Select room',
+          priceFrom: 'From',
+        },
+        room: {
+          adults: 'Adults',
+          children: 'Children',
+          maxGuests: 'Max guests',
+          pricePerNight: 'Price / night',
+          selectRoom: 'Select room',
+          available: 'Available',
+          unavailable: 'Unavailable',
+          totalRooms: 'Total rooms',
+        },
       },
       tour: {
         title: 'Tours',
         searchPlaceholder: 'Search tours...',
+        filters: {
+          city: 'Destination',
+          category: 'Category',
+          duration: 'Duration',
+          priceRange: 'Price range',
+          difficulty: 'Difficulty',
+          sortBy: 'Sort by',
+        },
         card: {
           days: 'days',
           nights: 'nights',
           perPerson: '/person',
           bookNow: 'Book tour',
           viewDetails: 'View details',
+          availableSlots: 'available slots',
+          departures: 'Departures',
+        },
+        detail: {
+          overview: 'Overview',
+          itinerary: 'Itinerary',
+          inclusions: 'Inclusions',
+          exclusions: 'Exclusions',
+          highlights: 'Highlights',
+          reviews: 'Reviews',
+          departureDates: 'Departure dates',
+          bookNow: 'Book tour',
+          selectDeparture: 'Select departure date',
+          adults: 'Adults',
+          children: 'Children',
+          total: 'Total',
+          duration: 'Duration',
+          groupSize: 'Group size',
+          difficulty: 'Difficulty',
+          easy: 'Easy',
+          medium: 'Medium',
+          hard: 'Hard',
+          includes: 'Includes',
+          excludes: 'Excludes',
+          faq: 'FAQ',
+          gallery: 'Gallery',
+          similarTours: 'Similar tours',
+        },
+        itinerary: {
+          day: 'Day',
+          activities: 'Activities',
         },
       },
       booking: {
@@ -435,8 +530,19 @@ const resources = {
         rating: 'Rating',
         comment: 'Comment',
         submit: 'Submit review',
+        submitted: 'Review submitted',
+        pending: 'Pending approval',
+        helpful: 'Helpful',
+        helpfulCount: '{{count}} found this helpful',
+        helpfulLoginRequired: 'Please login to mark as helpful',
+        report: 'Report',
         noReviews: 'No reviews yet',
         beFirst: 'Be the first to review',
+        verified: 'Verified guest',
+        all: 'All',
+        mostRecent: 'Most recent',
+        highestRated: 'Highest rated',
+        lowestRated: 'Lowest rated',
       },
       admin: {
         dashboard: 'Dashboard',
@@ -480,7 +586,6 @@ const resources = {
 };
 
 i18n
-  .use(HttpBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
@@ -495,9 +600,6 @@ i18n
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
       lookupLocalStorage: 'tourista-language',
-    },
-    backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
   });
 

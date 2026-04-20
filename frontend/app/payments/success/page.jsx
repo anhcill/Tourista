@@ -3,6 +3,7 @@
 import { Suspense, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FaCheckCircle, FaUniversity, FaWallet, FaCreditCard, FaMobileAlt } from 'react-icons/fa';
+import ShareButtons from '@/components/Common/ShareButtons/ShareButtons';
 import styles from './page.module.css';
 
 const formatVnd = (value) => new Intl.NumberFormat('vi-VN').format(Number(value || 0));
@@ -136,6 +137,14 @@ function PaymentSuccessInner() {
           <button type="button" className={styles.primaryBtn} onClick={() => router.push(historyRoute)}>
             Xem lịch sử booking
           </button>
+        </div>
+
+        <div className={styles.shareSection}>
+          <ShareButtons
+            title={`Đặt ${data.bookingType === 'TOUR' ? 'tour' : 'phòng'} ${data.bookingCode} thành công trên Tourista`}
+            description={`${formatVnd(data.amount)} VND — ${data.meta.title}`}
+            size="sm"
+          />
         </div>
       </section>
     </main>

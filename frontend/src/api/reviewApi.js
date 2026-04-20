@@ -39,6 +39,18 @@ const reviewApi = {
     const url = API_ENDPOINTS.REVIEWS.DELETE.replace(":id", id);
     return axiosClient.delete(url);
   },
+
+  // Toggle helpful vote on a review
+  toggleHelpful: (reviewId) => {
+    const url = `/reviews/${reviewId}/helpful`;
+    return axiosClient.patch(url);
+  },
+
+  // Get helpful counts for multiple reviews
+  getHelpfulInfo: (reviewIds) => {
+    const params = reviewIds.map((id) => `reviewIds=${id}`).join("&");
+    return axiosClient.get(`/reviews/helpful?${params}`);
+  },
 };
 
 export default reviewApi;

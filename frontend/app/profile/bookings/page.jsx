@@ -2,9 +2,16 @@
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FaCalendarAlt, FaHotel, FaMapMarkerAlt, FaQrcode, FaUsers } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import {
+  FaCalendarAlt, FaHotel, FaMapMarkerAlt, FaQrcode, FaUsers, FaTimes,
+  FaEdit, FaShareAlt
+} from 'react-icons/fa';
 import bookingApi from '@/api/bookingApi';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
+import ModifyBookingModal from '@/components/Bookings/ModifyBookingModal/ModifyBookingModal';
+import ShareButtons from '@/components/Common/ShareButtons/ShareButtons';
 import styles from './page.module.css';
 
 const formatDate = (value) => {
@@ -69,6 +76,12 @@ function ProfileBookingsContent() {
   const [error, setError] = useState('');
   const [chatSeed, setChatSeed] = useState(null);
 
+  // Cancel booking modal state
+  const [cancelModal, setCancelModal] = useState({ isOpen: false, booking: null, reason: '', submitting: false });
+
+  // Modify booking modal state
+  const [modifyModal, setModifyModal] = useState({ isOpen: false, booking: null });
+
   const fromPayment = searchParams.get('from') === 'payment';
   const paymentBookingCode = searchParams.get('bookingCode') || '';
   const paymentBookingType = (searchParams.get('bookingType') || '').toUpperCase();
@@ -128,6 +141,72 @@ function ProfileBookingsContent() {
         ? (booking.tourTitle || 'Chu tour')
         : (booking.hotelName || 'Chu khach san'),
     });
+  };
+
+  const openCancelModal = (booking) => {
+    setCancelModal({ isOpen: true, booking, reason: '', submitting: false });
+  };
+
+  const handleCancelBooking = async () => {
+    const { booking, reason } = cancelModal;
+    if (!booking?.bookingId) return;
+
+    try {
+      setCancelModal((prev) => ({ ...prev, submitting: true }));
+      await bookingApi.cancelBooking(booking.bookingId, reason.trim());
+
+      toast.success('Hủy booking thành công!');
+
+      // Update local state
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.bookingId === booking.bookingId
+            ? { ...b, status: 'CANCELLED' }
+            : b,
+        ),
+      );
+      setCancelModal({ isOpen: false, booking: null, reason: '', submitting: false });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể hủy booking. Vui lòng thử lại.';
+      toast.error(msg);
+      setCancelModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
+  const canModify = (booking) => {
+    return booking.status === 'CONFIRMED' || booking.status === 'PENDING';
+  };
+
+  const handleModifyConfirm = async (form) => {
+    const booking = modifyModal.booking;
+    if (!booking?.bookingId) return;
+
+    try {
+      await bookingApi.updateBooking(booking.bookingId, {
+        checkIn: form.checkIn,
+        checkOut: form.checkOut,
+        adults: form.adults,
+        children: form.children,
+        rooms: form.rooms,
+      });
+
+      toast.success('Booking đã được cập nhật thành công!');
+      // Refresh bookings
+      const response = await bookingApi.getBookings();
+      const data = Array.isArray(response?.data) ? response.data : [];
+      setBookings(data);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể cập nhật booking.';
+      throw new Error(msg);
+    }
+  };
+
+  const openModifyModal = (booking) => {
+    setModifyModal({ isOpen: true, booking });
+  };
+
+  const canCancel = (booking) => {
+    return booking.status === 'PENDING' || booking.status === 'CONFIRMED';
   };
 
   if (loading) {
@@ -247,13 +326,33 @@ function ProfileBookingsContent() {
 
                   <div className={styles.actionRow}>
                     <p className={styles.createdAt}>Đặt lúc: {formatDate(booking.createdAt)}</p>
-                    <button
-                      type="button"
-                      className={styles.chatOwnerBtn}
-                      onClick={() => openChatWithOwner(booking)}
-                    >
-                      Chat với Chủ
-                    </button>
+                    <div className={styles.actionButtons}>
+                      {canModify(booking) && (
+                        <button
+                          type="button"
+                          className={styles.modifyBtn}
+                          onClick={() => openModifyModal(booking)}
+                        >
+                          <FaEdit /> Sửa đổi
+                        </button>
+                      )}
+                      {canCancel(booking) && (
+                        <button
+                          type="button"
+                          className={styles.cancelBtn}
+                          onClick={() => openCancelModal(booking)}
+                        >
+                          <FaTimes /> Hủy booking
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={styles.chatOwnerBtn}
+                        onClick={() => openChatWithOwner(booking)}
+                      >
+                        Chat với Chủ
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -269,6 +368,14 @@ function ProfileBookingsContent() {
                     <small>Không tạo được QR cho booking này</small>
                   )}
                 </div>
+
+                <div className={styles.shareRow}>
+                  <ShareButtons
+                    title={`Booking ${booking.bookingCode} — ${title}`}
+                    description={`${isTourBooking ? 'Tour' : 'Khách sạn'} · ${formatMoney(booking.totalAmount)} ${booking.currency || 'VND'}`}
+                    size="sm"
+                  />
+                </div>
               </article>
             );
           })}
@@ -280,6 +387,71 @@ function ProfileBookingsContent() {
         onClose={() => setChatSeed(null)}
         conversationSeed={chatSeed}
       />
+
+      {/* Modify Booking Modal */}
+      {modifyModal.isOpen && modifyModal.booking && (
+        <ModifyBookingModal
+          booking={modifyModal.booking}
+          onClose={() => setModifyModal({ isOpen: false, booking: null })}
+          onConfirm={handleModifyConfirm}
+        />
+      )}
+
+      {/* Cancel Booking Modal */}
+      {cancelModal.isOpen && (
+        <div className={styles.modalOverlay} onClick={() => setCancelModal({ isOpen: false, booking: null, reason: '', submitting: false })}>
+          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>Xác nhận hủy booking</h3>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={() => setCancelModal({ isOpen: false, booking: null, reason: '', submitting: false })}
+              >
+                ✕
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>
+                Bạn có chắc muốn hủy booking{' '}
+                <strong>{cancelModal.booking?.bookingCode}</strong> không?
+              </p>
+              <p className={styles.modalWarning}>
+                {cancelModal.booking?.status === 'PENDING'
+                  ? 'Booking này chưa thanh toán, việc hủy sẽ không ảnh hưởng đến tài khoản của bạn.'
+                  : 'Booking đã thanh toán. Nếu đã thanh toán, bạn sẽ cần liên hệ hỗ trợ để được hoàn tiền.'}
+              </p>
+              <label className={styles.cancelReasonLabel}>
+                Lý do hủy (không bắt buộc):
+                <textarea
+                  className={styles.cancelReasonInput}
+                  rows={3}
+                  placeholder="Nhập lý do hủy booking (nếu có)..."
+                  value={cancelModal.reason}
+                  onChange={(e) => setCancelModal((prev) => ({ ...prev, reason: e.target.value }))}
+                />
+              </label>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.cancelBtnConfirm}
+                onClick={handleCancelBooking}
+                disabled={cancelModal.submitting}
+              >
+                {cancelModal.submitting ? 'Đang hủy...' : 'Xác nhận hủy'}
+              </button>
+              <button
+                type="button"
+                className={styles.cancelBtnBack}
+                onClick={() => setCancelModal({ isOpen: false, booking: null, reason: '', submitting: false })}
+              >
+                Không hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

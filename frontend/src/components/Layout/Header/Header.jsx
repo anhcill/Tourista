@@ -10,12 +10,12 @@ import {
     FaUser, FaSearch, FaGlobe, FaSignOutAlt,
     FaBookmark, FaChevronDown, FaHeart,
     FaHotel, FaPlaneDeparture, FaMapMarkedAlt, FaBuilding,
-    FaBars, FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments
+    FaBars, FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments,
+    FaMoon, FaSun, FaRegLightbulb
 } from 'react-icons/fa';
 import { logout } from '../../../store/slices/authSlice';
 import authApi from '../../../api/authApi';
 import chatApi from '../../../api/chatApi';
-import tourApi from '../../../api/tourApi';
 import { getRefreshToken } from '../../../utils/authStorage';
 import Button from '../../Common/Button/Button';
 import useHotelAutocomplete from '../../../hooks/useHotelAutocomplete';
@@ -23,6 +23,7 @@ import { setConversations } from '../../../store/slices/chatSlice';
 import CurrencyLangDropdown from './CurrencyLangDropdown';
 import NotificationDropdown from './NotificationDropdown';
 import SupportDropdown from './SupportDropdown';
+import { useTheme } from '../../ThemeProvider/ThemeProvider';
 import styles from './Header.module.css';
 
 const RECENT_SEARCHES_KEY = 'tourista_recent_searches';
@@ -82,6 +83,7 @@ const Header = () => {
     const pathname = usePathname();
     const { isAuthenticated, user } = useSelector((state) => state.auth);
     const { totalUnread } = useSelector((state) => state.chat);
+    const { theme, toggleTheme } = useTheme();
     const [hasMounted, setHasMounted] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -89,11 +91,10 @@ const Header = () => {
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
-    const [tourSuggestions, setTourSuggestions] = useState([]);
     const [recentSearches, setRecentSearches] = useState([]);
     const dropdownRef = useRef(null);
 
-    const searchSuggestions = useHotelAutocomplete(searchKeyword, {
+    const { suggestions: apiSuggestions } = useHotelAutocomplete(searchKeyword, {
         fallbackSuggestions: [
             { value: 'Đà Nẵng', type: 'Điểm đến' },
             { value: 'Nha Trang', type: 'Điểm đến' },
@@ -108,55 +109,6 @@ const Header = () => {
     }, []);
 
     useEffect(() => {
-        let mounted = true;
-
-        const loadTourSuggestions = async () => {
-            try {
-                const response = await tourApi.getTours({ page: 1, limit: 120 });
-                if (!mounted) return;
-
-                const tours = Array.isArray(response?.data)
-                    ? response.data
-                    : Array.isArray(response?.data?.content)
-                        ? response.data.content
-                        : [];
-
-                const unique = new Map();
-                tours.forEach((tour) => {
-                    const title = String(tour?.title || '').trim();
-                    const city = String(tour?.city || '').trim();
-
-                    if (title) {
-                        const key = `tour-${title.toLowerCase()}`;
-                        if (!unique.has(key)) {
-                            unique.set(key, { value: title, type: 'Tour' });
-                        }
-                    }
-
-                    if (city) {
-                        const key = `city-${city.toLowerCase()}`;
-                        if (!unique.has(key)) {
-                            unique.set(key, { value: city, type: 'Điểm đến' });
-                        }
-                    }
-                });
-
-                setTourSuggestions(Array.from(unique.values()));
-            } catch {
-                if (!mounted) return;
-                setTourSuggestions([]);
-            }
-        };
-
-        loadTourSuggestions();
-
-        return () => {
-            mounted = false;
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!hasMounted) return;
         try {
             const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
             const parsed = raw ? JSON.parse(raw) : [];
@@ -227,6 +179,7 @@ const Header = () => {
         { id: 'hotel', label: 'Khách sạn', hint: 'Nghỉ dưỡng', href: '/hotels', icon: FaHotel },
         { id: 'flight', label: 'Vé máy bay', hint: 'Sắp ra mắt', href: '/flights', icon: FaPlaneDeparture, comingSoon: true },
         { id: 'tour', label: 'Tour du lịch', hint: 'Khám phá ngay', href: '/tours', icon: FaMapMarkedAlt },
+        { id: 'ai', label: 'AI Planner', hint: 'Lập kế hoạch', href: '/ai-travel-planner', icon: FaRegLightbulb },
         { id: 'apartment', label: 'Căn hộ', hint: 'Sắp ra mắt', href: '/apartments', icon: FaBuilding, comingSoon: true },
         { id: 'article', label: 'Cẩm nang', hint: 'Blog', href: '/articles', icon: FaBookOpen },
     ];
@@ -234,34 +187,11 @@ const Header = () => {
     const isTabActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
 
     const activeSearchType = pathname.startsWith('/tours') ? 'TOUR' : 'HOTEL';
-    const normalizeText = (value) =>
-        String(value || '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/đ/g, 'd')
-            .replace(/Đ/g, 'D')
-            .toLowerCase()
-            .trim();
 
     const mixedSuggestions = useMemo(() => {
-        const keyword = normalizeText(searchKeyword);
-        const merged = [...searchSuggestions, ...tourSuggestions];
-        const unique = new Map();
-
-        merged.forEach((item) => {
-            const value = String(item?.value || '').trim();
-            const type = String(item?.type || '').trim();
-            if (!value || !type) return;
-            const key = `${type.toLowerCase()}-${value.toLowerCase()}`;
-            if (!unique.has(key)) {
-                unique.set(key, { value, type });
-            }
-        });
-
-        return Array.from(unique.values())
-            .filter((item) => !keyword || normalizeText(item.value).includes(keyword))
-            .slice(0, 8);
-    }, [searchKeyword, searchSuggestions, tourSuggestions]);
+        if (!searchKeyword.trim()) return [];
+        return apiSuggestions;
+    }, [searchKeyword, apiSuggestions]);
 
     const showSearchSuggestions =
         isSearchFocused &&
@@ -534,6 +464,14 @@ const Header = () => {
                     <div className={styles.actions}>
                         <div className={styles.utilityButtons}>
                             <CurrencyLangDropdown />
+                            <button
+                                className={styles.themeToggleBtn}
+                                onClick={toggleTheme}
+                                aria-label={theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+                                title={theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}
+                            >
+                                {theme === 'dark' ? <FaSun /> : <FaMoon />}
+                            </button>
                             <NotificationDropdown />
                             <SupportDropdown />
                             {showAuthenticatedMenu && (

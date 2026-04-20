@@ -142,6 +142,70 @@
 }
 
 /* ========================================
+   DARK MODE THEME VARIABLES
+   ======================================== */
+
+[data-theme="dark"] {
+  --color-primary: #3b9eff;
+  --color-primary-light: #66b0ff;
+  --color-primary-dark: #1a7de0;
+  --color-primary-hover: #66b0ff;
+
+  --color-secondary: #ff8a8a;
+  --color-secondary-light: #ffaaaa;
+  --color-secondary-dark: #ff6060;
+
+  --color-accent: #ffe066;
+  --color-success: #6ee7a0;
+  --color-warning: #ffe066;
+  --color-error: #ff8a8a;
+  --color-info: #74c0fc;
+
+  --bg-primary: #0f1117;
+  --bg-secondary: #16181f;
+  --bg-tertiary: #1e2028;
+  --bg-dark: #0a0c10;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  --text-primary: #e8eaed;
+  --text-secondary: #a8adb5;
+  --text-tertiary: #6b717a;
+  --text-light: #ffffff;
+  --text-muted: #5a6070;
+
+  --border-color: #2a2d38;
+  --border-light: #1e2128;
+  --border-dark: #3a3f4a;
+
+  --background: #0f1117;
+  --foreground: #e8eaed;
+
+  /* Header dark */
+  --header-bg: #0f1117;
+  --header-border: rgba(255, 255, 255, 0.08);
+  --header-shadow: 0 3px 18px rgba(0, 0, 0, 0.35);
+
+  /* Card dark */
+  --card-bg: #16181f;
+  --card-border: #2a2d38;
+
+  /* Input dark */
+  --input-bg: #1e2028;
+  --input-border: #2a2d38;
+  --input-text: #e8eaed;
+  --input-placeholder: #6b717a;
+
+  /* Footer dark */
+  --footer-bg: #0a0c10;
+  --footer-text: #8a9099;
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] .footer {
+  background-color: var(--footer-bg);
+}
+
+/* ========================================
    RESET & BASE STYLES
    ======================================== */
 
@@ -165,6 +229,7 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-primary);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-shell {
@@ -298,6 +363,18 @@ img {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-500);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #1e2028;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #3a3f4a;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #4a5060;
 }
 
 /* ========================================

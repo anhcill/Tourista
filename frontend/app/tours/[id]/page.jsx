@@ -5,12 +5,16 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   FaArrowLeft, FaCalendarAlt, FaCheckCircle, FaChevronDown,
   FaMapMarkerAlt, FaStar, FaShieldAlt, FaUsers, FaClock,
-  FaMountain, FaHeart, FaShare, FaThumbsUp,
+  FaMountain, FaHeart, FaThumbsUp,
 } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
 import InlineFaqChat from '@/components/Chat/InlineFaqChat';
+import ShareButtons from '@/components/Common/ShareButtons/ShareButtons';
 import tourApi from '@/api/tourApi';
 import reviewApi from '@/api/reviewApi';
+import favoriteApi from '@/api/favoriteApi';
 import styles from './page.module.css';
 
 /* ─────────────────── Static ─────────────────── */
@@ -142,6 +146,7 @@ function TourDetailInner() {
   const { id } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   const [tour, setTour] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -154,6 +159,8 @@ function TourDetailInner() {
   const [adults, setAdults] = useState(Number(searchParams.get('adults') || 1));
   const [children, setChildren] = useState(Number(searchParams.get('children') || 0));
   const [liked, setLiked] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [helpfulMap, setHelpfulMap] = useState({});
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [reviewDraft, setReviewDraft] = useState({ rating: 5, comment: '' });
@@ -212,6 +219,51 @@ function TourDetailInner() {
     };
     if (id) fetchAll();
   }, [id]);
+
+  // Check if this tour is favorited by the user
+  useEffect(() => {
+    if (!tour?.id || !isAuthenticated) {
+      setIsFavorite(false);
+      return;
+    }
+
+    const checkFav = async () => {
+      try {
+        const result = await favoriteApi.checkFavorite('TOUR', tour.id);
+        setIsFavorite(Boolean(result));
+      } catch {
+        setIsFavorite(false);
+      }
+    };
+
+    checkFav();
+  }, [tour?.id, isAuthenticated]);
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      toast.info('Vui lòng đăng nhập để lưu vào danh sách yêu thích.');
+      router.push('/login');
+      return;
+    }
+    if (favoriteLoading || !tour?.id) return;
+
+    setFavoriteLoading(true);
+    try {
+      if (isFavorite) {
+        await favoriteApi.removeFavorite('TOUR', tour.id);
+        setIsFavorite(false);
+        toast.success('Đã xóa khỏi danh sách yêu thích.');
+      } else {
+        await favoriteApi.addFavorite('TOUR', tour.id);
+        setIsFavorite(true);
+        toast.success('Đã thêm vào danh sách yêu thích!');
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Không thể cập nhật yêu thích.');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
 
   const selectedDeparture = useMemo(() => {
     if (!tour?.departures || selectedDepartureId == null) return null;
@@ -360,12 +412,18 @@ function TourDetailInner() {
           <FaArrowLeft /> Quay lại kết quả
         </button>
         <div className={styles.breadcrumbActions}>
-          <button className={`${styles.actionBtn} ${liked ? styles.actionBtnActive : ''}`} onClick={() => setLiked(!liked)}>
-            <FaHeart /> {liked ? 'Đã lưu' : 'Lưu'}
+          <button
+            className={`${styles.actionBtn} ${isFavorite ? styles.actionBtnActive : ''}`}
+            onClick={handleToggleFavorite}
+            disabled={favoriteLoading}
+          >
+            <FaHeart /> {isFavorite ? 'Đã lưu' : 'Lưu'}
           </button>
-          <button className={styles.actionBtn} onClick={() => navigator.share?.({ title: tour.title, url: window.location.href }) || navigator.clipboard?.writeText(window.location.href)}>
-            <FaShare /> Chia sẻ
-          </button>
+          <ShareButtons
+            title={`${tour.title} — Đặt tour trên Tourista`}
+            description={`${tour.city} · ${tour.durationDays}N${tour.durationNights}Đ · Giá từ ${tour.priceFrom ? formatVnd(tour.priceFrom) : 'liên hệ'}`}
+            size="sm"
+          />
         </div>
       </div>
 
@@ -705,7 +763,24 @@ function TourDetailInner() {
                     )}
                   <button
                     className={`${styles.helpfulBtn} ${helpfulMap[rv.id] ? styles.helpfulBtnActive : ''}`}
-                    onClick={() => setHelpfulMap((m) => ({ ...m, [rv.id]: !m[rv.id] }))}
+                    onClick={async () => {
+                      if (!isAuthenticated) {
+                        toast.info('Vui lòng đăng nhập để đánh dấu hữu ích.');
+                        router.push('/login');
+                        return;
+                      }
+                      const wasVoted = helpfulMap[rv.id];
+                      setHelpfulMap((m) => ({ ...m, [rv.id]: !wasVoted }));
+                      try {
+                        const res = await reviewApi.toggleHelpful(rv.id);
+                        const newCount = res?.data?.helpfulCount ?? (wasVoted ? Math.max(0, (rv.helpful || 0) - 1) : (rv.helpful || 0) + 1);
+                        setHelpfulMap((m) => ({ ...m, [rv.id]: !wasVoted }));
+                        setReviews((prev) => prev.map((r) => r.id === rv.id ? { ...r, helpful: newCount } : r));
+                      } catch {
+                        setHelpfulMap((m) => ({ ...m, [rv.id]: wasVoted }));
+                        toast.error('Không thể cập nhật. Vui lòng thử lại.');
+                      }
+                    }}
                   >
                     <FaThumbsUp size={11} />
                     Hữu ích {helpfulMap[rv.id] ? (rv.helpful || 0) + 1 : rv.helpful || 0}

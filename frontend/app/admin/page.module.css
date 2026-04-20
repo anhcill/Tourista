@@ -13,7 +13,40 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
+
+.heroRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #0f7fb6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.refreshBtn:hover { background: #0d6fa0; }
+.refreshBtn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spinning { animation: spin 1s linear infinite; }
 
 .hero h2 {
   margin: 0;
@@ -47,7 +80,7 @@
 
 .statGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -87,77 +120,58 @@
 }
 
 .chartWrap {
-  min-height: 250px;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
-  align-items: end;
-}
-
-.chartItem {
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  gap: 0;
 }
 
-.chartTrack {
-  width: 34px;
-  height: 150px;
-  border-radius: 999px;
-  border: 1px solid #dbeafe;
-  background: #f8fbff;
+.chartWrap > div {
+  flex: 1;
+}
+
+.emptyChart {
   display: flex;
-  align-items: flex-end;
-  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
 }
 
-.chartFill {
-  display: block;
-  width: 100%;
-  background: linear-gradient(180deg, #38bdf8, #0284c7);
+/* Pie Legend */
+.pieLegend {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
   border-radius: 999px;
+  flex-shrink: 0;
 }
 
-.level1 {
-  height: 10%;
-}
-.level2 {
-  height: 20%;
-}
-.level3 {
-  height: 30%;
-}
-.level4 {
-  height: 40%;
-}
-.level5 {
-  height: 50%;
-}
-.level6 {
-  height: 60%;
-}
-.level7 {
-  height: 70%;
-}
-.level8 {
-  height: 80%;
-}
-.level9 {
-  height: 90%;
-}
-.level10 {
-  height: 100%;
-}
-
-.chartItem strong {
+.legendLabel {
   font-size: 12px;
-  color: #0f172a;
+  color: #475569;
+  flex: 1;
 }
 
-.chartItem small {
-  color: #64748b;
-  font-size: 11px;
+.legendValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .tableWrap {
