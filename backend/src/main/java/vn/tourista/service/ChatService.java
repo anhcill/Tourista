@@ -78,7 +78,7 @@ public class ChatService {
                                 // Thêm tin nhắn chào mừng hệ thống (không dùng emoji để tránh lỗi charset DB
                                 // cũ)
                                 insertSystemMessage(saved, "Xin chao " + client.getFullName()
-                                                + "! Toi la tro ly Tourista. Go ma dat cho (VD: TRS-20260325-934D6D) de tra cuu lich trinh, hoac hoi toi bat cu dieu gi.");
+                                                + "! Toi la tro ly Tourista Studio. Go ma dat cho (VD: TRS-20260325-934D6D) de tra cuu lich trinh, hoac hoi toi bat cu dieu gi.");
                                 existing = saved;
                         }
 

@@ -141,7 +141,7 @@ function PaymentSuccessInner() {
 
         <div className={styles.shareSection}>
           <ShareButtons
-            title={`Đặt ${data.bookingType === 'TOUR' ? 'tour' : 'phòng'} ${data.bookingCode} thành công trên Tourista`}
+            title={`Đặt ${data.bookingType === 'TOUR' ? 'tour' : 'phòng'} ${data.bookingCode} thành công trên Tourista Studio`}
             description={`${formatVnd(data.amount)} VND — ${data.meta.title}`}
             size="sm"
           />

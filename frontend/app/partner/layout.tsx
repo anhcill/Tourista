@@ -3,7 +3,7 @@ import PartnerRouteGuard from '@/components/Partner/Auth/PartnerRouteGuard';
 import styles from './layout.module.css';
 
 export const metadata: Metadata = {
-  title: 'Partner Dashboard',
+  title: 'Partner Dashboard | Tourista Studio',
   robots: {
     index: false,
     follow: false,
@@ -20,7 +20,7 @@ export default function PartnerLayout({
       <div className={styles.shell}>
         <aside className={styles.sidebar}>
           <div className={styles.brandBlock}>
-            <h2>Tourista</h2>
+            <h2>Tourista Studio</h2>
             <p>Partner Dashboard</p>
           </div>
 

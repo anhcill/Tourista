@@ -52,10 +52,10 @@ export default function WhyChooseUs() {
 
                     {/* Text block */}
                     <div className={styles.textBlock}>
-                        <p className={styles.eyebrow}>Tại sao chọn Tourista?</p>
+                        <p className={styles.eyebrow}>Tại sao chọn Tourista Studio?</p>
                         <h2 className={styles.title}>Tại Sao Chọn Chúng Tôi?</h2>
                         <p className={styles.desc}>
-                            Tourista mang đến trải nghiệm đặt phòng khách sạn và tour du lịch
+                            Tourista Studio mang đến trải nghiệm đặt phòng khách sạn và tour du lịch
                             hoàn hảo nhất — nhanh chóng, an toàn và tiết kiệm.
                         </p>
 

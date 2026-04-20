@@ -42,7 +42,7 @@ function BookingQrInner() {
         <div className={styles.head}>
           <FaCheckCircle className={styles.okIcon} />
           <h1>Thông tin đặt phòng</h1>
-          <p>Được mở từ mã QR booking của Tourista.</p>
+          <p>Được mở từ mã QR booking của Tourista Studio.</p>
         </div>
 
         <div className={styles.codeBox}>

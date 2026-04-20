@@ -228,7 +228,7 @@ export default function ArticleDetail({ params }: { params: Promise<{ slug: stri
                     height={32}
                     unoptimized
                   />
-                  <span>{article.author?.fullName || 'Tourista'}</span>
+                  <span>{article.author?.fullName || 'Tourista Studio'}</span>
                 </div>
                 <span className={styles.metaItem}>
                   <FaCalendar /> {formatDate(article.createdAt)}
@@ -303,7 +303,7 @@ export default function ArticleDetail({ params }: { params: Promise<{ slug: stri
                   />
                   <div className={styles.authorInfo}>
                     <h3>{article.author.fullName}</h3>
-                    <span className={styles.authorRole}>Tác giả tại Tourista</span>
+                    <span className={styles.authorRole}>Tác giả tại Tourista Studio</span>
                     <p>Một người đam mê du lịch và thích lưu giữ lại những khoảnh khắc đẹp của cuộc sống.</p>
                   </div>
                 </div>

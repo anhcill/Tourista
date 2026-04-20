@@ -15,7 +15,7 @@ const Footer = () => {
                 <div className={styles.footerContent}>
                     {/* About Section */}
                     <div className={styles.footerSection}>
-                        <h3 className={styles.sectionTitle}>Về Tourista</h3>
+                        <h3 className={styles.sectionTitle}>Về Tourista Studio</h3>
                         <p className={styles.description}>
                             Nền tảng đặt phòng khách sạn và tour du lịch hàng đầu,
                             mang đến trải nghiệm du lịch tuyệt vời cho bạn.
@@ -88,7 +88,7 @@ const Footer = () => {
                 {/* Bottom Bar */}
                 <div className={styles.bottomBar}>
                     <p className={styles.copyright}>
-                        © {currentYear} Tourista. All rights reserved.
+                        © {currentYear} Tourista Studio. All rights reserved.
                     </p>
                     <div className={styles.paymentMethods}>
                         <span className={styles.paymentText}>Chúng tôi chấp nhận:</span>

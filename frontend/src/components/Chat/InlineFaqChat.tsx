@@ -117,7 +117,7 @@ const InlineFaqChat = ({ context, className }: InlineFaqChatProps) => {
                 <div className={styles.aiSection}>
                     <div className={styles.aiHeader}>
                         <span className={styles.aiIcon}>🤖</span>
-                        <span>Tourista AI — Hỏi bất cứ điều gì về {context === 'HOTEL' ? 'khách sạn này' : 'tour này'}</span>
+                        <span>Tourista Studio AI — Hỏi bất cứ điều gì về {context === 'HOTEL' ? 'khách sạn này' : 'tour này'}</span>
                     </div>
                     <div className={styles.aiInputRow}>
                         <input

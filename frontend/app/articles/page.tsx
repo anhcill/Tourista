@@ -198,7 +198,7 @@ export default function ArticlesPage() {
                           height={36}
                           unoptimized
                         />
-                        <span>{article.author?.fullName || 'Tourista'}</span>
+                        <span>{article.author?.fullName || 'Tourista Studio'}</span>
                       </div>
                       <div className={styles.stats}>
                         <span><FaEye /> {article.views}</span>

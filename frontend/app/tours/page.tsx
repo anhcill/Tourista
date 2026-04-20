@@ -345,7 +345,7 @@ export default function ToursLandingPage() {
       <section className={styles.whySection}>
         <div className={styles.sectionHead}>
           <div>
-            <p className={styles.sectionEyebrow}>Tại sao chọn Tourista</p>
+            <p className={styles.sectionEyebrow}>Tại sao chọn Tourista Studio</p>
             <h2 className={styles.sectionTitle}>
               Đặt tour <span className={styles.sectionTitleAccent}>tin cậy</span> — Trải nghiệm xứng đáng
             </h2>

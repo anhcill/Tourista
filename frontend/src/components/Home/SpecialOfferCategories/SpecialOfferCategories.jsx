@@ -80,7 +80,7 @@ export default function SpecialOfferCategories() {
                             <span>Danh mục ưu đãi</span>
                         </div>
                         <h2 className={styles.title}>Special Offers</h2>
-                        <p className={styles.subtitle}>Khám phá các chương trình khuyến mãi độc quyền tại Tourista</p>
+                        <p className={styles.subtitle}>Khám phá các chương trình khuyến mãi độc quyền tại Tourista Studio</p>
                     </div>
                     <button className={styles.viewAllBtn} onClick={() => router.push('/hotels')}>
                         Xem tất cả <FaArrowRight />

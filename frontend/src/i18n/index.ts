@@ -290,7 +290,7 @@ const resources = {
       // Chatbot
       // ============================================================
       chatbot: {
-        title: 'Tourista Travel Buddy',
+        title: 'Tourista Studio Travel Buddy',
         placeholder: 'Nhắn điểm đến, ngân sách hoặc mã TRS-...',
         welcome: 'Lên kế hoạch chuyến đi chỉ trong vài tin nhắn',
         loginRequired: 'Đăng nhập để sử dụng tính năng này',
@@ -325,7 +325,7 @@ const resources = {
       // Footer
       // ============================================================
       footer: {
-        about: 'Về Tourista',
+        about: 'Về Tourista Studio',
         aboutText: 'Nền tảng đặt tour và khách sạn hàng đầu Việt Nam.',
         quickLinks: 'Liên kết nhanh',
         support: 'Hỗ trợ',
@@ -333,7 +333,7 @@ const resources = {
         faq: 'Câu hỏi thường gặp',
         terms: 'Điều khoản sử dụng',
         privacy: 'Chính sách bảo mật',
-        copyright: '© 2026 Tourista. Mọi quyền được bảo lưu.',
+        copyright: '© 2026 Tourista Studio. Mọi quyền được bảo lưu.',
       },
     },
   },
@@ -571,7 +571,7 @@ const resources = {
         next: 'Next',
       },
       footer: {
-        about: 'About Tourista',
+        about: 'About Tourista Studio',
         aboutText: 'Leading tour and hotel booking platform in Vietnam.',
         quickLinks: 'Quick Links',
         support: 'Support',
@@ -579,7 +579,7 @@ const resources = {
         faq: 'FAQ',
         terms: 'Terms of Service',
         privacy: 'Privacy Policy',
-        copyright: '© 2026 Tourista. All rights reserved.',
+        copyright: '© 2026 Tourista Studio. All rights reserved.',
       },
     },
   },

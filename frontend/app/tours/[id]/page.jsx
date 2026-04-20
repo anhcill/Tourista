@@ -420,7 +420,7 @@ function TourDetailInner() {
             <FaHeart /> {isFavorite ? 'Đã lưu' : 'Lưu'}
           </button>
           <ShareButtons
-            title={`${tour.title} — Đặt tour trên Tourista`}
+            title={`${tour.title} — Đặt tour trên Tourista Studio`}
             description={`${tour.city} · ${tour.durationDays}N${tour.durationNights}Đ · Giá từ ${tour.priceFrom ? formatVnd(tour.priceFrom) : 'liên hệ'}`}
             size="sm"
           />

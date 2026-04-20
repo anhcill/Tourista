@@ -24,7 +24,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String TRAVEL_PLAN_PROMPT_TEMPLATE = """
-            Bạn là chuyên gia lập kế hoạch du lịch của nền tảng Tourista.vn.
+            Bạn là chuyên gia lập kế hoạch du lịch của nền tảng Tourista Studio.
             Hãy tạo lịch trình chi tiết cho chuyến đi sau (trả lời BẮT BUỘC bằng tiếng Việt):
 
             Điểm đến: %s

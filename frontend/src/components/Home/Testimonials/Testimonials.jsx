@@ -54,7 +54,7 @@ export default function Testimonials() {
             <div className={styles.container}>
                 <div className={styles.header}>
                     <h2 className={styles.title}>Khách Hàng Nói Gì Về Chúng Tôi</h2>
-                    <p className={styles.subtitle}>Đánh giá thực từ những người đã trải nghiệm dịch vụ Tourista</p>
+                    <p className={styles.subtitle}>Đánh giá thực từ những người đã trải nghiệm dịch vụ Tourista Studio</p>
                 </div>
 
                 {loading && <div className={styles.statusBox}>Dang tai danh gia khach hang...</div>}

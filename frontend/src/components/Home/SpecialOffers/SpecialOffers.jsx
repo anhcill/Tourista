@@ -210,7 +210,7 @@ export default function SpecialOffers() {
                         </div>
                         <h2 className={styles.title}>Special Offers</h2>
                         <p className={styles.subtitle}>
-                            Dữ liệu khách sạn được đồng bộ trực tiếp từ hệ thống Tourista.
+                            Dữ liệu khách sạn được đồng bộ trực tiếp từ hệ thống Tourista Studio.
                         </p>
                     </div>
 

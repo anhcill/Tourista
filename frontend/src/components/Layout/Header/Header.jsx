@@ -364,11 +364,9 @@ const Header = () => {
             <div className="container">
                 <div className={styles.unifiedBar}>
                     <Link href="/" className={styles.logo}>
-                        <div className={styles.logoIcon}>
-                            <FaGlobe />
-                        </div>
+                        <img src="/icon.svg" alt="Tourista Studio" className={styles.logoIcon} />
                         <div className={styles.logoTextWrap}>
-                            <span className={styles.logoText}>Tourista</span>
+                            <span className={styles.logoText}>Tourista Studio</span>
                             <span className={styles.logoTagline}>Kế hoạch du lịch linh hoạt</span>
                         </div>
                     </Link>

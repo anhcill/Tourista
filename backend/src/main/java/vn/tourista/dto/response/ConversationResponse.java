@@ -56,7 +56,7 @@ public class ConversationResponse {
 
         // Nếu type = BOT, đối phương là "Hỗ trợ Tourista"
         if (conv.getType() == Conversation.ConversationType.BOT) {
-            builder.partnerName("Hỗ trợ Tourista 🤖");
+            builder.partnerName("Hỗ trợ Tourista Studio 🤖");
         } else {
             // Partner của người đang xem là đối phương
             var other = viewingAsClient ? conv.getPartner() : conv.getClient();

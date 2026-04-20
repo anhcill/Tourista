@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: {
     default: 'Khach san',
-    template: '%s | Khach san Tourista',
+    template: '%s | Khach san Tourista Studio',
   },
   description:
     'Tim va dat khach san theo diem den, ngay luu tru, tien nghi va muc gia phu hop.',

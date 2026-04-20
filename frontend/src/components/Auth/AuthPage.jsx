@@ -233,8 +233,8 @@ const AuthPage = ({ initialMode = 'login' }) => {
                     <div className={`${styles.card} ${styles.cardFront}`}>
                         <div className={styles.logoSection}>
                             <div className={styles.logo}>
-                                <FaPlane className={styles.logoIcon} />
-                                <span className={styles.logoText}>Tourista</span>
+                                <img src="/icon.svg" alt="Tourista Studio" className={styles.logoIcon} style={{width: 40, height: 40, objectFit: 'contain'}} />
+                                <span className={styles.logoText}>Tourista Studio</span>
                             </div>
                         </div>
 
@@ -334,8 +334,8 @@ const AuthPage = ({ initialMode = 'login' }) => {
                     <div className={`${styles.card} ${styles.cardBack}`}>
                         <div className={styles.logoSection}>
                             <div className={styles.logo}>
-                                <FaPlane className={styles.logoIcon} />
-                                <span className={styles.logoText}>Tourista</span>
+                                <img src="/icon.svg" alt="Tourista Studio" className={styles.logoIcon} style={{width: 40, height: 40, objectFit: 'contain'}} />
+                                <span className={styles.logoText}>Tourista Studio</span>
                             </div>
                         </div>
 

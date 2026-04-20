@@ -34,7 +34,7 @@ export default function AdminSidebar() {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brandBlock}>
-        <h2>Tourista Admin</h2>
+        <h2>Tourista Studio Admin</h2>
         <p>Quan tri he thong</p>
       </div>
 

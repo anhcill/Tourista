@@ -28,7 +28,7 @@ const BOT_HISTORY_PAGE_SIZE = 30;
 const DEFAULT_QUICK_PROMPTS: QuickPrompt[] = [
     { label: '🔥 Tour hot', text: 'Cho minh xem cac tour hot nhat hien nay' },
     { label: '💸 Gia re', text: 'Go y tour gia re ngan sach sinh vien' },
-    { label: '🎯 Combo', text: 'Tourista co ban combo ve may bay va khach san khong?' },
+    { label: '🎯 Combo', text: 'Tourista Studio co ban combo ve may bay va khach san khong?' },
     { label: '🔍 Tra cuu', text: 'Toi muon tra cuu ma dat cho TRS-' },
     { label: '📞 Lien he', text: 'Cho toi thong tin lien he ho tro' },
 ];
@@ -653,7 +653,7 @@ const BotChatBox = ({ sendMessage }: BotChatBoxProps) => {
                 <div className={styles.chatHeaderLeft}>
                     <div className={styles.botIcon}>🌴</div>
                     <div>
-                        <div className={styles.chatHeaderName}>Tourista Travel Buddy</div>
+                        <div className={styles.chatHeaderName}>Tourista Studio Travel Buddy</div>
                         <div className={styles.chatHeaderStatus}>
                             <span className={styles.onlineDot} />
                             San sang tu van hanh trinh

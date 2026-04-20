@@ -57,7 +57,7 @@ const PromoPopup = () => {
                     {/* Render mockup image */}
                     <Image 
                         src="/images/promos/promo_popup_voucher_1775811780696.png" 
-                        alt="Tourista Welcome Voucher" 
+                        alt="Tourista Studio Welcome Voucher" 
                         fill
                         className={styles.promoImage}
                         sizes="(max-width: 768px) 100vw, 400px"
@@ -66,7 +66,7 @@ const PromoPopup = () => {
                 
                 <div className={styles.content}>
                     <h3>Tặng bạn quà xịn! 🎁</h3>
-                    <p>Nhận ngay Voucher <strong>500K</strong> cho chuyến đi đầu tiên cùng Tourista. Đừng bỏ lỡ!</p>
+                    <p>Nhận ngay Voucher <strong>500K</strong> cho chuyến đi đầu tiên cùng Tourista Studio. Đừng bỏ lỡ!</p>
                     <button className={styles.claimButton} onClick={handleClose}>
                         Lấy mã ngay
                     </button>

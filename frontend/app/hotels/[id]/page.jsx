@@ -1322,7 +1322,7 @@ function HotelDetailInner() {
 
                         <ShareButtons
                             url={`${typeof window !== 'undefined' ? window.location.origin : ''}/hotels/${hotel?.id}`}
-                            title={`${hotel?.name} — Đặt phòng trên Tourista`}
+                            title={`${hotel?.name} — Đặt phòng trên Tourista Studio`}
                             description={`${hotel?.name} ${hotel?.address ? 'tại ' + hotel.address : ''}. Giá chỉ từ ${hotel?.minPrice ? formatVND(hotel.minPrice) : 'liên hệ'}.`}
                             image={hotel?.coverImage || hotel?.images?.[0]}
                             size="sm"

@@ -29,7 +29,7 @@ export default function Newsletter() {
                         <FaPaperPlane className={styles.icon} />
                         <h2 className={styles.title}>Chuẩn bị cho chuyến đi tiếp theo?</h2>
                         <p className={styles.subtitle}>
-                            Đăng ký nhận bản tin từ Tourista để không bỏ lỡ các deal khách sạn và tour du lịch độc quyền với giá tốt nhất, gửi trực tiếp vào hộp thư của bạn.
+                            Đăng ký nhận bản tin từ Tourista Studio để không bỏ lỡ các deal khách sạn và tour du lịch độc quyền với giá tốt nhất, gửi trực tiếp vào hộp thư của bạn.
                         </p>
                         
                         <form className={styles.form} onSubmit={handleSubmit}>

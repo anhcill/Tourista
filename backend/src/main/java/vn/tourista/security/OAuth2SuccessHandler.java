@@ -2,6 +2,8 @@ package vn.tourista.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -20,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
+
     @Autowired
     private AuthService authService;
 
@@ -35,28 +39,55 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             Authentication authentication)
             throws IOException {
 
-        // Lấy thông tin user từ Google
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
-        String avatarUrl = oAuth2User.getAttribute("picture");
-        String googleId = oAuth2User.getAttribute("sub"); // Google unique ID
+        try {
+            // Lấy thông tin user từ Google
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            String email = oAuth2User.getAttribute("email");
+            String name = oAuth2User.getAttribute("name");
+            String avatarUrl = oAuth2User.getAttribute("picture");
+            String googleId = oAuth2User.getAttribute("sub"); // Google unique ID
 
-        // Service xử lý: tìm user hoặc tạo mới nếu lần đầu đăng nhập bằng Google
-        User user = authService.processOAuth2User(email, name, avatarUrl, googleId);
+            log.info("OAuth2 login success for email: {}", email);
 
-        // Tạo JWT tokens
-        var authResponse = authService.generateTokensForUser(user);
+            // Service xử lý: tìm user hoặc tạo mới nếu lần đầu đăng nhập bằng Google
+            User user = authService.processOAuth2User(email, name, avatarUrl, googleId);
 
-        // Phát hành one-time code ngắn hạn để frontend đổi lấy token qua API
-        String exchangeCode = oAuth2LoginCodeStore.issueCode(authResponse);
+            // Kiểm tra null safety
+            if (user == null) {
+                log.error("OAuth2 user processing returned null for email: {}", email);
+                redirectToError(request, response, "Không thể xử lý tài khoản Google");
+                return;
+            }
+            if (user.getRole() == null) {
+                log.error("OAuth2 user {} has null role — role USER may not exist in DB", email);
+                redirectToError(request, response, "Tài khoản không có quyền truy cập (role bị thiếu)");
+                return;
+            }
 
-        // Redirect về frontend chỉ mang code, không mang token
-        String redirectUrl = String.format(
-                "%s/oauth2/callback?code=%s",
-                frontendUrl,
-                URLEncoder.encode(exchangeCode, StandardCharsets.UTF_8));
+            // Tạo JWT tokens
+            var authResponse = authService.generateTokensForUser(user);
 
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            // Phát hành one-time code ngắn hạn để frontend đổi lấy token qua API
+            String exchangeCode = oAuth2LoginCodeStore.issueCode(authResponse);
+
+            // Redirect về frontend chỉ mang code, không mang token
+            String redirectUrl = String.format(
+                    "%s/oauth2/callback?code=%s",
+                    frontendUrl,
+                    URLEncoder.encode(exchangeCode, StandardCharsets.UTF_8));
+
+            log.info("Redirecting OAuth2 user {} to frontend with exchange code", email);
+            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+
+        } catch (Exception ex) {
+            log.error("OAuth2 authentication success handler failed", ex);
+            redirectToError(request, response, "Đăng nhập Google thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void redirectToError(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
+        String encoded = URLEncoder.encode(message, StandardCharsets.UTF_8);
+        String url = frontendUrl + "/login?error=" + encoded;
+        getRedirectStrategy().sendRedirect(request, response, url);
     }
 }

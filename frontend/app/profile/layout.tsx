@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: {
     default: 'Tai khoan',
-    template: '%s | Tai khoan Tourista',
+    template: '%s | Tai khoan Tourista Studio',
   },
-  description: 'Quan ly thong tin ca nhan, lich su dat tour va don dat phong tren Tourista.',
+  description: 'Quan ly thong tin ca nhan, lich su dat tour va don dat phong tren Tourista Studio.',
   robots: {
     index: false,
     follow: false,

@@ -5,7 +5,7 @@ import AdminTopbar from '@/components/Admin/Layout/AdminTopbar/AdminTopbar';
 import styles from './layout.module.css';
 
 export const metadata: Metadata = {
-  title: 'Quan tri',
+  title: 'Quan tri | Tourista Studio',
   robots: {
     index: false,
     follow: false,

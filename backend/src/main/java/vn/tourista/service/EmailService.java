@@ -42,7 +42,7 @@ public class EmailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
-            message.setSubject("Tourista - Xác thực tài khoản của bạn");
+            message.setSubject("Tourista Studio - Xác thực tài khoản của bạn");
             message.setText(buildVerificationEmailBody(verifyLink));
             mailSender.send(message);
             log.info("Verification email sent to {}", toEmail);
@@ -61,7 +61,7 @@ public class EmailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
-            message.setSubject("Tourista - Đặt lại mật khẩu");
+            message.setSubject("Tourista Studio - Đặt lại mật khẩu");
             message.setText(buildPasswordResetEmailBody(resetLink));
             mailSender.send(message);
             log.info("Password reset email sent to {}", toEmail);
@@ -91,7 +91,7 @@ public class EmailService {
             BigDecimal totalAmount,
             String currency) {
 
-        String subject = String.format("Tourista - Xác nhận yêu cầu đặt %s #%s",
+        String subject = String.format("Tourista Studio - Xác nhận yêu cầu đặt %s #%s",
                 bookingType.equals("HOTEL") ? "khách sạn" : "tour", bookingCode);
 
         try {
@@ -133,7 +133,7 @@ public class EmailService {
             String paymentMethod,
             String transactionNo) {
 
-        String subject = String.format("Tourista - Thanh toán thành công cho %s #%s",
+        String subject = String.format("Tourista Studio - Thanh toán thành công cho %s #%s",
                 bookingType.equals("HOTEL") ? "khách sạn" : "tour", bookingCode);
 
         try {
@@ -165,7 +165,7 @@ public class EmailService {
             String serviceName,
             String cancelReason) {
 
-        String subject = String.format("Tourista - Booking #%s đã bị hủy", bookingCode);
+        String subject = String.format("Tourista Studio - Booking #%s đã bị hủy", bookingCode);
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();

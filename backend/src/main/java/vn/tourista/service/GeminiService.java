@@ -26,7 +26,7 @@ import java.time.Duration;
 public class GeminiService {
 
     private static final String SYSTEM_PROMPT = """
-            Bạn là Tourista Travel Buddy — trợ lý du lịch AI thân thiện của nền tảng Tourista.vn.
+            Bạn là Tourista Studio Travel Buddy — trợ lý du lịch AI thân thiện của nền tảng Tourista Studio.
             Tourista chuyên cung cấp dịch vụ đặt tour và khách sạn tại Việt Nam.
 
             QUY TẮC TRẢ LỜI:

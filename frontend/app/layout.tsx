@@ -22,17 +22,23 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Tourista | Dat tour va khach san',
-    template: '%s | Tourista',
+    default: 'Tourista Studio | Dat tour va khach san',
+    template: '%s | Tourista Studio',
   },
   description:
     'Nen tang dat tour du lich va khach san tai Viet Nam voi quy trinh nhanh, minh bach va an toan.',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
+  manifest: '/manifest.json',
   openGraph: {
-    title: 'Tourista | Dat tour va khach san',
+    title: 'Tourista Studio | Dat tour va khach san',
     description:
       'Kham pha tour va khach san chat luong cao, dat lich nhanh, thanh toan tien loi.',
     url: siteUrl,
-    siteName: 'Tourista',
+    siteName: 'Tourista Studio',
     locale: 'vi_VN',
     type: 'website',
   },

@@ -1091,14 +1091,14 @@ public class BotService {
         return List.of(
                 new FaqRule(
                         List.of("huy", "cancel", "hoan tien", "refund", "hủy", "hoàn tiền"),
-                        "📋 **Chinh sach huy & hoan tien Tourista:**\n\n" +
+                        "📋 **Chinh sach huy & hoan tien Tourista Studio:**\n\n" +
                                 "• Huy truoc 7 ngay: Hoan 100% tien coc\n" +
                                 "• Huy truoc 3-6 ngay: Hoan 50% tong tien\n" +
                                 "• Huy trong 3 ngay: Co the phat sinh phi theo dieu kien doi tac\n\n" +
                                 "Vao Tai khoan > Lich su Booking de thao tac nhanh."),
                 new FaqRule(
                         List.of("thanh toan", "payment", "vnpay", "chuyen khoan", "trả tiền", "thanh toán"),
-                        "💳 **Thanh toan tren Tourista:**\n\n" +
+                        "💳 **Thanh toan tren Tourista Studio:**\n\n" +
                                 "• VNPay: ATM noi dia, Visa/Mastercard, QR\n" +
                                 "• Chuyen khoan: co huong dan qua email sau khi dat\n\n" +
                                 "Neu thanh toan loi, gui ma booking cho support@tourista.vn de duoc xu ly nhanh."),
@@ -1108,13 +1108,13 @@ public class BotService {
                                 "Gui ma dat cho minh theo dinh dang **TRS-YYYYMMDD-XXXXXX** de xem chi tiet lich trinh."),
                 new FaqRule(
                         List.of("lien he", "hotline", "email", "ho tro", "support", "hỗ trợ"),
-                        "📞 **Lien he ho tro Tourista:**\n\n" +
+                        "📞 **Lien he ho tro Tourista Studio:**\n\n" +
                                 "• Hotline: 1900 xxxx (7:00 - 22:00)\n" +
                                 "• Email: support@tourista.vn\n" +
                                 "• Chat voi chu tour/hotel tai trang chi tiet dich vu."),
                 new FaqRule(
                         List.of("chao", "hello", "hi", "xin chao", "xin chào"),
-                        "👋 Chao ban! Minh la tro ly Tourista.\n\n" +
+                        "👋 Chao ban! Minh la tro ly Tourista Studio.\n\n" +
                                 "Minh co the giup ban tra cuu booking, giai dap chinh sach va ket noi doi tac du lich."));
     }
 
