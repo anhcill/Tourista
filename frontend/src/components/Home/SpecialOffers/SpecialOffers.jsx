@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    FaMapMarkerAlt, FaTag, FaArrowRight, FaClock, FaFire
+    FaHotel, FaStar, FaMapMarkerAlt, FaTag, FaArrowRight, FaClock, FaFire
 } from 'react-icons/fa';
 import hotelApi from '@/api/hotelApi';
 import tourApi from '@/api/tourApi';

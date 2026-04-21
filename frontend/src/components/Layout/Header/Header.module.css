@@ -6,14 +6,17 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  background: var(--header-bg, #ffffff);
-  border-bottom: 1px solid var(--header-border, #e8edf0);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  background: var(--header-bg, rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--header-border, rgba(0, 0, 0, 0.05));
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 [data-theme="dark"] .header {
-  --header-bg: #0f1117;
-  --header-border: rgba(255, 255, 255, 0.07);
+  --header-bg: rgba(15, 17, 23, 0.85);
+  --header-border: rgba(255, 255, 255, 0.05);
 }
 
 /* ---- Top Bar (Logo + Search + Actions) ---- */
@@ -36,13 +39,23 @@
   flex-shrink: 0;
 }
 
-.logoIcon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #0077b6, #00b4d8);
-  box-shadow: 0 4px 12px rgba(0, 119, 182, 0.3);
-  display: block;
+.logoIconBg {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0288d1, #26c6da);
+  box-shadow: 0 4px 15px rgba(2, 136, 209, 0.35), inset 0px 2px 4px rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.movingBusLogo {
+  color: #ffffff;
+  font-size: 24px;
+  animation: driveBus 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
 .logoTextWrap {
@@ -435,8 +448,8 @@
 /* ---- Navigation Row ---- */
 .navRow {
   margin-top: 8px;
-  padding: 6px 0 10px;
-  border-top: 1px solid var(--header-border, #e8edf0);
+  padding: 8px 0 12px;
+  border-top: 1px solid var(--header-border, transparent);
 }
 
 .navTabs {
@@ -465,12 +478,14 @@
   font-weight: 600;
   white-space: nowrap;
   position: relative;
-  transition: color 0.18s ease, background-color 0.18s ease;
+  transition: color 0.18s ease, background-color 0.18s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .navTab:hover {
   color: var(--nav-tab-hover-color, #0077b6);
   background: var(--nav-tab-hover-bg, rgba(0, 119, 182, 0.07));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 119, 182, 0.08);
 }
 
 .navTabIcon {
@@ -497,6 +512,18 @@
   border-radius: 999px;
   padding: 1px 6px;
   letter-spacing: 0.03em;
+}
+
+/* Moving Bus Animation */
+@keyframes driveBus {
+  0% { transform: translateX(-3px) translateY(0); }
+  50% { transform: translateX(3px) translateY(-1px); }
+  100% { transform: translateX(-3px) translateY(0); }
+}
+
+.movingBus {
+  animation: driveBus 1.5s ease-in-out infinite;
+  display: inline-block;
 }
 
 /* ---- Suggestion List ---- */

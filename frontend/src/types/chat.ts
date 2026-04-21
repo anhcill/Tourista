@@ -6,6 +6,7 @@ export type ContentType =
   | 'BOOKING_DETAILS'
   | 'TOUR_CARDS'
   | 'SCENARIO_CHOICE'
+  | 'FAQ_MENU'
   | 'SYSTEM_LOG';
 
 export interface ChatMessage {
@@ -47,6 +48,19 @@ export interface ScenarioChoiceMetadata {
   question: string;
   subtitle?: string;
   choices: ScenarioChoice[];
+}
+
+export interface FaqMenuItem {
+  id: string;
+  emoji: string;
+  label: string;
+  payload: string;
+}
+
+export interface FaqMenuMetadata {
+  title?: string;
+  subtitle?: string;
+  items: FaqMenuItem[];
 }
 
 export interface TourCardItem {

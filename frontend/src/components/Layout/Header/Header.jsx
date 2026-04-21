@@ -9,9 +9,9 @@ import { toast } from 'react-toastify';
 import {
     FaSearch, FaGlobe, FaSignOutAlt,
     FaBookmark, FaChevronDown, FaHeart,
-    FaHotel, FaPlaneDeparture, FaMapMarkedAlt, FaBuilding,
+    FaHotel, FaMapMarkedAlt, FaBusAlt,
     FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments,
-    FaMoon, FaSun, FaRegLightbulb, FaChevronRight
+    FaMoon, FaSun, FaRegLightbulb, FaChevronRight, FaUser
 } from 'react-icons/fa';
 import { logout } from '../../../store/slices/authSlice';
 import authApi from '../../../api/authApi';
@@ -152,13 +152,14 @@ const Header = () => {
         }
     };
 
+    const MovingBusIcon = ({ className }) => <FaBusAlt className={`${className || ''} ${styles.movingBus}`} />;
+
     const navigationTabs = [
         { id: 'hotel', label: 'Khách sạn', hint: 'Nghỉ dưỡng', href: '/hotels', icon: FaHotel },
-        { id: 'flight', label: 'Vé máy bay', hint: 'Sắp ra mắt', href: '/flights', icon: FaPlaneDeparture, comingSoon: true },
-        { id: 'tour', label: 'Tour du lịch', hint: 'Khám phá ngay', href: '/tours', icon: FaMapMarkedAlt },
-        { id: 'ai', label: 'AI Planner', hint: 'Lập kế hoạch', href: '/ai-travel-planner', icon: FaRegLightbulb },
-        { id: 'apartment', label: 'Căn hộ', hint: 'Sắp ra mắt', href: '/apartments', icon: FaBuilding, comingSoon: true },
-        { id: 'article', label: 'Cẩm nang', hint: 'Blog', href: '/articles', icon: FaBookOpen },
+        { id: 'tour', label: 'Tour du lịch', hint: 'Khám phá tự do', href: '/tours', icon: FaMapMarkedAlt },
+        { id: 'bus', label: 'Vé xe khách', hint: 'Vi vu mọi ngả', href: '/bus', icon: MovingBusIcon },
+        { id: 'ai', label: 'AI Planner', hint: 'Chuyên gia du lịch', href: '/ai-travel-planner', icon: FaRegLightbulb },
+        { id: 'article', label: 'Cẩm nang', hint: 'Bí kíp thả ga', href: '/articles', icon: FaBookOpen },
     ];
 
     const isTabActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
@@ -273,9 +274,10 @@ const Header = () => {
                 <div className="container">
                     <div className={styles.topBarInner}>
 
-                        {/* --- Logo --- */}
                         <Link href="/" className={styles.logo}>
-                            <img src="/icon.svg" alt="Tourista" className={styles.logoIcon} />
+                            <div className={styles.logoIconBg}>
+                                <FaBusAlt className={styles.movingBusLogo} />
+                            </div>
                             <div className={styles.logoTextWrap}>
                                 <span className={styles.logoText}>Tourista</span>
                                 <span className={styles.logoTagline}>Studio</span>

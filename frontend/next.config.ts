@@ -25,6 +25,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+
+  // Strict mode for better development error detection
+  reactStrictMode: true,
+
+  // Disable source maps in production for smaller builds
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

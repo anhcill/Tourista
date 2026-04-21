@@ -20,5 +20,13 @@ public interface TourImageRepository extends JpaRepository<TourImage, Long> {
             """, nativeQuery = true)
     Optional<String> findCoverImageByTourId(@Param("tourId") Long tourId);
 
+    @Query(value = """
+            SELECT ti.tour_id, ti.url
+            FROM tour_images ti
+            WHERE ti.tour_id IN :tourIds
+              AND ti.is_cover = TRUE
+            """, nativeQuery = true)
+    List<Object[]> findCoverImagesByTourIds(@Param("tourIds") List<Long> tourIds);
+
     List<TourImage> findByTour_IdOrderBySortOrderAscIdAsc(Long tourId);
 }

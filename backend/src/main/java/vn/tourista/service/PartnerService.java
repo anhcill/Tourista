@@ -232,6 +232,9 @@ public class PartnerService {
         if (dateObj instanceof java.sql.Timestamp ts) {
             return ts.toLocalDateTime().toLocalDate().toString();
         }
+        if (dateObj instanceof java.sql.Date sd) {
+            return sd.toLocalDate().toString();
+        }
         if (dateObj instanceof LocalDateTime ldt) {
             return ldt.toLocalDate().toString();
         }

@@ -16,14 +16,14 @@ import {
 import styles from './AdminSidebar.module.css';
 
 const MENU_ITEMS = [
-  { label: 'Dashboard', href: '/admin', icon: <FaChartBar /> },
-  { label: 'Quan ly User', href: '/admin/users', icon: <FaUsers /> },
-  { label: 'Quan ly Hotel', href: '/admin/hotels', icon: <FaHotel /> },
-  { label: 'Quan ly Tour', href: '/admin/tours', icon: <FaPlaneDeparture /> },
-  { label: 'Quan ly Dat cho', href: '/admin/bookings', icon: <FaReceipt /> },
-  { label: 'Review Moderation', href: '/admin/reviews', icon: <FaStar /> },
-  { label: 'Khuyen mai', href: '/admin/promotions', icon: <FaTags /> },
-  { label: 'Cai dat', href: '/admin/settings', icon: <FaCog /> },
+  { label: 'Tổng quan', href: '/admin', icon: <FaChartBar /> },
+  { label: 'Người dùng', href: '/admin/users', icon: <FaUsers /> },
+  { label: 'Khách sạn', href: '/admin/hotels', icon: <FaHotel /> },
+  { label: 'Chuyến đi', href: '/admin/tours', icon: <FaPlaneDeparture /> },
+  { label: 'Đơn đặt chỗ', href: '/admin/bookings', icon: <FaReceipt /> },
+  { label: 'Đánh giá', href: '/admin/reviews', icon: <FaStar /> },
+  { label: 'Khuyến mãi', href: '/admin/promotions', icon: <FaTags /> },
+  { label: 'Cài đặt Hệ thống', href: '/admin/settings', icon: <FaCog /> },
 ];
 
 const isActiveItem = (pathname, href) => pathname === href || pathname.startsWith(`${href}/`);
@@ -34,8 +34,8 @@ export default function AdminSidebar() {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brandBlock}>
-        <h2>Tourista Studio Admin</h2>
-        <p>Quan tri he thong</p>
+        <h2>Tourista Studio - Quản trị</h2>
+        <p>Quản trị hệ thống</p>
       </div>
 
       <nav className={styles.nav}>
@@ -57,7 +57,7 @@ export default function AdminSidebar() {
       <div className={styles.footerBlock}>
         <Link href="/" className={styles.backLink}>
           <FaArrowLeft />
-          <span>Ve trang nguoi dung</span>
+          <span>Quay về trang người dùng</span>
         </Link>
       </div>
     </aside>

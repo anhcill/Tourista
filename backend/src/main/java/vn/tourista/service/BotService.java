@@ -109,7 +109,6 @@ public class BotService {
     private final SessionRecommendationStateRepository recommendationStateRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ObjectMapper objectMapper;
-    private final GeminiService geminiService;
     private final TourRecommendationService tourRecommendationService;
     private volatile List<FaqRule> faqRules = List.of();
     private volatile String defaultFaqAnswer = DEFAULT_FAQ_ANSWER;
@@ -166,15 +165,7 @@ public class BotService {
     @Async("botTaskExecutor")
     @Transactional
     public void handleBotMessage(Long conversationId, String inputText, String clientEmail) {
-        String contextForGemini = null;
         try {
-            // Mô phỏng độ trễ "đang nhập..." (750ms) cho UX chân thực
-            try {
-                Thread.sleep(750);
-            } catch (InterruptedException interrupted) {
-                Thread.currentThread().interrupt();
-            }
-
             String upperInput = inputText.toUpperCase();
             Matcher matcher = BOOKING_CODE_PATTERN.matcher(upperInput);
             String normalizedInput = normalizeInput(inputText);
@@ -195,10 +186,10 @@ public class BotService {
                     processRecommendationFlow(conversationId, inputText, canonicalInput, clientEmail);
                 } else if (isRecommendationIntent(canonicalInput)) {
                     startRecommendationFlow(conversationId, inputText, clientEmail);
-                } else {
-                    contextForGemini = currentConversationContext.get();
-                    processFaqFallback(conversationId, inputText, clientEmail, contextForGemini);
-                }
+        } else {
+            String context = currentConversationContext.get();
+            processFaqFallback(conversationId, inputText, clientEmail, context);
+        }
             }
         } catch (Exception ex) {
             log.error("BotService: Unexpected error while handling bot message. conversationId={}, clientEmail={}",
@@ -615,9 +606,23 @@ public class BotService {
 
     /** Build danh sách TourCardItem từ list ID, kèm ảnh bìa. */
     private List<TourCardItem> buildTourCards(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        // Batch fetch all tours in one query
         Map<Long, Tour> tourMap = new HashMap<>();
         for (Tour t : tourRepository.findAllById(ids)) {
             tourMap.put(t.getId(), t);
+        }
+
+        // Batch fetch all cover images in one query (fix N+1)
+        Map<Long, String> imageMap = new HashMap<>();
+        List<Object[]> imageRows = tourImageRepository.findCoverImagesByTourIds(ids);
+        for (Object[] row : imageRows) {
+            if (row != null && row.length > 1 && row[0] != null && row[1] != null) {
+                imageMap.put(((Number) row[0]).longValue(), (String) row[1]);
+            }
         }
 
         List<TourCardItem> cards = new ArrayList<>();
@@ -626,7 +631,7 @@ public class BotService {
             if (tour == null || !Boolean.TRUE.equals(tour.getIsActive()))
                 continue;
 
-            String coverUrl = tourImageRepository.findCoverImageByTourId(tour.getId()).orElse(null);
+            String coverUrl = imageMap.get(id);
             String cityVi = tour.getCity() != null ? tour.getCity().getNameVi() : "Việt Nam";
 
             cards.add(TourCardItem.builder()
@@ -965,27 +970,64 @@ public class BotService {
             }
         }
 
-        // Bước 2: Nếu không khớp FAQ nào và Gemini đang bật → dùng AI
-        if ((answer == null || answer.isBlank()) && geminiService.isEnabled()) {
-            log.info("BotService: Khong khop FAQ, chuyen sang Gemini AI. conversationId={}", conversationId);
-            try {
-                String ctx = conversationContext != null ? conversationContext
-                        : buildRecentConversationContext(conversationId);
-                String aiAnswer = geminiService.ask(inputText, ctx);
-                if (aiAnswer != null && !aiAnswer.isBlank()) {
-                    answer = "🤖 " + aiAnswer;
-                }
-            } catch (Exception ex) {
-                log.warn("BotService: Gemini fallback loi — {}", ex.getMessage());
-            }
-        }
-
-        // Bước 3: Fallback cuối cùng nếu cả FAQ lẫn AI đều không có kết quả
+        // Bước 2: Nếu không khớp FAQ nào → hiển thị menu FAQ nhanh
         if (answer == null || answer.isBlank()) {
-            answer = defaultFaqAnswer;
+            pushFaqMenu(conversationId, clientEmail, inputText);
+            return;
         }
 
         pushBotText(conversationId, clientEmail, answer);
+    }
+
+    /**
+     * Push FAQ menu với các nút bấm nhanh thay vì text.
+     */
+    private void pushFaqMenu(Long conversationId, String clientEmail, String userInput) {
+        try {
+            // Phân tích input để gợi ý relevant
+            String suggestion = "";
+            String canonical = canonicalize(normalizeInput(userInput));
+            
+            if (containsAny(canonical, List.of("thoi tiet", "mua", "bien", "nong", "lanh", "mua vang"))) {
+                suggestion = "Bạn có thể hỏi về thời tiết tại điểm đến cụ thể nhé!";
+            } else if (containsAny(canonical, List.of("visa", "passport", "ho chieu", "giay to", "thu tuc"))) {
+                suggestion = "Mình gợi ý bạn liên hệ đại sứ quán để cập nhật thông tin mới nhất.";
+            } else if (containsAny(canonical, List.of("an uong", "am thuc", "mon ngon", "dac san", "nha hang"))) {
+                suggestion = "Mỗi điểm đến có món ăn đặc trưng riêng, bạn muốn hỏi về nơi nào?";
+            } else if (containsAny(canonical, List.of("cho", "mua sam", "qua", "bung tac"))) {
+                suggestion = "Bạn muốn tìm địa điểm shopping ở thành phố nào?";
+            } else {
+                suggestion = "Mình không chắc về câu hỏi này, bạn thử chọn một trong các chủ đề bên dưới nhé!";
+            }
+
+            String faqJson = """
+                    {
+                      "title": "🤔 Mình có thể giúp bạn什么呢?",
+                      "subtitle": "%s",
+                      "items": [
+                        { "id": "faq_huy",     "emoji": "❌", "label": "Hủy/Hoàn tiền",        "payload": "chính sách hủy và hoàn tiền" },
+                        { "id": "faq_tt",      "emoji": "💳", "label": "Thanh toán",           "payload": "thanh toán" },
+                        { "id": "faq_booking",  "emoji": "🔍", "label": "Tra cứu Booking",       "payload": "tra cứu booking" },
+                        { "id": "faq_tour",     "emoji": "🗺️", "label": "Gợi ý Tour",          "payload": "gợi ý tour" },
+                        { "id": "faq_lienhe",   "emoji": "📞", "label": "Liên hệ hỗ trợ",      "payload": "liên hệ hỗ trợ" },
+                        { "id": "faq_ttbd",     "emoji": "🌤️", "label": "Thời tiết du lịch",   "payload": "thời tiết du lịch" }
+                      ]
+                    }
+                    """.formatted(suggestion);
+
+            ChatMessage saved = chatService.saveBotMessage(
+                    conversationId,
+                    sanitizeForStorage("🤔 Bạn cần mình giúp gì?"),
+                    ChatMessage.ContentType.FAQ_MENU,
+                    sanitizeForStorage(faqJson));
+
+            messagingTemplate.convertAndSendToUser(
+                    clientEmail, "/queue/messages", ChatMessageResponse.from(saved));
+
+        } catch (Exception e) {
+            log.error("BotService: Lỗi khi push FAQ menu. conversationId={}", conversationId, e);
+            pushBotText(conversationId, clientEmail, defaultFaqAnswer);
+        }
     }
 
     // =====================================================================

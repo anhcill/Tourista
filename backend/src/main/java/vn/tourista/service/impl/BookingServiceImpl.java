@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import vn.tourista.dto.request.CancelBookingRequest;
 import vn.tourista.dto.request.CreateBookingRequest;
 import vn.tourista.dto.request.CreateTourBookingRequest;
+import vn.tourista.dto.request.UpdateBookingRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.CreateBookingResponse;
 import vn.tourista.dto.response.CreateTourBookingResponse;
@@ -303,6 +304,85 @@ public class BookingServiceImpl implements BookingService {
                 .children(detail.getNumChildren())
                 .createdAt(savedBooking.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    public ApiResponse<?> updateBooking(String userEmail, Long bookingId, UpdateBookingRequest request) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy booking"));
+
+        // Verify ownership
+        if (booking.getUser() == null || !booking.getUser().getEmail().equalsIgnoreCase(userEmail)) {
+            throw new SecurityException("Bạn không có quyền sửa booking này");
+        }
+
+        // Only PENDING bookings can be modified
+        if (booking.getStatus() != Booking.BookingStatus.PENDING) {
+            throw new IllegalArgumentException(
+                    "Chỉ có thể sửa booking ở trạng thái PENDING. Trạng thái hiện tại: " + booking.getStatus().name());
+        }
+
+        // Only support hotel booking modification for now
+        if (booking.getBookingType() != Booking.BookingType.HOTEL) {
+            throw new IllegalArgumentException("Chỉ hỗ trợ sửa booking khách sạn");
+        }
+
+        BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking(booking)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy chi tiết booking"));
+
+        // Validate new dates
+        if (request.getCheckIn() == null || request.getCheckOut() == null) {
+            throw new IllegalArgumentException("Ngày nhận/trả phòng là bắt buộc");
+        }
+        if (!request.getCheckOut().isAfter(request.getCheckIn())) {
+            throw new IllegalArgumentException("Ngày trả phòng phải sau ngày nhận phòng");
+        }
+
+        // Validate capacity
+        RoomType roomType = detail.getRoomType();
+        int maxAdultsAllowed = roomType.getMaxAdults() * request.getRooms();
+        if (request.getAdults() > maxAdultsAllowed) {
+            throw new IllegalArgumentException("Số người lớn vượt quá sức chứa của loại phòng");
+        }
+        int maxChildrenAllowed = roomType.getMaxChildren() * request.getRooms();
+        if (request.getChildren() > maxChildrenAllowed) {
+            throw new IllegalArgumentException("Số trẻ em vượt quá sức chứa của loại phòng");
+        }
+
+        // Check room availability (excluding current booking's rooms)
+        int bookedRooms = roomTypeRepository.countBookedRoomsInDateRangeExcluding(
+                roomType.getId(), request.getCheckIn(), request.getCheckOut(), bookingId);
+        int availableRooms = roomType.getTotalRooms() - bookedRooms;
+        if (availableRooms < request.getRooms()) {
+            throw new IllegalArgumentException("Không đủ phòng trống cho khoảng thời gian đã chọn");
+        }
+
+        // Recalculate price
+        int nights = (int) ChronoUnit.DAYS.between(request.getCheckIn(), request.getCheckOut());
+        BigDecimal subtotal = roomType.getBasePricePerNight()
+                .multiply(BigDecimal.valueOf(nights))
+                .multiply(BigDecimal.valueOf(request.getRooms()));
+
+        BigDecimal taxAmount = BigDecimal.ZERO;
+        BigDecimal totalAmount = subtotal.subtract(booking.getDiscountAmount()).add(taxAmount);
+
+        // Update booking subtotal/total
+        booking.setSubtotal(subtotal);
+        booking.setTaxAmount(taxAmount);
+        booking.setTotalAmount(totalAmount);
+
+        // Update detail
+        detail.setCheckInDate(request.getCheckIn());
+        detail.setCheckOutDate(request.getCheckOut());
+        detail.setNights(nights);
+        detail.setNumRooms(request.getRooms());
+        detail.setAdults(request.getAdults());
+        detail.setChildren(request.getChildren());
+
+        bookingRepository.save(booking);
+        bookingHotelDetailRepository.save(detail);
+
+        return ApiResponse.ok("Cập nhật booking thành công", null);
     }
 
     @Override

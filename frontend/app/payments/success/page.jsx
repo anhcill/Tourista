@@ -10,9 +10,9 @@ const formatVnd = (value) => new Intl.NumberFormat('vi-VN').format(Number(value 
 
 const METHOD_META = {
   card_domestic: {
-    title: 'Thẻ nội địa / ATM',
+    title: 'Thẻ ngân hàng (ATM / Visa / MasterCard)',
     icon: <FaCreditCard />,
-    note: 'Giao dịch đã được xác nhận qua kênh thẻ nội địa.',
+    note: 'Thanh toán qua cổng VNPay thành công — hỗ trợ thẻ nội địa & quốc tế.',
   },
   momo: {
     title: 'Ví MoMo',
@@ -30,9 +30,9 @@ const METHOD_META = {
     note: 'Đã tạo lệnh thanh toán và ghi nhận chuyển khoản thành công.',
   },
   vnpay: {
-    title: 'VNPay',
+    title: 'Thẻ ngân hàng (ATM / Visa / MasterCard)',
     icon: <FaCreditCard />,
-    note: 'Thanh toán qua cổng VNPay thành công.',
+    note: 'Thanh toán qua cổng VNPay thành công — hỗ trợ thẻ nội địa & quốc tế.',
   },
 };
 

@@ -5,15 +5,23 @@ server:
 spring:
   config:
     # Support running from both backend/ and workspace root/.
-    import: optional:file:.env[.properties],optional:file:backend/.env[.properties],optional:file:${user.dir}/.env[.properties],optional:file:${user.dir}/backend/.env[.properties]
+    import: optional:file:.env,optional:file:backend/.env,optional:file:backend/application.properties,optional:file:${user.dir}/.env,optional:file:${user.dir}/backend/.env,optional:file:${user.dir}/backend/application.properties
 
   # ===== DATABASE =====
   datasource:
     # Priority: explicit DB_* -> SPRING_DATASOURCE_* -> Railway MYSQL* -> local default
-    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:tourista}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true}}
+    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:tourista}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&autoReconnect=true&tcpKeepAlive=true}}
     username: ${DB_USERNAME:${SPRING_DATASOURCE_USERNAME:${MYSQLUSER:root}}}
     password: ${DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:${MYSQLPASSWORD:${MYSQL_ROOT_PASSWORD:}}}}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP connection pool settings
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000 # 5 minutes
+      max-lifetime: 600000 # 10 minutes (must be less than MySQL wait_timeout)
+      connection-timeout: 20000 # 20 seconds
+      validation-timeout: 5000 # 5 seconds
 
   jpa:
     open-in-view: false
@@ -95,5 +103,5 @@ gemini:
   api-key: ${GEMINI_API_KEY:}
   model: gemini-2.0-flash
   api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
-  timeout-seconds: 10
+  timeout-seconds: 5
   max-output-tokens: 400

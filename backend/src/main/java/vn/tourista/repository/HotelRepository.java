@@ -45,9 +45,9 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
             @Param("adults") Integer adults,
             @Param("rooms") Integer rooms);
 
-    @Query(value = "SELECT h.id, COALESCE(hi.url, (SELECT url FROM hotel_images WHERE hotel_id = h.id LIMIT 1)) " +
-            "FROM hotels h LEFT JOIN hotel_images hi ON h.id = hi.hotel_id AND hi.is_cover = true " +
-            "WHERE h.id IN :hotelIds",
+    @Query(value = "SELECT h.id, " +
+            "(SELECT url FROM hotel_images WHERE hotel_id = h.id AND is_cover = TRUE LIMIT 1) AS url " +
+            "FROM hotels h WHERE h.id IN :hotelIds",
             nativeQuery = true)
     List<Object[]> findCoverImagesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
 
@@ -57,6 +57,9 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     Object[] findCoverImageByHotelId(@Param("hotelId") Long hotelId);
 
     Optional<Hotel> findByIdAndIsActiveTrue(Long id);
+
+    @Query("SELECT h FROM Hotel h LEFT JOIN FETCH h.owner WHERE h.id = :id AND h.isActive = true")
+    Optional<Hotel> findByIdAndIsActiveTrueWithOwner(@Param("id") Long id);
 
     @Query(value = """
             SELECT h.id, h.name, COALESCE(c.name_vi, c.name_en) AS city_name, h.address

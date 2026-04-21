@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.tourista.dto.request.CancelBookingRequest;
 import vn.tourista.dto.request.CreateBookingRequest;
 import vn.tourista.dto.request.CreateTourBookingRequest;
+import vn.tourista.dto.request.UpdateBookingRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.CreateBookingResponse;
 import vn.tourista.dto.response.CreateTourBookingResponse;
@@ -61,6 +62,16 @@ public class BookingController {
             Authentication authentication) {
 
         ApiResponse<?> data = bookingService.cancelBooking(authentication.getName(), id, request);
+        return ResponseEntity.ok(data);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> updateBooking(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateBookingRequest request,
+            Authentication authentication) {
+
+        ApiResponse<?> data = bookingService.updateBooking(authentication.getName(), id, request);
         return ResponseEntity.ok(data);
     }
 }

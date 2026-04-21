@@ -20,16 +20,16 @@ type ConfirmState = {
 const STATUS_FILTER_OPTIONS: TourStatusFilter[] = ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'];
 
 const STATUS_LABELS: Record<AdminTourStatus, string> = {
-  PENDING: 'Pending',
-  APPROVED: 'Approved',
-  REJECTED: 'Rejected',
-  SUSPENDED: 'Suspended',
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Từ chối',
+  SUSPENDED: 'Đình chỉ',
 };
 
 const ACTION_LABELS: Record<TourActionStatus, string> = {
-  APPROVED: 'Approve',
-  REJECTED: 'Reject',
-  SUSPENDED: 'Suspend',
+  APPROVED: 'Duyệt',
+  REJECTED: 'Từ chối',
+  SUSPENDED: 'Đình chỉ',
 };
 
 const formatDateTime = (value: string | null) => {
@@ -85,7 +85,7 @@ export default function AdminToursPage() {
 
       setOverview(response);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Khong the tai danh sach tours admin.';
+      const message = err instanceof Error ? err.message : 'Không thể tải danh sách chuyến đi.';
       setError(message);
     } finally {
       setLoading(false);
@@ -177,7 +177,7 @@ export default function AdminToursPage() {
 
     const reason = confirmState.userReason.trim();
     if (!reason) {
-      setActionError('Ly do la bat buoc cho thao tac moderation tour.');
+      setActionError('Lý do là bắt buộc cho thao tác kiểm duyệt chuyến đi.');
       return;
     }
 
@@ -189,10 +189,10 @@ export default function AdminToursPage() {
       await adminApi.updateTourStatus(confirmState.tour.id, confirmState.action, reason);
 
       patchTourStatusLocal(confirmState.tour.id, confirmState.action);
-      setActionSuccess(`Da ${ACTION_LABELS[confirmState.action].toLowerCase()} tour thanh cong.`);
+      setActionSuccess(`Đã ${ACTION_LABELS[confirmState.action].toLowerCase()} chuyến đi thành công.`);
       closeConfirmModal();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Cap nhat trang thai tour that bai.';
+      const message = err instanceof Error ? err.message : 'Cập nhật trạng thái chuyến đi thất bại.';
       setActionError(message);
     } finally {
       setActionLoading(false);
@@ -203,8 +203,8 @@ export default function AdminToursPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Tours Management</h2>
-          <p>Dang tai danh sach tours...</p>
+          <h2>Quản lý Chuyến đi</h2>
+          <p>Đang tải danh sách chuyến đi...</p>
         </div>
       </section>
     );
@@ -214,8 +214,8 @@ export default function AdminToursPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Tours Management</h2>
-          <p>{error || 'Khong co du lieu tours.'}</p>
+          <h2>Quản lý Chuyến đi</h2>
+          <p>{error || 'Không có dữ liệu chuyến đi.'}</p>
         </div>
       </section>
     );
@@ -225,18 +225,18 @@ export default function AdminToursPage() {
     <section className={styles.page}>
       <div className={styles.hero}>
         <div>
-          <h2>Tours Management</h2>
-          <p>Day 5: duyet tour theo luong approve/reject/suspend va luu reason moderation.</p>
+          <h2>Quản lý Chuyến đi</h2>
+          <p>Duyệt nền tảng: Xác nhận, từ chối hoặc đình chỉ chuyến đi cùng lý do thao tác.</p>
         </div>
 
         <div className={styles.heroMeta}>
           <span className={styles.totalBadge}>{totalToursText}</span>
           <Link href="/admin/tours/create" className={styles.createButton}>
             <FaPlusCircle />
-            Tao tour moi
+            Thêm chuyến đi mới
           </Link>
           <span className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}>
-            {overview.hasMockFallback ? 'Mock fallback mode' : 'API live mode'}
+            {overview.hasMockFallback ? 'Chế độ dữ liệu mẫu' : 'Chế độ API thực'}
           </span>
         </div>
       </div>
@@ -249,12 +249,12 @@ export default function AdminToursPage() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Tim tour theo ten, operator, dia diem"
+              placeholder="Tìm chuyến đi theo tên, nhà cung cấp, địa điểm"
             />
           </label>
 
           <select
-            aria-label="Filter by tour status"
+            aria-label="Lọc theo trạng thái"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value as TourStatusFilter);
@@ -263,13 +263,13 @@ export default function AdminToursPage() {
           >
             {STATUS_FILTER_OPTIONS.map((status) => (
               <option key={status} value={status}>
-                {status === 'ALL' ? 'Tat ca status' : STATUS_LABELS[status]}
+                {status === 'ALL' ? 'Tất cả trạng thái' : STATUS_LABELS[status]}
               </option>
             ))}
           </select>
 
           <select
-            aria-label="Filter by city"
+            aria-label="Lọc theo thành phố"
             value={cityFilter}
             onChange={(event) => {
               setCityFilter(event.target.value);
@@ -278,13 +278,13 @@ export default function AdminToursPage() {
           >
             {cityOptions.map((city) => (
               <option key={city} value={city}>
-                {city === 'ALL' ? 'Tat ca thanh pho' : city}
+                {city === 'ALL' ? 'Tất cả thành phố' : city}
               </option>
             ))}
           </select>
 
           <select
-            aria-label="Filter by operator"
+            aria-label="Lọc theo nhà cung cấp"
             value={operatorFilter}
             onChange={(event) => {
               setOperatorFilter(event.target.value);
@@ -293,19 +293,19 @@ export default function AdminToursPage() {
           >
             {operatorOptions.map((operator) => (
               <option key={operator} value={operator}>
-                {operator === 'ALL' ? 'Tat ca operator' : operator}
+                {operator === 'ALL' ? 'Tất cả nhà cung cấp' : operator}
               </option>
             ))}
           </select>
 
           <button className={styles.primaryButton} type="submit">
             <FaSearch />
-            Search
+            Tìm kiếm
           </button>
 
           <button className={styles.ghostButton} type="button" onClick={resetFilters}>
             <FaSyncAlt />
-            Reset
+            Đặt lại
           </button>
 
           <button
@@ -315,7 +315,7 @@ export default function AdminToursPage() {
             disabled={refreshing}
           >
             <FaSyncAlt />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? 'Đang làm mới...' : 'Làm mới'}
           </button>
         </form>
 
@@ -326,15 +326,15 @@ export default function AdminToursPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Tour</th>
-                <th>City</th>
-                <th>Operator</th>
-                <th>Duration</th>
-                <th>Price</th>
-                <th>Seats</th>
-                <th>Status</th>
-                <th>Updated</th>
-                <th colSpan={2}>Actions</th>
+                <th>Chuyến đi</th>
+                <th>Thành phố</th>
+                <th>Nhà cung cấp</th>
+                <th>Thời lượng</th>
+                <th>Giá vé</th>
+                <th>Chỗ trống</th>
+                <th>Trạng thái</th>
+                <th>Cập nhật</th>
+                <th colSpan={2}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -342,7 +342,7 @@ export default function AdminToursPage() {
                 <tr>
                   <td className={styles.emptyCell} colSpan={9}>
                     <FaRoute />
-                    <span>Khong co tour phu hop bo loc hien tai.</span>
+                    <span>Không có chuyến đi phù hợp với bộ lọc hiện tại.</span>
                   </td>
                 </tr>
               ) : (
@@ -361,7 +361,7 @@ export default function AdminToursPage() {
                         <span>{tour.operatorEmail}</span>
                       </div>
                     </td>
-                    <td>{tour.durationDays} ngay</td>
+                    <td>{tour.durationDays} ngày</td>
                     <td>{formatVnd(tour.priceFrom)}</td>
                     <td>
                       {tour.seatsRemaining}/{tour.seatsTotal}
@@ -386,7 +386,7 @@ export default function AdminToursPage() {
                       <div className={styles.actionsWrap}>
                         <Link href={`/admin/tours/${tour.id}/edit`} className={styles.editButton}>
                           <FaEdit />
-                          Sua
+                          Sửa
                         </Link>
                         <button
                           type="button"
@@ -395,7 +395,7 @@ export default function AdminToursPage() {
                           disabled={tour.status === 'APPROVED' || actionLoading}
                         >
                           <FaCheckCircle />
-                          Approve
+                          Duyệt
                         </button>
                         <button
                           type="button"
@@ -404,7 +404,7 @@ export default function AdminToursPage() {
                           disabled={tour.status === 'REJECTED' || actionLoading}
                         >
                           <FaTimesCircle />
-                          Reject
+                          Từ chối
                         </button>
                         <button
                           type="button"
@@ -413,7 +413,7 @@ export default function AdminToursPage() {
                           disabled={tour.status === 'SUSPENDED' || actionLoading}
                         >
                           <FaBan />
-                          Suspend
+                          Đình chỉ
                         </button>
                       </div>
                     </td>
@@ -431,10 +431,10 @@ export default function AdminToursPage() {
             disabled={page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
-            Prev
+            Trước
           </button>
           <span>
-            Page <strong>{page}</strong> / {totalPages}
+            Trang <strong>{page}</strong> / {totalPages}
           </span>
           <button
             type="button"
@@ -442,7 +442,7 @@ export default function AdminToursPage() {
             disabled={page >= totalPages}
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           >
-            Next
+            Sau
           </button>
         </div>
       </article>
@@ -453,19 +453,19 @@ export default function AdminToursPage() {
             className={styles.modal}
             role="dialog"
             aria-modal="true"
-            aria-label="Confirm tour moderation action"
+            aria-label="Xác nhận kiểm duyệt chuyến đi"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Xac nhan thao tac moderation</h3>
+            <h3>Xác nhận thao tác kiểm duyệt</h3>
             <p>
-              Tour: <strong>{confirmState.tour.title}</strong>
+              Chuyến đi: <strong>{confirmState.tour.title}</strong>
             </p>
             <p>
-              Action: <strong>{ACTION_LABELS[confirmState.action]}</strong>
+              Thao tác: <strong>{ACTION_LABELS[confirmState.action]}</strong>
             </p>
 
             <label className={styles.reasonField}>
-              <span>Ly do thao tac (bat buoc)</span>
+              <span>Lý do thao tác (bắt buộc)</span>
               <textarea
                 value={confirmState.userReason}
                 onChange={(event) =>
@@ -474,14 +474,14 @@ export default function AdminToursPage() {
                     userReason: event.target.value,
                   }))
                 }
-                placeholder="Nhap ly do de luu audit log"
+                placeholder="Nhập lý do để lưu nhật ký thao tác"
                 rows={4}
               />
             </label>
 
             <div className={styles.modalActions}>
               <button type="button" className={styles.ghostButton} onClick={closeConfirmModal}>
-                Cancel
+                Hủy
               </button>
               <button
                 type="button"
@@ -489,7 +489,7 @@ export default function AdminToursPage() {
                 onClick={() => void confirmAction()}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'Updating...' : 'Confirm'}
+                {actionLoading ? 'Đang thực hiện...' : 'Xác nhận'}
               </button>
             </div>
           </div>

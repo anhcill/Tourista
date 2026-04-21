@@ -4,15 +4,198 @@
   gap: 1rem;
 }
 
-/* FAQ List */
-.faqList {
+/* ── Offer Section ── */
+.offerSection {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.offerSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #f0fdfa 100%);
+  border-bottom: 1px solid #d1fae5;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.offerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .offerGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.offerBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 80px;
+  text-align: center;
+}
+
+.offerBtn:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.offerEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.offerLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.3;
+}
+
+/* ── Input Toggle ── */
+.inputToggle {
+  display: flex;
+  justify-content: center;
+}
+
+.inputToggleBtn {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: #0ea5e9;
+  cursor: pointer;
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.inputToggleBtn:hover {
+  background: #f0f9ff;
+}
+
+/* ── Input Section ── */
+.inputSection {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.input {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #7dd3fc;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  outline: none;
+  background: #fff;
+  color: #1f2937;
+  resize: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  line-height: 1.5;
+  min-height: 60px;
+}
+
+.input:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.input::placeholder {
+  color: #94a3b8;
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.askBtn {
+  padding: 0.625rem 1.25rem;
+  background: #0ea5e9;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  align-self: flex-end;
+}
+
+.askBtn:hover:not(:disabled) {
+  background: #0284c7;
+}
+
+.askBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #dc2626;
+  padding: 0.375rem 0.75rem;
+  background: #fef2f2;
+  border-radius: 6px;
+}
+
+.answerBox {
+  padding: 0.75rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e0f2fe;
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.answerBox p {
+  margin: 0;
+}
+
+/* ── FAQ Section ── */
+.faqSection {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
 }
 
-.faqListHeader {
+.faqHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -24,7 +207,7 @@
   color: #374151;
 }
 
-.chatWithOwnerBtn {
+.chatOwnerBtn {
   background: none;
   border: 1px solid #d1d5db;
   border-radius: 20px;
@@ -35,7 +218,28 @@
   transition: all 0.15s;
 }
 
-.chatWithOwnerBtn:hover {
+.chatOwnerBtn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.faqLoading {
+  padding: 1rem;
+  text-align: center;
+}
+
+.loadFaqBtn {
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.loadFaqBtn:hover {
   background: #f3f4f6;
   border-color: #9ca3af;
 }
@@ -67,6 +271,12 @@
   background: #f9fafb;
 }
 
+.faqQOpen {
+  background: #f0fdf4;
+  color: #065f46;
+  font-weight: 500;
+}
+
 .faqQText {
   flex: 1;
   padding-right: 0.5rem;
@@ -89,104 +299,10 @@
   color: #4b5563;
   line-height: 1.6;
   white-space: pre-line;
+  background: #f0fdf4;
 }
 
-/* AI Section */
-.aiSection {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 1px solid #bae6fd;
-  border-radius: 12px;
-  padding: 1rem;
-}
-
-.aiHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #0369a1;
-  margin-bottom: 0.75rem;
-}
-
-.aiIcon {
-  font-size: 1.1rem;
-}
-
-.aiInputRow {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.aiInput {
-  flex: 1;
-  padding: 0.5rem 0.875rem;
-  border: 1px solid #7dd3fc;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  outline: none;
-  background: #fff;
-  color: #1f2937;
-  transition: border-color 0.15s;
-}
-
-.aiInput:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-}
-
-.aiInput::placeholder {
-  color: #94a3b8;
-}
-
-.aiAskBtn {
-  padding: 0.5rem 1rem;
-  background: #0ea5e9;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.aiAskBtn:hover:not(:disabled) {
-  background: #0284c7;
-}
-
-.aiAskBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.aiError {
-  margin: 0.5rem 0 0;
-  font-size: 0.8rem;
-  color: #dc2626;
-}
-
-.aiAnswer {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: #fff;
-  border-radius: 8px;
-  border: 1px solid #e0f2fe;
-}
-
-.aiAnswerText {
-  font-size: 0.875rem;
-  color: #374151;
-  line-height: 1.6;
-  white-space: pre-line;
-}
-
-.aiAnswerText p {
-  margin: 0;
-}
-
-/* Login hint */
+/* ── Login Hint ── */
 .loginHint {
   font-size: 0.875rem;
   color: #6b7280;

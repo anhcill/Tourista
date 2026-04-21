@@ -27,15 +27,15 @@ const ROLE_OPTIONS: AdminUserRole[] = ['ADMIN', 'USER', 'HOST'];
 const STATUS_OPTIONS: AdminUserStatus[] = ['ACTIVE', 'LOCKED', 'BANNED'];
 
 const ROLE_LABELS: Record<AdminUserRole, string> = {
-  ADMIN: 'Admin',
-  USER: 'User',
-  HOST: 'Host',
+  ADMIN: 'Quản trị viên',
+  USER: 'Người dùng',
+  HOST: 'Chủ nhà',
 };
 
 const STATUS_LABELS: Record<AdminUserStatus, string> = {
-  ACTIVE: 'Active',
-  LOCKED: 'Locked',
-  BANNED: 'Banned',
+  ACTIVE: 'Hoạt động',
+  LOCKED: 'Bị khóa',
+  BANNED: 'Bị cấm',
 };
 
 const formatDateTime = (value: string | null) => {
@@ -91,7 +91,7 @@ export default function AdminUsersPage() {
 
       setUsersOverview(response);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Khong the tai danh sach users.';
+      const message = err instanceof Error ? err.message : 'Không thể tải danh sách người dùng.';
       setError(message);
     } finally {
       setLoading(false);
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
     const targetUser = confirmState.user;
     const reason = confirmState.userReason.trim();
     if (!reason) {
-      setActionError('Ly do la bat buoc cho thao tac cap nhat user.');
+      setActionError('Lý do là bắt buộc cho thao tác cập nhật người dùng.');
       return;
     }
 
@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
         const nextRole = confirmState.nextValue as AdminUserRole;
         applyLocalPatch(targetUser.id, { role: nextRole });
         setRoleDrafts((prev) => ({ ...prev, [userKey(targetUser.id)]: nextRole }));
-        setActionSuccess('Cap nhat role thanh cong.');
+        setActionSuccess('Cập nhật vai trò thành công.');
       }
 
       if (confirmState.actionType === 'status') {
@@ -197,12 +197,12 @@ export default function AdminUsersPage() {
         const nextStatus = confirmState.nextValue as AdminUserStatus;
         applyLocalPatch(targetUser.id, { status: nextStatus });
         setStatusDrafts((prev) => ({ ...prev, [userKey(targetUser.id)]: nextStatus }));
-        setActionSuccess('Cap nhat status thanh cong.');
+        setActionSuccess('Cập nhật trạng thái thành công.');
       }
 
       closeConfirmModal();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Cap nhat user that bai.';
+      const message = err instanceof Error ? err.message : 'Cập nhật người dùng thất bại.';
       setActionError(message);
     } finally {
       setActionLoading(false);
@@ -227,8 +227,8 @@ export default function AdminUsersPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Users Management</h2>
-          <p>Dang tai danh sach users...</p>
+          <h2>Quản lý Người dùng</h2>
+          <p>Đang tải danh sách người dùng...</p>
         </div>
       </section>
     );
@@ -238,8 +238,8 @@ export default function AdminUsersPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Users Management</h2>
-          <p>{error || 'Khong co du lieu users.'}</p>
+          <h2>Quản lý Người dùng</h2>
+          <p>{error || 'Không có dữ liệu người dùng.'}</p>
         </div>
       </section>
     );
@@ -249,8 +249,8 @@ export default function AdminUsersPage() {
     <section className={styles.page}>
       <div className={styles.hero}>
         <div>
-          <h2>Users Management</h2>
-          <p>Day 3: tim kiem, loc, doi role/status va xac nhan thao tac nhay cam.</p>
+          <h2>Quản lý Người dùng</h2>
+          <p>Tìm kiếm, lọc, đổi vai trò/trạng thái người dùng và xác nhận các thao tác kiểm soát hệ thống.</p>
         </div>
 
         <div className={styles.heroMeta}>
@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
               usersOverview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive
             }`}
           >
-            {usersOverview.hasMockFallback ? 'Mock fallback mode' : 'API live mode'}
+            {usersOverview.hasMockFallback ? 'Chế độ dữ liệu mẫu' : 'Chế độ API thực'}
           </span>
         </div>
       </div>
@@ -273,19 +273,19 @@ export default function AdminUsersPage() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Tim theo ten, email, phone"
+              placeholder="Tìm theo tên, email, điện thoại"
             />
           </label>
 
           <select
-            aria-label="Filter by role"
+            aria-label="Lọc theo vai trò"
             value={roleFilter}
             onChange={(event) => {
               setRoleFilter(event.target.value as RoleFilter);
               setPage(1);
             }}
           >
-            <option value="ALL">Tat ca role</option>
+            <option value="ALL">Tất cả vai trò</option>
             {ROLE_OPTIONS.map((role) => (
               <option key={role} value={role}>
                 {ROLE_LABELS[role]}
@@ -294,14 +294,14 @@ export default function AdminUsersPage() {
           </select>
 
           <select
-            aria-label="Filter by status"
+            aria-label="Lọc theo trạng thái"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value as StatusFilter);
               setPage(1);
             }}
           >
-            <option value="ALL">Tat ca status</option>
+            <option value="ALL">Tất cả trạng thái</option>
             {STATUS_OPTIONS.map((status) => (
               <option key={status} value={status}>
                 {STATUS_LABELS[status]}
@@ -311,12 +311,12 @@ export default function AdminUsersPage() {
 
           <button className={styles.primaryButton} type="submit">
             <FaSearch />
-            Search
+            Tìm kiếm
           </button>
 
           <button className={styles.ghostButton} type="button" onClick={resetFilters}>
             <FaSyncAlt />
-            Reset
+            Đặt lại
           </button>
 
           <button
@@ -326,7 +326,7 @@ export default function AdminUsersPage() {
             disabled={refreshing}
           >
             <FaUserCheck />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? 'Đang làm mới...' : 'Làm mới'}
           </button>
         </form>
 
@@ -337,13 +337,13 @@ export default function AdminUsersPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Verified</th>
-                <th>Provider</th>
-                <th>Last login</th>
-                <th>Created at</th>
+                <th>Người dùng</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Xác thực</th>
+                <th>Nguồn</th>
+                <th>Đăng nhập cuối</th>
+                <th>Ngày tạo</th>
               </tr>
             </thead>
             <tbody>
@@ -351,7 +351,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <td className={styles.emptyCell} colSpan={7}>
                     <FaUsers />
-                    <span>Khong co user phu hop bo loc hien tai.</span>
+                    <span>Không có người dùng phù hợp với bộ lọc hiện tại.</span>
                   </td>
                 </tr>
               ) : (
@@ -396,7 +396,7 @@ export default function AdminUsersPage() {
                             disabled={!roleChanged || actionLoading}
                             onClick={() => openConfirmModal('role', user, roleDraft)}
                           >
-                            Apply
+                            Áp dụng
                           </button>
                         </div>
                       </td>
@@ -425,7 +425,7 @@ export default function AdminUsersPage() {
                             disabled={!statusChanged || actionLoading}
                             onClick={() => openConfirmModal('status', user, statusDraft)}
                           >
-                            Apply
+                            Áp dụng
                           </button>
                         </div>
                       </td>
@@ -436,7 +436,7 @@ export default function AdminUsersPage() {
                             user.isEmailVerified ? styles.badgeSuccess : styles.badgeWarn
                           }`}
                         >
-                          {user.isEmailVerified ? 'Verified' : 'Unverified'}
+                          {user.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực'}
                         </span>
                       </td>
                       <td>{user.authProvider}</td>
@@ -457,10 +457,10 @@ export default function AdminUsersPage() {
             disabled={page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
-            Prev
+            Trước
           </button>
           <span>
-            Page <strong>{page}</strong> / {totalPages}
+            Trang <strong>{page}</strong> / {totalPages}
           </span>
           <button
             type="button"
@@ -468,7 +468,7 @@ export default function AdminUsersPage() {
             disabled={page >= totalPages}
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           >
-            Next
+            Sau
           </button>
         </div>
       </article>
@@ -482,17 +482,17 @@ export default function AdminUsersPage() {
             aria-label="Confirm user update"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Xac nhan cap nhat user</h3>
+            <h3>Xác nhận cập nhật người dùng</h3>
             <p>
-              User: <strong>{confirmState.user.fullName}</strong>
+              Người dùng: <strong>{confirmState.user.fullName}</strong>
             </p>
             <p>
-              {confirmState.actionType === 'role' ? 'Role moi' : 'Status moi'}:{' '}
+              {confirmState.actionType === 'role' ? 'Vai trò mới' : 'Trạng thái mới'}:{' '}
               <strong>{confirmState.nextValue}</strong>
             </p>
 
             <label className={styles.reasonField}>
-              <span>Ly do thao tac (bat buoc)</span>
+              <span>Lý do thao tác (bắt buộc)</span>
               <textarea
                 value={confirmState.userReason}
                 onChange={(event) =>
@@ -501,14 +501,14 @@ export default function AdminUsersPage() {
                     userReason: event.target.value,
                   }))
                 }
-                placeholder="Nhap ly do de luu audit log"
+                placeholder="Nhập lý do để lưu nhật ký thao tác"
                 rows={4}
               />
             </label>
 
             <div className={styles.modalActions}>
               <button type="button" className={styles.ghostButton} onClick={closeConfirmModal}>
-                Cancel
+                Hủy
               </button>
               <button
                 type="button"
@@ -516,7 +516,7 @@ export default function AdminUsersPage() {
                 onClick={() => void confirmUpdate()}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'Updating...' : 'Confirm update'}
+                {actionLoading ? 'Đang cập nhật...' : 'Xác nhận cập nhật'}
               </button>
             </div>
           </div>

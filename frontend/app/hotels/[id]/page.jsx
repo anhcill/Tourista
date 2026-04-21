@@ -270,14 +270,15 @@ function HotelDetailInner() {
     const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [helpfulMap, setHelpfulMap] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
-    const [calendarCheckIn, setCalendarCheckIn] = useState(checkIn || '');
-    const [calendarCheckOut, setCalendarCheckOut] = useState(checkOut || '');
 
     const checkIn = searchParams.get('checkIn') || '';
     const checkOut = searchParams.get('checkOut') || '';
     const adults = searchParams.get('adults') || '2';
     const children = searchParams.get('children') || '0';
     const rooms = searchParams.get('rooms') || '1';
+
+    const [calendarCheckIn, setCalendarCheckIn] = useState(checkIn || '');
+    const [calendarCheckOut, setCalendarCheckOut] = useState(checkOut || '');
 
     const nights = checkIn && checkOut
         ? Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000))

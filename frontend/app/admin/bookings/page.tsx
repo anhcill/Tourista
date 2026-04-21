@@ -37,19 +37,19 @@ const TYPE_OPTIONS: BookingTypeFilter[] = ['ALL', 'HOTEL', 'TOUR'];
 const PAYMENT_OPTIONS: PaymentStatusFilter[] = ['ALL', 'PAID', 'PENDING', 'FAILED', 'REFUNDED'];
 
 const STATUS_LABELS: Record<AdminBookingStatus, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  CHECKED_IN: 'Checked in',
-  COMPLETED: 'Completed',
-  CANCELLED: 'Cancelled',
-  REFUNDED: 'Refunded',
+  PENDING: 'Chờ xử lý',
+  CONFIRMED: 'Đã xác nhận',
+  CHECKED_IN: 'Đã nhận phòng',
+  COMPLETED: 'Hoàn thành',
+  CANCELLED: 'Đã hủy',
+  REFUNDED: 'Đã hoàn tiền',
 };
 
 const PAYMENT_LABELS: Record<AdminBookingPaymentStatus, string> = {
-  PAID: 'Paid',
-  PENDING: 'Pending',
-  FAILED: 'Failed',
-  REFUNDED: 'Refunded',
+  PAID: 'Đã thanh toán',
+  PENDING: 'Chờ thanh toán',
+  FAILED: 'Thất bại',
+  REFUNDED: 'Đã hoàn tiền',
 };
 
 const formatDateTime = (value: string | null) => {
@@ -115,7 +115,7 @@ export default function AdminBookingsPage() {
 
       setOverview(response);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Khong the tai danh sach bookings admin.';
+      const message = err instanceof Error ? err.message : 'Không thể tải danh sách đơn đặt chỗ.';
       setError(message);
     } finally {
       hasLoadedOnceRef.current = true;
@@ -164,7 +164,7 @@ export default function AdminBookingsPage() {
 
     const trimmedReason = updateReason.trim();
     if (!trimmedReason) {
-      toast.error('Vui long nhap ly do cap nhat trang thai booking.');
+      toast.error('Vui lòng nhập lý do cập nhật trạng thái đơn đặt chỗ.');
       return;
     }
 
@@ -199,10 +199,10 @@ export default function AdminBookingsPage() {
           : prev,
       );
 
-      toast.success('Da cap nhat trang thai booking.');
+      toast.success('Đã cập nhật trạng thái đơn đặt chỗ.');
       void loadBookings({ silent: true });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Cap nhat trang thai booking that bai.';
+      const message = err instanceof Error ? err.message : 'Cập nhật trạng thái đơn đặt chỗ thất bại.';
       toast.error(message);
     } finally {
       setUpdatingStatus(false);
@@ -213,8 +213,8 @@ export default function AdminBookingsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Bookings Management</h2>
-          <p>Dang tai danh sach bookings...</p>
+          <h2>Quản lý Đơn đặt chỗ</h2>
+          <p>Đang tải danh sách đơn đặt chỗ...</p>
         </div>
       </section>
     );
@@ -224,8 +224,8 @@ export default function AdminBookingsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Bookings Management</h2>
-          <p>{error || 'Khong co du lieu bookings.'}</p>
+          <h2>Quản lý Đơn đặt chỗ</h2>
+          <p>{error || 'Không có dữ liệu đơn đặt chỗ.'}</p>
         </div>
       </section>
     );
@@ -235,14 +235,14 @@ export default function AdminBookingsPage() {
     <section className={styles.page}>
       <div className={styles.hero}>
         <div>
-          <h2>Bookings Management</h2>
-          <p>Day 6: quan ly booking hop nhat hotel/tour, filter giao dich va xem chi tiet.</p>
+          <h2>Quản lý Đơn đặt chỗ</h2>
+          <p>Tổng hợp các giao dịch đặt phòng/chuyến đi, theo dõi trạng thái thanh toán và thông tin khách hàng.</p>
         </div>
 
         <div className={styles.heroMeta}>
           <span className={styles.totalBadge}>{totalBookingsText}</span>
           <span className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}>
-            {overview.hasMockFallback ? 'Mock fallback mode' : 'API live mode'}
+            {overview.hasMockFallback ? 'Chế độ dữ liệu mẫu' : 'Chế độ API thực'}
           </span>
         </div>
       </div>
@@ -255,12 +255,12 @@ export default function AdminBookingsPage() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Tim theo code, guest, email, service"
+              placeholder="Tìm theo mã đơn, khách hàng, email, dịch vụ"
             />
           </label>
 
           <select
-            aria-label="Filter by booking status"
+            aria-label="Lọc theo trạng thái đơn"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value as BookingStatusFilter);
@@ -269,13 +269,13 @@ export default function AdminBookingsPage() {
           >
             {STATUS_OPTIONS.map((status) => (
               <option key={status} value={status}>
-                {status === 'ALL' ? 'Tat ca status' : STATUS_LABELS[status]}
+                {status === 'ALL' ? 'Tất cả trạng thái' : STATUS_LABELS[status]}
               </option>
             ))}
           </select>
 
           <select
-            aria-label="Filter by booking type"
+            aria-label="Lọc theo loại đơn"
             value={typeFilter}
             onChange={(event) => {
               setTypeFilter(event.target.value as BookingTypeFilter);
@@ -284,13 +284,13 @@ export default function AdminBookingsPage() {
           >
             {TYPE_OPTIONS.map((type) => (
               <option key={type} value={type}>
-                {type === 'ALL' ? 'Tat ca type' : type}
+                {type === 'ALL' ? 'Tất cả loại đơn' : type}
               </option>
             ))}
           </select>
 
           <select
-            aria-label="Filter by payment status"
+            aria-label="Lọc theo trạng thái thanh toán"
             value={paymentFilter}
             onChange={(event) => {
               setPaymentFilter(event.target.value as PaymentStatusFilter);
@@ -299,19 +299,19 @@ export default function AdminBookingsPage() {
           >
             {PAYMENT_OPTIONS.map((paymentStatus) => (
               <option key={paymentStatus} value={paymentStatus}>
-                {paymentStatus === 'ALL' ? 'Tat ca payment' : PAYMENT_LABELS[paymentStatus]}
+                {paymentStatus === 'ALL' ? 'Tất cả trạng thái thanh toán' : PAYMENT_LABELS[paymentStatus]}
               </option>
             ))}
           </select>
 
           <button className={styles.primaryButton} type="submit">
             <FaSearch />
-            Search
+            Tìm kiếm
           </button>
 
           <button className={styles.ghostButton} type="button" onClick={resetFilters}>
             <FaSyncAlt />
-            Reset
+            Đặt lại
           </button>
 
           <button
@@ -321,7 +321,7 @@ export default function AdminBookingsPage() {
             disabled={refreshing}
           >
             <FaSyncAlt />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? 'Đang làm mới...' : 'Làm mới'}
           </button>
         </form>
 
@@ -329,15 +329,15 @@ export default function AdminBookingsPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Booking</th>
-                <th>Guest</th>
-                <th>Service</th>
-                <th>Date range</th>
-                <th>Status</th>
-                <th>Payment</th>
-                <th>Amount</th>
-                <th>Created</th>
-                <th>Action</th>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Dịch vụ</th>
+                <th>Thời gian</th>
+                <th>Trạng thái</th>
+                <th>Thanh toán</th>
+                <th>Tổng tiền</th>
+                <th>Ngày tạo</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -345,7 +345,7 @@ export default function AdminBookingsPage() {
                 <tr>
                   <td className={styles.emptyCell} colSpan={9}>
                     <FaClipboardList />
-                    <span>Khong co booking phu hop bo loc hien tai.</span>
+                    <span>Không có đơn đặt chỗ phù hợp với bộ lọc hiện tại.</span>
                   </td>
                 </tr>
               ) : (
@@ -423,7 +423,7 @@ export default function AdminBookingsPage() {
                         onClick={() => setSelectedBooking(booking)}
                       >
                         <FaCheckCircle />
-                        Review
+                        Chi tiết
                       </button>
                     </td>
                   </tr>
@@ -440,10 +440,10 @@ export default function AdminBookingsPage() {
             disabled={page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
-            Prev
+            Trước
           </button>
           <span>
-            Page <strong>{page}</strong> / {totalPages}
+            Trang <strong>{page}</strong> / {totalPages}
           </span>
           <button
             type="button"
@@ -451,7 +451,7 @@ export default function AdminBookingsPage() {
             disabled={page >= totalPages}
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           >
-            Next
+            Sau
           </button>
         </div>
       </article>
@@ -462,22 +462,22 @@ export default function AdminBookingsPage() {
             className={styles.modal}
             role="dialog"
             aria-modal="true"
-            aria-label="Booking detail"
+            aria-label="Chi tiết đơn đặt chỗ"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Booking Detail</h3>
+            <h3>Chi tiết đơn đặt chỗ</h3>
 
             <dl className={styles.detailGrid}>
               <div>
-                <dt>Code</dt>
+                <dt>Mã đơn</dt>
                 <dd>{selectedBooking.bookingCode}</dd>
               </div>
               <div>
-                <dt>Type</dt>
+                <dt>Loại đơn</dt>
                 <dd>{selectedBooking.bookingType}</dd>
               </div>
               <div>
-                <dt>Guest</dt>
+                <dt>Khách hàng</dt>
                 <dd>{selectedBooking.guestName}</dd>
               </div>
               <div>
@@ -485,35 +485,35 @@ export default function AdminBookingsPage() {
                 <dd>{selectedBooking.guestEmail}</dd>
               </div>
               <div>
-                <dt>Service</dt>
+                <dt>Dịch vụ</dt>
                 <dd>{selectedBooking.serviceName}</dd>
               </div>
               <div>
-                <dt>City</dt>
+                <dt>Thành phố</dt>
                 <dd>{selectedBooking.serviceCity}</dd>
               </div>
               <div>
-                <dt>Date range</dt>
+                <dt>Thời gian</dt>
                 <dd>{bookingDateRange(selectedBooking)}</dd>
               </div>
               <div>
-                <dt>Created</dt>
+                <dt>Ngày tạo</dt>
                 <dd>{formatDateTime(selectedBooking.createdAt)}</dd>
               </div>
               <div>
-                <dt>Status</dt>
+                <dt>Trạng thái</dt>
                 <dd>{STATUS_LABELS[selectedBooking.status]}</dd>
               </div>
               <div>
-                <dt>Payment</dt>
+                <dt>Thanh toán</dt>
                 <dd>{PAYMENT_LABELS[selectedBooking.paymentStatus]}</dd>
               </div>
               <div>
-                <dt>Total amount</dt>
+                <dt>Tổng tiền</dt>
                 <dd>{formatAmount(selectedBooking.totalAmount, selectedBooking.currency)}</dd>
               </div>
               <div>
-                <dt>Note</dt>
+                <dt>Ghi chú</dt>
                 <dd>{selectedBooking.note || '-'}</dd>
               </div>
             </dl>
@@ -521,7 +521,7 @@ export default function AdminBookingsPage() {
             <div className={styles.modalActions}>
               <div className={styles.statusUpdateBox}>
                 <label className={styles.modalFieldLabel} htmlFor="booking-next-status">
-                  Update status
+                  Cập nhật trạng thái
                 </label>
                 <select
                   id="booking-next-status"
@@ -538,7 +538,7 @@ export default function AdminBookingsPage() {
                 </select>
 
                 <label className={styles.modalFieldLabel} htmlFor="booking-status-reason">
-                  Reason (required)
+                  Lý do thao tác (bắt buộc)
                 </label>
                 <textarea
                   id="booking-status-reason"
@@ -546,7 +546,7 @@ export default function AdminBookingsPage() {
                   rows={3}
                   value={updateReason}
                   onChange={(event) => setUpdateReason(event.target.value)}
-                  placeholder="Vi du: Da lien he khach va xac nhan thanh toan"
+                  placeholder="Ví dụ: Đã liên hệ khách và xác nhận hoàn tiền"
                   disabled={updatingStatus}
                 />
               </div>
@@ -557,11 +557,11 @@ export default function AdminBookingsPage() {
                 onClick={submitStatusUpdate}
                 disabled={updatingStatus}
               >
-                {updatingStatus ? 'Updating...' : 'Update status'}
+                {updatingStatus ? 'Đang cập nhật...' : 'Xác nhận cập nhật'}
               </button>
 
               <button type="button" className={styles.ghostButton} onClick={() => setSelectedBooking(null)}>
-                Close
+                Đóng
               </button>
             </div>
           </div>

@@ -23,8 +23,8 @@ const PAYMENT_METHODS = [
   {
     id: 'vnpay',
     icon: <FaCreditCard />,
-    title: 'VNPay',
-    subtitle: 'Thanh toán qua cổng VNPay (ATM, Visa, MasterCard)',
+    title: 'Thẻ ngân hàng (ATM / Visa / MasterCard)',
+    subtitle: 'Thanh toán qua cổng VNPay — hỗ trợ thẻ nội địa & quốc tế',
     badge: 'Phổ biến',
     enabled: true,
   },

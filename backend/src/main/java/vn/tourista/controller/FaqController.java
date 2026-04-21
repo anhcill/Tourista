@@ -51,8 +51,9 @@ public class FaqController {
                     .body(ApiResponse.fail("Câu hỏi không được trống"));
         }
 
-        String answer = faqService.askGemini(req.question, req.context, req.conversationContext);
-        if (answer == null) {
+        // Luôn dùng keyword matching cục bộ — KHÔNG gọi Gemini
+        String answer = faqService.answerQuestion(req.question, req.context, req.conversationContext);
+        if (answer == null || answer.isBlank()) {
             answer = faqService.findClosestFaqAnswer(req.question, req.context);
         }
 

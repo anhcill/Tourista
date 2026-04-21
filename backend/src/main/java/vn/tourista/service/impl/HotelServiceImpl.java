@@ -67,7 +67,7 @@ public class HotelServiceImpl implements HotelService {
                                 .collect(Collectors.toMap(Hotel::getId, Function.identity()));
 
                 Map<Long, String> coverImageMap = hotelRepository.findCoverImagesByHotelIds(hotelIds).stream()
-                                .filter(r -> r != null && r.length > 1 && r[0] != null)
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
                                 .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (String) r[1],
                                                 (a, b) -> a));
                 Map<Long, BigDecimal> minPriceMap = roomTypeRepository.findMinBasePricesByHotelIds(hotelIds).stream()
@@ -121,7 +121,7 @@ public class HotelServiceImpl implements HotelService {
 
         @Override
         public HotelDetailResponse getHotelDetail(Long hotelId) {
-                Hotel hotel = hotelRepository.findByIdAndIsActiveTrue(hotelId)
+                Hotel hotel = hotelRepository.findByIdAndIsActiveTrueWithOwner(hotelId)
                                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy khách sạn"));
 
                 List<RoomType> roomTypes = roomTypeRepository
@@ -259,7 +259,7 @@ public class HotelServiceImpl implements HotelService {
                                 .collect(Collectors.toMap(Hotel::getId, Function.identity()));
 
                 Map<Long, String> coverImageMap = hotelRepository.findCoverImagesByHotelIds(hotelIds).stream()
-                                .filter(r -> r != null && r.length > 1 && r[0] != null)
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
                                 .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (String) r[1],
                                                 (a, b) -> a));
                 Map<Long, BigDecimal> minPriceMap = roomTypeRepository.findMinBasePricesByHotelIds(hotelIds).stream()

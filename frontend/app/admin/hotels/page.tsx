@@ -20,16 +20,16 @@ type ConfirmState = {
 const STATUS_FILTER_OPTIONS: HotelStatusFilter[] = ['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'];
 
 const STATUS_LABELS: Record<AdminHotelStatus, string> = {
-  PENDING: 'Pending',
-  APPROVED: 'Approved',
-  REJECTED: 'Rejected',
-  SUSPENDED: 'Suspended',
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Từ chối',
+  SUSPENDED: 'Đình chỉ',
 };
 
 const ACTION_LABELS: Record<HotelActionStatus, string> = {
-  APPROVED: 'Approve',
-  REJECTED: 'Reject',
-  SUSPENDED: 'Suspend',
+  APPROVED: 'Duyệt',
+  REJECTED: 'Từ chối',
+  SUSPENDED: 'Đình chỉ',
 };
 
 const formatDateTime = (value: string | null) => {
@@ -83,7 +83,7 @@ export default function AdminHotelsPage() {
 
       setOverview(response);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Khong the tai danh sach hotels admin.';
+      const message = err instanceof Error ? err.message : 'Không thể tải danh sách khách sạn.';
       setError(message);
     } finally {
       setLoading(false);
@@ -168,7 +168,7 @@ export default function AdminHotelsPage() {
 
     const reason = confirmState.userReason.trim();
     if (!reason) {
-      setActionError('Ly do la bat buoc cho thao tac kiem duyet hotel.');
+      setActionError('Lý do là bắt buộc cho thao tác kiểm duyệt khách sạn.');
       return;
     }
 
@@ -180,10 +180,10 @@ export default function AdminHotelsPage() {
       await adminApi.updateHotelStatus(confirmState.hotel.id, confirmState.action, reason);
 
       patchHotelStatusLocal(confirmState.hotel.id, confirmState.action);
-      setActionSuccess(`Da ${ACTION_LABELS[confirmState.action].toLowerCase()} hotel thanh cong.`);
+      setActionSuccess(`Đã ${ACTION_LABELS[confirmState.action].toLowerCase()} khách sạn thành công.`);
       closeConfirmModal();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Cap nhat trang thai hotel that bai.';
+      const message = err instanceof Error ? err.message : 'Cập nhật trạng thái khách sạn thất bại.';
       setActionError(message);
     } finally {
       setActionLoading(false);
@@ -194,8 +194,8 @@ export default function AdminHotelsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Hotels Management</h2>
-          <p>Dang tai danh sach hotels...</p>
+          <h2>Quản lý Khách sạn</h2>
+          <p>Đang tải danh sách khách sạn...</p>
         </div>
       </section>
     );
@@ -205,8 +205,8 @@ export default function AdminHotelsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Hotels Management</h2>
-          <p>{error || 'Khong co du lieu hotels.'}</p>
+          <h2>Quản lý Khách sạn</h2>
+          <p>{error || 'Không có dữ liệu khách sạn.'}</p>
         </div>
       </section>
     );
@@ -216,20 +216,20 @@ export default function AdminHotelsPage() {
     <section className={styles.page}>
       <div className={styles.hero}>
         <div>
-          <h2>Hotels Management</h2>
-          <p>Day 4: duyet hotel theo luong approve/reject/suspend voi reason bat buoc.</p>
+          <h2>Quản lý Khách sạn</h2>
+          <p>Duyệt nền tảng: Xác nhận, từ chối hoặc đình chỉ khách sạn hoạt động.</p>
         </div>
 
         <div className={styles.heroMeta}>
           <span className={styles.totalBadge}>{totalHotelsText}</span>
           <Link href="/admin/hotels/create" className={styles.createButton}>
             <FaPlusCircle />
-            Tao khach san moi
+            Thêm mới
           </Link>
           <span
             className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}
           >
-            {overview.hasMockFallback ? 'Mock fallback mode' : 'API live mode'}
+            {overview.hasMockFallback ? 'Chế độ dữ liệu mẫu' : 'Chế độ API thực'}
           </span>
         </div>
       </div>
@@ -242,12 +242,12 @@ export default function AdminHotelsPage() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Tim hotel theo ten, host, dia chi"
+              placeholder="Tìm khách sạn theo tên, host, địa chỉ"
             />
           </label>
 
           <select
-            aria-label="Filter by hotel status"
+            aria-label="Lọc theo trạng thái"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value as HotelStatusFilter);
@@ -256,13 +256,13 @@ export default function AdminHotelsPage() {
           >
             {STATUS_FILTER_OPTIONS.map((status) => (
               <option key={status} value={status}>
-                {status === 'ALL' ? 'Tat ca status' : STATUS_LABELS[status]}
+                {status === 'ALL' ? 'Tất cả trạng thái' : STATUS_LABELS[status]}
               </option>
             ))}
           </select>
 
           <select
-            aria-label="Filter by city"
+            aria-label="Lọc theo thành phố"
             value={cityFilter}
             onChange={(event) => {
               setCityFilter(event.target.value);
@@ -271,19 +271,19 @@ export default function AdminHotelsPage() {
           >
             {cityOptions.map((city) => (
               <option key={city} value={city}>
-                {city === 'ALL' ? 'Tat ca thanh pho' : city}
+                {city === 'ALL' ? 'Tất cả thành phố' : city}
               </option>
             ))}
           </select>
 
           <button className={styles.primaryButton} type="submit">
             <FaSearch />
-            Search
+            Tìm kiếm
           </button>
 
           <button className={styles.ghostButton} type="button" onClick={resetFilters}>
             <FaSyncAlt />
-            Reset
+            Đặt lại
           </button>
 
           <button
@@ -293,7 +293,7 @@ export default function AdminHotelsPage() {
             disabled={refreshing}
           >
             <FaSyncAlt />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? 'Đang làm mới...' : 'Làm mới'}
           </button>
         </form>
 
@@ -304,13 +304,13 @@ export default function AdminHotelsPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Hotel</th>
-                <th>City</th>
-                <th>Host</th>
-                <th>Rating</th>
-                <th>Status</th>
-                <th>Updated</th>
-                <th colSpan={2}>Actions</th>
+                <th>Khách sạn</th>
+                <th>Thành phố</th>
+                <th>Chủ nhà</th>
+                <th>Đánh giá</th>
+                <th>Trạng thái</th>
+                <th>Cập nhật</th>
+                <th colSpan={2}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -318,7 +318,7 @@ export default function AdminHotelsPage() {
                 <tr>
                   <td className={styles.emptyCell} colSpan={8}>
                     <FaHotel />
-                    <span>Khong co hotel phu hop bo loc hien tai.</span>
+                    <span>Không có khách sạn phù hợp với bộ lọc hiện tại.</span>
                   </td>
                 </tr>
               ) : (
@@ -359,7 +359,7 @@ export default function AdminHotelsPage() {
                       <div className={styles.actionsWrap}>
                         <Link href={`/admin/hotels/${hotel.id}/edit`} className={styles.editButton}>
                           <FaEdit />
-                          Sua
+                          Sửa
                         </Link>
                         <button
                           type="button"
@@ -368,7 +368,7 @@ export default function AdminHotelsPage() {
                           disabled={hotel.status === 'APPROVED' || actionLoading}
                         >
                           <FaCheckCircle />
-                          Approve
+                          Duyệt
                         </button>
                         <button
                           type="button"
@@ -377,7 +377,7 @@ export default function AdminHotelsPage() {
                           disabled={hotel.status === 'REJECTED' || actionLoading}
                         >
                           <FaTimesCircle />
-                          Reject
+                          Từ chối
                         </button>
                         <button
                           type="button"
@@ -386,7 +386,7 @@ export default function AdminHotelsPage() {
                           disabled={hotel.status === 'SUSPENDED' || actionLoading}
                         >
                           <FaBan />
-                          Suspend
+                          Đình chỉ
                         </button>
                       </div>
                     </td>
@@ -404,10 +404,10 @@ export default function AdminHotelsPage() {
             disabled={page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
-            Prev
+            Trước
           </button>
           <span>
-            Page <strong>{page}</strong> / {totalPages}
+            Trang <strong>{page}</strong> / {totalPages}
           </span>
           <button
             type="button"
@@ -415,7 +415,7 @@ export default function AdminHotelsPage() {
             disabled={page >= totalPages}
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           >
-            Next
+            Sau
           </button>
         </div>
       </article>
@@ -426,19 +426,19 @@ export default function AdminHotelsPage() {
             className={styles.modal}
             role="dialog"
             aria-modal="true"
-            aria-label="Confirm hotel moderation action"
+            aria-label="Xác nhận kiểm duyệt khách sạn"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Xac nhan thao tac moderation</h3>
+            <h3>Xác nhận thao tác kiểm duyệt</h3>
             <p>
-              Hotel: <strong>{confirmState.hotel.name}</strong>
+              Khách sạn: <strong>{confirmState.hotel.name}</strong>
             </p>
             <p>
-              Action: <strong>{ACTION_LABELS[confirmState.action]}</strong>
+              Thao tác: <strong>{ACTION_LABELS[confirmState.action]}</strong>
             </p>
 
             <label className={styles.reasonField}>
-              <span>Ly do thao tac (bat buoc)</span>
+              <span>Lý do thao tác (bắt buộc)</span>
               <textarea
                 value={confirmState.userReason}
                 onChange={(event) =>
@@ -447,14 +447,14 @@ export default function AdminHotelsPage() {
                     userReason: event.target.value,
                   }))
                 }
-                placeholder="Nhap ly do de luu audit log"
+                placeholder="Nhập lý do để lưu nhật ký thao tác"
                 rows={4}
               />
             </label>
 
             <div className={styles.modalActions}>
               <button type="button" className={styles.ghostButton} onClick={closeConfirmModal}>
-                Cancel
+                Hủy
               </button>
               <button
                 type="button"
@@ -462,7 +462,7 @@ export default function AdminHotelsPage() {
                 onClick={() => void confirmAction()}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'Updating...' : 'Confirm'}
+                {actionLoading ? 'Đang thực hiện...' : 'Xác nhận'}
               </button>
             </div>
           </div>

@@ -7,8 +7,8 @@
 .hero {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 16px;
+  padding: 18px 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -18,6 +18,8 @@
 .hero h2 {
   margin: 0;
   color: #0f172a;
+  font-size: 19px;
+  font-weight: 700;
 }
 
 .hero p {
@@ -37,15 +39,15 @@
   background: #f8fbff;
   color: #0f172a;
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 14px 20px;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .dataBadge {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 10px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 16px;
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -69,8 +71,8 @@
   background: #0ea5e9;
   color: #ffffff;
   border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 14px 22px;
+  font-size: 16px;
   font-weight: 700;
   text-decoration: none;
   border: 1px solid #0284c7;
@@ -87,9 +89,9 @@
   background: #ffffff;
   color: #0f172a;
   border-color: #cbd5e1;
-  border-radius: 10px;
-  min-height: 34px;
-  font-size: 12px;
+  border-radius: 12px;
+  min-height: 42px;
+  font-size: 16px;
   font-weight: 700;
   padding: 0 10px;
   text-decoration: none;
@@ -102,8 +104,8 @@
 .panel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -124,7 +126,7 @@
   background: #ffffff;
   border-radius: 10px;
   padding: 0 10px;
-  min-height: 40px;
+  min-height: 42px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -136,31 +138,31 @@
   outline: none;
   width: 100%;
   color: #0f172a;
-  font-size: 13px;
+  font-size: 17px;
 }
 
 .toolbar select {
   border: 1px solid #cbd5e1;
   border-radius: 10px;
-  min-height: 40px;
+  min-height: 42px;
   padding: 0 10px;
   color: #0f172a;
   background: #ffffff;
-  font-size: 13px;
+  font-size: 17px;
 }
 
 .primaryButton,
 .ghostButton,
 .inlineButton {
   border-radius: 10px;
-  min-height: 40px;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 700;
+  min-height: 42px;
+  padding: 0 10px;
+  font-size: 16px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
   border: 1px solid transparent;
 }
@@ -178,7 +180,7 @@
 
 .ghostButton {
   background: #ffffff;
-  color: #0f172a;
+  color: #475569;
   border-color: #cbd5e1;
 }
 
@@ -189,11 +191,11 @@
 }
 
 .inlineButton {
-  min-height: 34px;
-  font-size: 12px;
+  min-height: 36px;
+  font-size: 15px;
   background: #f8fafc;
   border-color: #cbd5e1;
-  color: #0f172a;
+  color: #475569;
 }
 
 .approveButton {
@@ -217,8 +219,8 @@
 .successBox,
 .errorBox {
   border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 14px 18px;
+  font-size: 16px;
   border: 1px solid;
 }
 
@@ -247,15 +249,15 @@
 .table th,
 .table td {
   border-bottom: 1px solid #e2e8f0;
-  padding: 10px 8px;
-  font-size: 12px;
+  padding: 14px 16px;
+  font-size: 17px;
   text-align: left;
   vertical-align: top;
 }
 
 .table th {
   color: #475569;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -282,9 +284,9 @@
 
 .badge {
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
 }
 
 .badgePending {
@@ -332,7 +334,7 @@
 
 .pagination span {
   color: #334155;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .modalBackdrop {
@@ -343,26 +345,28 @@
   align-items: center;
   justify-content: center;
   z-index: 1200;
-  padding: 14px;
+  padding: 22px;
 }
 
 .modal {
   width: min(520px, 100%);
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
-  padding: 16px;
+  padding: 24px;
 }
 
 .modal h3 {
   margin: 0;
+  font-size: 19px;
+  font-weight: 700;
   color: #0f172a;
 }
 
 .modal p {
-  margin: 10px 0 0;
-  color: #334155;
-  font-size: 14px;
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 17px;
 }
 
 .reasonField {
@@ -374,16 +378,16 @@
 
 .reasonField span {
   color: #334155;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .reasonField textarea {
   border: 1px solid #cbd5e1;
   border-radius: 10px;
-  padding: 10px;
+  padding: 14px;
   resize: vertical;
-  font-size: 13px;
+  font-size: 17px;
   color: #0f172a;
   font-family: inherit;
 }
@@ -391,6 +395,7 @@
 .reasonField textarea:focus {
   outline: 2px solid #bae6fd;
   outline-offset: 1px;
+  border-color: #0ea5e9;
 }
 
 .modalActions {

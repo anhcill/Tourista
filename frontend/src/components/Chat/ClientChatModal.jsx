@@ -14,11 +14,32 @@ import {
 } from '@/store/slices/chatSlice';
 import styles from './ClientChatModal.module.css';
 
-const unwrapPayload = (response) => response?.data ?? response ?? null;
-const unwrapPageContent = (response) => response?.data?.content ?? response?.content ?? [];
+const unwrapPayload = (response) => response ?? null;
+const unwrapPageContent = (response) => response?.content ?? response ?? [];
 const extractErrorMessage = (error) => {
   if (!error) return 'Khong the ket noi chat luc nay.';
   if (typeof error === 'string') return error;
+
+  // Log chi tiết lỗi để debug
+  console.warn('[ChatModal] Error details:', error);
+
+  // 401 - Unauthorized
+  if (error?.response?.status === 401) {
+    return 'Vui long dang nhap de su dung chat voi chu dich vu.';
+  }
+  // 403 - Forbidden
+  if (error?.response?.status === 403) {
+    return 'Ban khong co quyen chat voi dich vu nay.';
+  }
+  // 404 - Not found
+  if (error?.response?.status === 404) {
+    return 'Khong tim thay cuoc tro chuyen. Vui long thu lai.';
+  }
+  // 500 - Server error
+  if (error?.response?.status === 500) {
+    return 'Loi server khi mo cuoc tro chuyen. Vui long thu lai sau giay lat.';
+  }
+
   return error?.message || error?.data?.message || 'Khong the ket noi chat luc nay.';
 };
 
@@ -87,12 +108,15 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     if (!isOpen || !isAuthenticated) return;
 
     const initConversation = async () => {
+      console.log('[ChatModal] initConversation called with seed:', conversationSeed);
+
       if (!conversationSeed?.type || !conversationSeed?.referenceId) {
         setError('Thong tin cuoc tro chuyen khong hop le.');
         return;
       }
 
       if (!conversationSeed?.partnerId) {
+        console.warn('[ChatModal] Missing partnerId - hotel may not have owner:', conversationSeed);
         setError('Dich vu nay chua co thong tin chu so huu de mo chat truc tiep. Vui long lien he ho tro 24/7.');
         return;
       }
@@ -108,8 +132,12 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
           bookingId: conversationSeed.bookingId ? Number(conversationSeed.bookingId) : undefined,
         };
 
+        console.log('[ChatModal] Creating conversation with payload:', payload);
+
         const response = await chatApi.createConversation(payload);
         const conversation = unwrapPayload(response);
+
+        console.log('[ChatModal] createConversation response:', response, 'conversation:', conversation);
 
         if (!conversation?.id) {
           throw new Error('Khong mo duoc cuoc tro chuyen.');
@@ -126,6 +154,7 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
 
         setTimeout(() => inputRef.current?.focus(), 80);
       } catch (initError) {
+        console.error('[ChatModal] initConversation error:', initError);
         setError(extractErrorMessage(initError));
       } finally {
         setLoading(false);

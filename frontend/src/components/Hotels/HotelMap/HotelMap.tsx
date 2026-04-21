@@ -44,10 +44,15 @@ export default function HotelMap({ hotel, className = '' }) {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
+    let isMounted = true;
+
     const initMap = async () => {
       try {
         // Dynamically import leaflet to avoid SSR issues
         const L = (await import('leaflet')).default;
+
+        if (!isMounted) return;
+        if (mapInstanceRef.current) return;
 
         // Fix default marker icon path issue with webpack
         delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -59,6 +64,11 @@ export default function HotelMap({ hotel, className = '' }) {
 
         const mapEl = mapRef.current;
         if (!mapEl) return;
+        
+        if ((mapEl as any)._leaflet_id) {
+          (mapEl as any)._leaflet_id = null;
+        }
+
         const lat = hasCoords ? Number(hotelLat) : 16.0544;
         const lng = hasCoords ? Number(hotelLng) : 108.2022;
 
@@ -157,6 +167,7 @@ export default function HotelMap({ hotel, className = '' }) {
     void initMap();
 
     return () => {
+      isMounted = false;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;

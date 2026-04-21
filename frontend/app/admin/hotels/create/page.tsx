@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaArrowLeft, FaSave, FaSyncAlt } from 'react-icons/fa';
 import adminApi from '@/api/adminApi';
-import styles from '../../page.module.css';
+import styles from './page.module.css';
 
 type HotelForm = {
   name: string;
@@ -69,6 +69,17 @@ export default function AdminHotelCreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Image preview
+  const imageList = useMemo(() => {
+    return form.imageUrls.split('\n').map((u) => u.trim()).filter(Boolean);
+  }, [form.imageUrls]);
+
+  const removeImage = (index: number) => {
+    const lines = form.imageUrls.split('\n');
+    lines.splice(index, 1);
+    setForm((prev) => ({ ...prev, imageUrls: lines.join('\n') }));
+  };
 
   const set = (field: keyof HotelForm, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -221,6 +232,19 @@ export default function AdminHotelCreatePage() {
                 placeholder="https://images.unsplash.com/photo-xxxx&#10;https://images.unsplash.com/photo-xxxx"
               />
             </label>
+
+            {imageList.length > 0 && (
+              <div className={`${styles.imagePreview} ${styles.fullWidth}`}>
+                {imageList.map((url, i) => (
+                  <div key={i} className={styles.previewItem}>
+                    <img src={url} alt={`Preview ${i + 1}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <button type="button" className={styles.removeImageBtn} onClick={() => removeImage(i)} title="Xoa anh">
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className={`${styles.checkboxGroup} ${styles.fullWidth}`}>
               <label className={styles.checkboxLabel}>

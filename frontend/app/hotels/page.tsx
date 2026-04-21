@@ -1,8 +1,9 @@
 import HeroBanner from '@/components/Home/HeroBanner';
 import WhyChooseUs from '@/components/Home/WhyChooseUs/WhyChooseUs';
-import HotelPageSearch from '@/components/Hotels/HotelPageSearch/HotelPageSearch';
+import SpecialOffers from '@/components/Home/SpecialOffers/SpecialOffers';
 import Testimonials from '@/components/Home/Testimonials/Testimonials';
 import CTACards from '@/components/Home/CTACards/CTACards';
+import TrendingDestinations from '@/components/Home/TrendingDestinations/TrendingDestinations';
 
 export default function HotelsPage() {
   return (
@@ -10,7 +11,8 @@ export default function HotelsPage() {
       <main>
         <HeroBanner />
         <WhyChooseUs />
-        <HotelPageSearch />
+        <SpecialOffers />
+        <TrendingDestinations />
         <Testimonials />
         <CTACards />
       </main>

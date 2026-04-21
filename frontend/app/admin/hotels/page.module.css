@@ -7,8 +7,8 @@
 .hero {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 16px;
+  padding: 22px 26px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -37,15 +37,15 @@
   background: #f8fbff;
   color: #0f172a;
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 14px 20px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .dataBadge {
-  font-size: 12px;
+  font-size: 17px;
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 14px 20px;
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -69,8 +69,8 @@
   background: #0ea5e9;
   color: #ffffff;
   border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 14px 22px;
+  font-size: 17px;
   font-weight: 700;
   text-decoration: none;
   border: 1px solid #0284c7;
@@ -83,8 +83,8 @@
 .panel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -103,9 +103,9 @@
 .searchBox {
   border: 1px solid #cbd5e1;
   background: #ffffff;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 0 10px;
-  min-height: 40px;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -117,26 +117,26 @@
   outline: none;
   width: 100%;
   color: #0f172a;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .toolbar select {
   border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  min-height: 40px;
+  border-radius: 12px;
+  min-height: 48px;
   padding: 0 10px;
   color: #0f172a;
   background: #ffffff;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .primaryButton,
 .ghostButton,
 .inlineButton {
-  border-radius: 10px;
-  min-height: 40px;
+  border-radius: 12px;
+  min-height: 48px;
   padding: 0 12px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -170,8 +170,8 @@
 }
 
 .inlineButton {
-  min-height: 34px;
-  font-size: 12px;
+  min-height: 42px;
+  font-size: 17px;
   background: #f8fafc;
   border-color: #cbd5e1;
   color: #0f172a;
@@ -202,9 +202,9 @@
   background: #ffffff;
   color: #0f172a;
   border-color: #cbd5e1;
-  border-radius: 10px;
-  min-height: 34px;
-  font-size: 12px;
+  border-radius: 12px;
+  min-height: 42px;
+  font-size: 17px;
   font-weight: 700;
   padding: 0 10px;
   text-decoration: none;
@@ -216,9 +216,9 @@
 
 .successBox,
 .errorBox {
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
+  border-radius: 12px;
+  padding: 18px 22px;
+  font-size: 16px;
   border: 1px solid;
 }
 
@@ -247,8 +247,8 @@
 .table th,
 .table td {
   border-bottom: 1px solid #e2e8f0;
-  padding: 10px 8px;
-  font-size: 12px;
+  padding: 18px 18px;
+  font-size: 17px;
   text-align: left;
   vertical-align: top;
 }
@@ -286,9 +286,9 @@
 
 .badge {
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 12px 18px;
 }
 
 .badgePending {
@@ -336,7 +336,7 @@
 
 .pagination span {
   color: #334155;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .modalBackdrop {
@@ -347,15 +347,15 @@
   align-items: center;
   justify-content: center;
   z-index: 1200;
-  padding: 14px;
+  padding: 22px;
 }
 
 .modal {
   width: min(520px, 100%);
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
-  padding: 16px;
+  padding: 24px;
 }
 
 .modal h3 {
@@ -366,7 +366,7 @@
 .modal p {
   margin: 10px 0 0;
   color: #334155;
-  font-size: 14px;
+  font-size: 24px;
 }
 
 .reasonField {
@@ -378,16 +378,16 @@
 
 .reasonField span {
   color: #334155;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .reasonField textarea {
   border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 12px;
+  padding: 18px;
   resize: vertical;
-  font-size: 13px;
+  font-size: 16px;
   color: #0f172a;
   font-family: inherit;
 }

@@ -69,8 +69,15 @@ function CallbackHandler() {
                 const destination = role === 'ADMIN' || role === 'ROLE_ADMIN' ? '/admin' : '/';
                 router.replace(destination);
             } catch (err) {
-                console.error('OAuth2 callback exchange error:', err);
-                router.replace('/login?error=oauth_failed');
+                // Log chi tiết để debug
+                const errorMessage = err?.response?.data?.message || err?.message || 'Không thể kết nối máy chủ OAuth2';
+                console.error('OAuth2 callback exchange error:', {
+                    message: errorMessage,
+                    status: err?.response?.status,
+                    code: err?.code,
+                    fullError: err,
+                });
+                router.replace(`/login?error=${encodeURIComponent(errorMessage)}`);
             }
         };
 

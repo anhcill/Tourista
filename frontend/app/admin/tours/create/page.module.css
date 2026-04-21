@@ -1,44 +1,47 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .hero {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .hero h2 {
   margin: 0;
+  font-size: 21px;
+  font-weight: 700;
   color: #0f172a;
 }
 
 .hero p {
   margin: 0;
-  color: #475569;
+  font-size: 16px;
+  color: #64748b;
 }
 
 .heroBreadcrumb {
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .backButton {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: none;
   border: none;
   color: #0ea5e9;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   padding: 0;
 }
@@ -51,10 +54,10 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 14px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .formGrid {
@@ -66,13 +69,13 @@
 .formGrid label {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .formGrid label span {
-  color: #334155;
-  font-size: 12px;
-  font-weight: 700;
+  color: #475569;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .formGrid input,
@@ -80,12 +83,16 @@
 .formGrid textarea {
   border: 1px solid #cbd5e1;
   border-radius: 10px;
-  min-height: 38px;
-  padding: 8px 10px;
+  min-height: 42px;
+  padding: 12px 16px;
   color: #0f172a;
   background: #ffffff;
-  font-size: 13px;
+  font-size: 17px;
   font-family: inherit;
+}
+
+.formGrid textarea {
+  resize: vertical;
 }
 
 .formGrid input:focus,
@@ -93,6 +100,16 @@
 .formGrid textarea:focus {
   outline: 2px solid #bae6fd;
   outline-offset: 1px;
+  border-color: #0ea5e9;
+}
+
+.formGrid input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.formGrid input[type="number"]::-webkit-inner-spin-button,
+.formGrid input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
 }
 
 .fullWidth {
@@ -101,42 +118,44 @@
 
 .checkboxGroup {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .checkboxLabel {
   align-items: center;
   flex-direction: row;
-  gap: 8px;
-  font-size: 13px;
-  color: #334155;
+  gap: 6px;
+  font-size: 16px;
+  color: #475569;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .checkboxLabel input {
   min-height: auto;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
 }
 
 .formActions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .primaryButton,
 .ghostButton {
   border-radius: 10px;
-  min-height: 40px;
-  padding: 0 14px;
-  font-size: 13px;
-  font-weight: 700;
+  min-height: 42px;
+  padding: 0 12px;
+  font-size: 16px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
   border: 1px solid transparent;
 }
@@ -147,6 +166,10 @@
   border-color: #0284c7;
 }
 
+.primaryButton:hover {
+  background: #0284c7;
+}
+
 .primaryButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -154,15 +177,19 @@
 
 .ghostButton {
   background: #ffffff;
-  color: #0f172a;
+  color: #475569;
   border-color: #cbd5e1;
+}
+
+.ghostButton:hover {
+  background: #f8fafc;
 }
 
 .successBox,
 .errorBox {
   border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 14px 18px;
+  font-size: 16px;
   border: 1px solid;
 }
 
@@ -178,20 +205,21 @@
   color: #b91c1c;
 }
 
-/* Itinerary & Departure builders */
+/* Section headers */
 .sectionTitle {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 4px;
   padding-top: 8px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #f1f5f9;
 }
 
 .sectionTitle h3 {
   margin: 0;
-  color: #0f172a;
-  font-size: 15px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #334155;
 }
 
 .smallButton {
@@ -202,9 +230,9 @@
   color: #166534;
   border: 1px solid #86efac;
   border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 9px 16px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -212,19 +240,20 @@
   background: #dcfce7;
 }
 
+/* Itinerary list */
 .itineraryList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .itineraryItem {
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   background: #f8fafc;
 }
 
@@ -232,17 +261,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
+  color: #334155;
 }
 
 .itineraryItem input,
 .itineraryItem textarea {
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 11px 16px;
+  font-size: 16px;
   color: #0f172a;
   background: #ffffff;
   font-family: inherit;
@@ -257,6 +286,7 @@
 .itineraryItem textarea:focus {
   outline: 2px solid #bae6fd;
   outline-offset: 1px;
+  border-color: #0ea5e9;
 }
 
 .removeButton {
@@ -265,9 +295,9 @@
   background: #fee2e2;
   color: #b91c1c;
   border: 1px solid #fecaca;
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 11px;
+  border-radius: 7px;
+  padding: 8px 14px;
+  font-size: 15px;
   cursor: pointer;
 }
 
@@ -275,16 +305,17 @@
   background: #fecaca;
 }
 
+/* Departures list */
 .departuresList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .departureItem {
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px;
+  padding: 16px;
   background: #f8fafc;
 }
 
@@ -292,10 +323,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  font-size: 13px;
+  margin-bottom: 8px;
+  font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
+  color: #334155;
 }
 
 .departureFields {
@@ -307,42 +338,99 @@
 .departureFields label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .departureFields label span {
-  font-size: 11px;
-  color: #475569;
-  font-weight: 700;
+  font-size: 15px;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .departureFields input {
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 13px;
+  padding: 11px 16px;
+  font-size: 16px;
   color: #0f172a;
   background: #ffffff;
   font-family: inherit;
-  min-height: 34px;
+  min-height: 38px;
 }
 
 .departureFields input:focus {
   outline: 2px solid #bae6fd;
   outline-offset: 1px;
+  border-color: #0ea5e9;
+}
+
+/* Image Preview */
+.imagePreview {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.previewItem {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  aspect-ratio: 16 / 10;
+  background: #f8fafc;
+}
+
+.previewItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.removeImageBtn:hover {
+  background: rgba(220, 38, 38, 0.85);
 }
 
 @media (max-width: 780px) {
   .formGrid {
     grid-template-columns: 1fr;
   }
+
+  .departureFields {
+    grid-template-columns: 1fr;
+  }
+
   .formActions {
     flex-direction: column;
   }
+
   .formActions button {
     width: 100%;
+    justify-content: center;
   }
-  .departureFields {
-    grid-template-columns: 1fr;
+
+  .imagePreview {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

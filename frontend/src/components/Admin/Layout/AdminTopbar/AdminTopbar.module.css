@@ -1,8 +1,8 @@
 .topbar {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 16px;
+  padding: 22px 26px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -16,14 +16,14 @@
 .breadcrumb {
   margin: 0;
   color: #64748b;
-  font-size: 12px;
+  font-size: 22px;
   font-weight: 600;
 }
 
 .leftBlock h1 {
   margin: 5px 0 0;
   color: #0f172a;
-  font-size: 22px;
+  font-size: 32px;
 }
 
 .rightBlock {
@@ -34,13 +34,13 @@
 
 .searchBox {
   border: 1px solid #dbeafe;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #f8fbff;
   color: #64748b;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 10px;
+  padding: 16px 20px;
 }
 
 .searchBox input {
@@ -48,13 +48,13 @@
   background: transparent;
   outline: none;
   width: 190px;
-  font-size: 13px;
+  font-size: 23px;
 }
 
 .notifyBtn {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #dbeafe;
   background: #eff6ff;
   color: #1d4ed8;
@@ -71,12 +71,12 @@
 }
 
 .userMeta strong {
-  font-size: 13px;
+  font-size: 23px;
   color: #0f172a;
 }
 
 .userMeta span {
-  font-size: 12px;
+  font-size: 22px;
   color: #64748b;
 }
 

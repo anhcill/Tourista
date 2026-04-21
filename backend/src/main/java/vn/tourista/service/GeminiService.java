@@ -11,6 +11,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * GeminiService — Gọi Gemini Flash API để trả lời thông minh khi FAQ không
@@ -87,7 +89,9 @@ public class GeminiService {
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            // Use async send to not block the thread
+            CompletableFuture<HttpResponse<String>> future = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = future.get(timeoutSeconds + 1, TimeUnit.SECONDS);
 
             if (response.statusCode() == 200) {
                 return parseResponse(response.body());

@@ -7,8 +7,8 @@
 .hero {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 16px;
+  padding: 22px 26px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -37,7 +37,7 @@
   background: none;
   border: none;
   color: #0ea5e9;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   padding: 0;
@@ -50,8 +50,8 @@
 .panel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -71,7 +71,7 @@
 
 .formGrid label span {
   color: #334155;
-  font-size: 12px;
+  font-size: 17px;
   font-weight: 700;
 }
 
@@ -79,12 +79,12 @@
 .formGrid select,
 .formGrid textarea {
   border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  min-height: 38px;
-  padding: 8px 10px;
+  border-radius: 12px;
+  min-height: 46px;
+  padding: 16px 20px;
   color: #0f172a;
   background: #ffffff;
-  font-size: 13px;
+  font-size: 16px;
   font-family: inherit;
 }
 
@@ -109,7 +109,7 @@
   align-items: center;
   flex-direction: row;
   gap: 8px;
-  font-size: 13px;
+  font-size: 16px;
   color: #334155;
   cursor: pointer;
 }
@@ -129,10 +129,10 @@
 
 .primaryButton,
 .ghostButton {
-  border-radius: 10px;
-  min-height: 40px;
+  border-radius: 12px;
+  min-height: 48px;
   padding: 0 14px;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -160,9 +160,9 @@
 
 .successBox,
 .errorBox {
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
+  border-radius: 12px;
+  padding: 18px 22px;
+  font-size: 16px;
   border: 1px solid;
 }
 
@@ -178,6 +178,54 @@
   color: #b91c1c;
 }
 
+/* Image Preview */
+.imagePreview {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.previewItem {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  aspect-ratio: 16 / 10;
+  background: #f8fafc;
+}
+
+.previewItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.removeImageBtn:hover {
+  background: rgba(220, 38, 38, 0.85);
+}
+
 @media (max-width: 780px) {
   .formGrid {
     grid-template-columns: 1fr;
@@ -187,5 +235,8 @@
   }
   .formActions button {
     width: 100%;
+  }
+  .imagePreview {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

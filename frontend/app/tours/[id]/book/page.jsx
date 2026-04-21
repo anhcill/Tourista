@@ -21,8 +21,8 @@ const formatVnd = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
 
 const PAYMENT_METHODS = [
-  { id: 'vnpay',        emoji: '🔒', title: 'VNPay',                subtitle: 'Thanh toán qua cổng VNPay (ATM, Visa)',   enabled: true },
-  { id: 'bank_transfer',emoji: '🏦', title: 'Chuyển khoản ngân hàng', subtitle: 'Nhận thông tin CK và xác nhận thanh toán', enabled: true },
+  { id: 'vnpay',        emoji: '🔒', title: 'Thẻ ngân hàng (ATM / Visa / MasterCard)', subtitle: 'Thanh toán qua cổng VNPay — hỗ trợ thẻ nội địa & quốc tế', enabled: true },
+  { id: 'bank_transfer',emoji: '🏦', title: 'Chuyển khoản ngân hàng',                     subtitle: 'Nhận thông tin CK và xác nhận thanh toán thủ công',           enabled: true },
 ];
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=900&q=80';

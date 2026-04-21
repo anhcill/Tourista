@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import styles from './AdminRouteGuard.module.css';
@@ -86,6 +86,11 @@ const collectRolesFromToken = (token) => {
 export default function AdminRouteGuard({ children }) {
   const router = useRouter();
   const { isAuthenticated, user, token } = useSelector((state) => state.auth);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const hasAdminRole = useMemo(() => {
     const roles = [
@@ -96,6 +101,8 @@ export default function AdminRouteGuard({ children }) {
   }, [token, user]);
 
   useEffect(() => {
+    if (!mounted) return;
+    
     if (!isAuthenticated) {
       router.replace('/login?redirect=/admin');
       return;
@@ -104,13 +111,22 @@ export default function AdminRouteGuard({ children }) {
     if (!hasAdminRole) {
       router.replace('/');
     }
-  }, [hasAdminRole, isAuthenticated, router]);
+  }, [hasAdminRole, isAuthenticated, mounted, router]);
+
+  if (!mounted) {
+    return (
+      <div className={styles.guardState}>
+        <div className={styles.spinner} />
+        <p>Đang kiểm tra quyền truy cập Admin...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !hasAdminRole) {
     return (
       <div className={styles.guardState}>
         <div className={styles.spinner} />
-        <p>Dang kiem tra quyen truy cap Admin...</p>
+        <p>Đang xử lý quyền truy cập Admin...</p>
       </div>
     );
   }

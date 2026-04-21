@@ -68,6 +68,7 @@ public class ChatMessage {
         BOOKING_DETAILS,  // Bot trả về thông tin booking đầy đủ dạng Rich Card
         TOUR_CARDS,       // Bot trả về danh sách tour gợi ý dạng Card có CTA
         SCENARIO_CHOICE,  // Bot đưa ra kịch bản để user chọn (beach, mountain...)
+        FAQ_MENU,         // Bot đưa ra menu FAQ nhanh để user chọn
         SYSTEM_LOG        // Tin nhắn hệ thống: "Cuộc trò chuyện đã bắt đầu"
     }
 }

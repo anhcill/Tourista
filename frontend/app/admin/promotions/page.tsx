@@ -158,7 +158,7 @@ export default function AdminPromotionsPage() {
 
       setOverview(response);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Khong the tai danh sach promotions.';
+      const message = err instanceof Error ? err.message : 'Không thể tải danh sách khuyến mãi.';
       setError(message);
     } finally {
       setLoading(false);
@@ -223,49 +223,49 @@ export default function AdminPromotionsPage() {
   const validateForm = () => {
     const code = form.code.trim().toUpperCase();
     if (!/^[A-Z0-9_-]{4,20}$/.test(code)) {
-      return 'Code phai 4-20 ky tu, chi gom A-Z, 0-9, _ hoac -.';
+      return 'Mã phải từ 4-20 ký tự, chỉ gồm A-Z, 0-9, _ hoặc -.';
     }
 
     if (!form.name.trim()) {
-      return 'Name promotion la bat buoc.';
+      return 'Tên khuyến mãi là bắt buộc.';
     }
 
     const value = Number(form.value);
     if (!Number.isFinite(value) || value <= 0) {
-      return 'Gia tri khuyen mai phai lon hon 0.';
+      return 'Giá trị khuyến mãi phải lớn hơn 0.';
     }
     if (form.type === 'PERCENT' && value > 100) {
-      return 'Khuyen mai theo % khong duoc vuot qua 100.';
+      return 'Khuyến mãi theo % không được vượt quá 100.';
     }
 
     const minOrderAmount = Number(form.minOrderAmount);
     if (!Number.isFinite(minOrderAmount) || minOrderAmount < 0) {
-      return 'Don hang toi thieu phai >= 0.';
+      return 'Đơn hàng tối thiểu phải >= 0.';
     }
 
     const usageLimit = Number(form.usageLimit);
     if (!Number.isInteger(usageLimit) || usageLimit <= 0) {
-      return 'So luong su dung phai la so nguyen duong.';
+      return 'Số lượng sử dụng phải là số nguyên dương.';
     }
 
     if (form.maxDiscountAmount) {
       const maxDiscount = Number(form.maxDiscountAmount);
       if (!Number.isFinite(maxDiscount) || maxDiscount <= 0) {
-        return 'Max discount phai lon hon 0 neu co nhap.';
+        return 'Giảm giá tối đa phải lớn hơn 0 nếu có nhập.';
       }
     }
 
     const startAt = toIso(form.startAt);
     const endAt = toIso(form.endAt);
     if (!startAt || !endAt) {
-      return 'Bat buoc nhap start date va end date hop le.';
+      return 'Bắt buộc nhập ngày bắt đầu và ngày kết thúc hợp lệ.';
     }
     if (new Date(startAt).getTime() >= new Date(endAt).getTime()) {
-      return 'End date phai lon hon start date.';
+      return 'Ngày kết thúc phải lớn hơn ngày bắt đầu.';
     }
 
     if (form.changeReason.trim().length < 5) {
-      return 'Reason toi thieu 5 ky tu.';
+      return 'Lý do tối thiểu 5 ký tự.';
     }
 
     return '';
@@ -304,17 +304,17 @@ export default function AdminPromotionsPage() {
         await adminApi.updateAdminPromotion(editingPromotionId, payload);
         await loadPromotions({ silent: true });
 
-        setFormSuccess('Cap nhat promotion thanh cong.');
+        setFormSuccess('Cập nhật khuyến mãi thành công.');
       } else {
         await adminApi.createAdminPromotion(payload);
         await loadPromotions({ silent: true });
 
-        setFormSuccess('Tao promotion thanh cong.');
+        setFormSuccess('Tạo khuyến mãi thành công.');
       }
 
       resetForm();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Khong the luu promotion.';
+      const message = err instanceof Error ? err.message : 'Không thể lưu khuyến mãi.';
       setFormError(message);
     } finally {
       setSubmitting(false);
@@ -345,7 +345,7 @@ export default function AdminPromotionsPage() {
 
     const reason = confirmState.reason.trim();
     if (reason.length < 5) {
-      setActionError('Reason toi thieu 5 ky tu.');
+      setActionError('Lý do tối thiểu 5 ký tự.');
       return;
     }
 
@@ -363,7 +363,7 @@ export default function AdminPromotionsPage() {
 
       closeConfirm();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Thao tac promotion that bai.';
+      const message = err instanceof Error ? err.message : 'Thao tác khuyến mãi thất bại.';
       setActionError(message);
     }
   };
@@ -372,8 +372,8 @@ export default function AdminPromotionsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Promotions Management</h2>
-          <p>Dang tai danh sach promotions...</p>
+          <h2>Quản lý Khuyến mãi</h2>
+          <p>Đang tải danh sách khuyến mãi...</p>
         </div>
       </section>
     );
@@ -383,8 +383,8 @@ export default function AdminPromotionsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>Promotions Management</h2>
-          <p>{error || 'Khong co du lieu promotions.'}</p>
+          <h2>Quản lý Khuyến mãi</h2>
+          <p>{error || 'Không có dữ liệu khuyến mãi.'}</p>
         </div>
       </section>
     );
@@ -394,24 +394,24 @@ export default function AdminPromotionsPage() {
     <section className={styles.page}>
       <div className={styles.hero}>
         <div>
-          <h2>Promotions Management</h2>
-          <p>Day 7: CRUD promotions + validation date range, quantity, discount value.</p>
+          <h2>Quản lý Khuyến mãi</h2>
+          <p>Quản lý các chương trình khuyến mãi, thiết lập số lượng và giá trị giảm giá.</p>
         </div>
 
         <div className={styles.heroMeta}>
           <span className={styles.totalBadge}>{totalPromotionsText}</span>
           <span className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}>
-            {overview.hasMockFallback ? 'Mock fallback mode' : 'API live mode'}
+            {overview.hasMockFallback ? 'Chế độ dữ liệu mẫu' : 'Chế độ API thực'}
           </span>
         </div>
       </div>
 
       <article className={styles.panel}>
-        <h3 className={styles.panelTitle}>{editingPromotionId ? 'Edit Promotion' : 'Create Promotion'}</h3>
+        <h3 className={styles.panelTitle}>{editingPromotionId ? 'Sửa Khuyến mãi' : 'Tạo Khuyến mãi'}</h3>
 
         <form className={styles.formGrid} onSubmit={handleSubmitPromotion}>
           <label>
-            <span>Code</span>
+            <span>Mã</span>
             <input
               value={form.code}
               onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value.toUpperCase() }))}
@@ -421,7 +421,7 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>Name</span>
+            <span>Tên</span>
             <input
               value={form.name}
               onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
@@ -430,7 +430,7 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>Type</span>
+            <span>Loại</span>
             <select
               value={form.type}
               onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value as AdminPromotionType }))}
@@ -441,7 +441,7 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>Value</span>
+            <span>Giá trị</span>
             <input
               type="number"
               value={form.value}
@@ -452,7 +452,7 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>Min Order Amount</span>
+            <span>Đơn hàng tối thiểu</span>
             <input
               type="number"
               value={form.minOrderAmount}
@@ -462,18 +462,18 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>Max Discount Amount</span>
+            <span>Giảm giá tối đa</span>
             <input
               type="number"
               value={form.maxDiscountAmount}
               onChange={(event) => setForm((prev) => ({ ...prev, maxDiscountAmount: event.target.value }))}
               min={0}
-              placeholder="Optional"
+              placeholder="Không bắt buộc"
             />
           </label>
 
           <label>
-            <span>Usage Limit</span>
+            <span>Số lượt kích hoạt</span>
             <input
               type="number"
               value={form.usageLimit}
@@ -483,7 +483,7 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>Start At</span>
+            <span>Ngày bắt đầu</span>
             <input
               type="datetime-local"
               value={form.startAt}
@@ -492,7 +492,7 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>End At</span>
+            <span>Ngày kết thúc</span>
             <input
               type="datetime-local"
               value={form.endAt}
@@ -501,11 +501,11 @@ export default function AdminPromotionsPage() {
           </label>
 
           <label>
-            <span>Description</span>
+            <span>Mô tả</span>
             <input
               value={form.description}
               onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-              placeholder="Mo ta dieu kien promotion"
+              placeholder="Mô tả điều kiện khuyến mãi"
             />
           </label>
 
@@ -515,26 +515,26 @@ export default function AdminPromotionsPage() {
               checked={form.isActive}
               onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))}
             />
-            <span>Active</span>
+            <span>Kích hoạt</span>
           </label>
 
           <label className={styles.fullWidth}>
-            <span>Reason (required)</span>
+            <span>Lý do thao tác (bắt buộc)</span>
             <input
               value={form.changeReason}
               onChange={(event) => setForm((prev) => ({ ...prev, changeReason: event.target.value }))}
-              placeholder="Nhap ly do thao tac promotion"
+              placeholder="Nhập lý do thao tác khuyến mãi"
             />
           </label>
 
           <div className={`${styles.actionsBar} ${styles.fullWidth}`}>
             <button className={styles.primaryButton} type="submit" disabled={submitting}>
               <FaPlusCircle />
-              {submitting ? 'Saving...' : editingPromotionId ? 'Update promotion' : 'Create promotion'}
+              {submitting ? 'Đang lưu...' : editingPromotionId ? 'Cập nhật khuyến mãi' : 'Tạo khuyến mãi'}
             </button>
             <button className={styles.ghostButton} type="button" onClick={resetForm}>
               <FaSyncAlt />
-              Reset form
+              Đặt lại biểu mẫu
             </button>
           </div>
         </form>
@@ -551,12 +551,12 @@ export default function AdminPromotionsPage() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Tim theo code hoac description"
+              placeholder="Tìm theo mã hoặc mô tả"
             />
           </label>
 
           <select
-            aria-label="Filter by promotion status"
+            aria-label="Lọc theo trạng thái"
             value={statusFilter}
             onChange={(event) => {
               setStatusFilter(event.target.value as PromotionStatusFilter);
@@ -565,13 +565,13 @@ export default function AdminPromotionsPage() {
           >
             {STATUS_OPTIONS.map((status) => (
               <option key={status} value={status}>
-                {status === 'ALL' ? 'Tat ca status' : status}
+                {status === 'ALL' ? 'Tất cả trạng thái' : status}
               </option>
             ))}
           </select>
 
           <select
-            aria-label="Filter by promotion type"
+            aria-label="Lọc theo loại khuyến mãi"
             value={typeFilter}
             onChange={(event) => {
               setTypeFilter(event.target.value as PromotionTypeFilter);
@@ -580,19 +580,19 @@ export default function AdminPromotionsPage() {
           >
             {TYPE_OPTIONS.map((type) => (
               <option key={type} value={type}>
-                {type === 'ALL' ? 'Tat ca type' : type}
+                {type === 'ALL' ? 'Tất cả loại' : type}
               </option>
             ))}
           </select>
 
           <button className={styles.primaryButton} type="submit">
             <FaSearch />
-            Search
+            Tìm kiếm
           </button>
 
           <button className={styles.ghostButton} type="button" onClick={resetFilters}>
             <FaSyncAlt />
-            Reset
+            Đặt lại
           </button>
 
           <button
@@ -602,7 +602,7 @@ export default function AdminPromotionsPage() {
             disabled={refreshing}
           >
             <FaSyncAlt />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? 'Đang làm mới...' : 'Làm mới'}
           </button>
         </form>
 
@@ -610,14 +610,14 @@ export default function AdminPromotionsPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Type</th>
-                <th>Discount</th>
-                <th>Validity</th>
-                <th>Usage</th>
-                <th>Status</th>
-                <th>Updated</th>
-                <th>Actions</th>
+                <th>Mã</th>
+                <th>Loại</th>
+                <th>Giảm giá</th>
+                <th>Thời hạn</th>
+                <th>Sử dụng</th>
+                <th>Trạng thái</th>
+                <th>Cập nhật</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -625,7 +625,7 @@ export default function AdminPromotionsPage() {
                 <tr>
                   <td className={styles.emptyCell} colSpan={8}>
                     <FaTicketAlt />
-                    <span>Khong co promotion phu hop bo loc hien tai.</span>
+                    <span>Không có khuyến mãi phù hợp với bộ lọc hiện tại.</span>
                   </td>
                 </tr>
               ) : (
@@ -669,15 +669,15 @@ export default function AdminPromotionsPage() {
                         <div className={styles.actionsInline}>
                           <button className={styles.inlineButton} type="button" onClick={() => startEdit(promotion)}>
                             <FaEdit />
-                            Edit
+                            Sửa
                           </button>
                           <button className={styles.inlineButton} type="button" onClick={() => openConfirm(promotion, 'toggle')}>
                             <FaPowerOff />
-                            {promotion.isActive ? 'Deactivate' : 'Activate'}
+                            {promotion.isActive ? 'Hủy kích hoạt' : 'Kích hoạt'}
                           </button>
                           <button className={`${styles.inlineButton} ${styles.deleteButton}`} type="button" onClick={() => openConfirm(promotion, 'delete')}>
                             <FaTrashAlt />
-                            Delete
+                            Xóa
                           </button>
                         </div>
                       </td>
@@ -696,10 +696,10 @@ export default function AdminPromotionsPage() {
             disabled={page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
-            Prev
+            Trước
           </button>
           <span>
-            Page <strong>{page}</strong> / {totalPages}
+            Trang <strong>{page}</strong> / {totalPages}
           </span>
           <button
             type="button"
@@ -707,7 +707,7 @@ export default function AdminPromotionsPage() {
             disabled={page >= totalPages}
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           >
-            Next
+            Sau
           </button>
         </div>
       </article>
@@ -718,19 +718,19 @@ export default function AdminPromotionsPage() {
             className={styles.modal}
             role="dialog"
             aria-modal="true"
-            aria-label="Confirm promotion action"
+            aria-label="Xác nhận thao tác khuyến mãi"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>{confirmState.action === 'delete' ? 'Xoa promotion' : 'Doi trang thai promotion'}</h3>
+            <h3>{confirmState.action === 'delete' ? 'Xóa khuyến mãi' : 'Thay đổi trạng thái khuyến mãi'}</h3>
             <p>
-              Promotion: <strong>{confirmState.promotion.code}</strong>
+              Khuyến mãi: <strong>{confirmState.promotion.code}</strong>
             </p>
             <p>
-              Action: <strong>{confirmState.action === 'delete' ? 'Delete' : 'Toggle active/inactive'}</strong>
+              Thao tác: <strong>{confirmState.action === 'delete' ? 'Xóa' : 'Bật/Tắt kích hoạt'}</strong>
             </p>
 
             <label className={styles.reasonField}>
-              <span>Reason (required)</span>
+              <span>Lý do thao tác (bắt buộc)</span>
               <textarea
                 value={confirmState.reason}
                 onChange={(event) =>
@@ -740,7 +740,7 @@ export default function AdminPromotionsPage() {
                   }))
                 }
                 rows={4}
-                placeholder="Nhap ly do thao tac"
+                placeholder="Nhập lý do thao tác"
               />
             </label>
 
@@ -748,10 +748,10 @@ export default function AdminPromotionsPage() {
 
             <div className={styles.modalActions}>
               <button type="button" className={styles.ghostButton} onClick={closeConfirm}>
-                Cancel
+                Hủy
               </button>
               <button type="button" className={styles.primaryButton} onClick={() => void submitConfirm()}>
-                Confirm
+                Xác nhận
               </button>
             </div>
           </div>

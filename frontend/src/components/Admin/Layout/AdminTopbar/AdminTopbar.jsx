@@ -7,13 +7,14 @@ import { FaBell, FaSearch } from 'react-icons/fa';
 import styles from './AdminTopbar.module.css';
 
 const TITLE_MAP = {
-  admin: 'Dashboard',
-  users: 'Quan ly User',
-  hotels: 'Quan ly Hotel',
-  tours: 'Quan ly Tour',
-  bookings: 'Quan ly Dat cho',
-  promotions: 'Quan ly Khuyen mai',
-  settings: 'Cai dat he thong',
+  admin: 'Tổng quan',
+  users: 'Quản lý Người dùng',
+  hotels: 'Quản lý Khách sạn',
+  tours: 'Quản lý Chuyến đi',
+  bookings: 'Quản lý Đơn đặt chỗ',
+  promotions: 'Quản lý Khuyến mãi',
+  reviews: 'Kiểm duyệt Đánh giá',
+  settings: 'Cài đặt Hệ thống',
 };
 
 const getBreadcrumb = (pathname) => {
@@ -43,10 +44,10 @@ export default function AdminTopbar() {
       <div className={styles.rightBlock}>
         <label className={styles.searchBox}>
           <FaSearch />
-          <input type="text" placeholder="Tim kiem nhanh..." disabled />
+          <input type="text" placeholder="Tìm kiếm nhanh..." disabled />
         </label>
 
-        <button type="button" className={styles.notifyBtn} aria-label="Thong bao">
+        <button type="button" className={styles.notifyBtn} aria-label="Thông báo">
           <FaBell />
         </button>
 

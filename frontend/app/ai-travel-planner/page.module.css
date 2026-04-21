@@ -6,8 +6,9 @@
 
 /* Hero */
 .heroSection {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 48px 24px 40px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.5)),
+              url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=85") center/cover no-repeat;
+  padding: 80px 24px 70px;
   text-align: center;
   position: relative;
   overflow: hidden;

@@ -79,7 +79,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
     // ===== Revenue stats queries =====
 
     @Query("""
-            SELECT b.createdAt AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
+            SELECT FUNCTION('DATE', b.createdAt) AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
             FROM Booking b
             JOIN BookingHotelDetail hd ON hd.booking = b
             JOIN hd.hotel h
@@ -92,7 +92,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
     List<Object[]> sumDailyRevenueByHotelOwner(@Param("ownerId") Long ownerId, @Param("fromDate") LocalDateTime fromDate);
 
     @Query("""
-            SELECT b.createdAt AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
+            SELECT FUNCTION('DATE', b.createdAt) AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
             FROM Booking b
             JOIN BookingTourDetail td ON td.booking = b
             JOIN td.tour t

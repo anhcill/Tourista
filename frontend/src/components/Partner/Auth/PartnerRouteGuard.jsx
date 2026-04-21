@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import styles from './PartnerRouteGuard.module.css';
@@ -86,6 +86,11 @@ const collectRolesFromToken = (token) => {
 export default function PartnerRouteGuard({ children }) {
   const router = useRouter();
   const { isAuthenticated, user, token } = useSelector((state) => state.auth);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const hasPartnerRole = useMemo(() => {
     const roles = [
@@ -96,6 +101,8 @@ export default function PartnerRouteGuard({ children }) {
   }, [token, user]);
 
   useEffect(() => {
+    if (!mounted) return;
+    
     if (!isAuthenticated) {
       router.replace('/login?redirect=/partner');
       return;
@@ -104,13 +111,22 @@ export default function PartnerRouteGuard({ children }) {
     if (!hasPartnerRole) {
       router.replace('/');
     }
-  }, [hasPartnerRole, isAuthenticated, router]);
+  }, [hasPartnerRole, isAuthenticated, mounted, router]);
+
+  if (!mounted) {
+    return (
+      <div className={styles.guardState}>
+        <div className={styles.spinner} />
+        <p>Đang kiểm tra quyền truy cập Partner...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !hasPartnerRole) {
     return (
       <div className={styles.guardState}>
         <div className={styles.spinner} />
-        <p>Đang kiểm tra quyền truy cập Partner...</p>
+        <p>Đang xử lý quyền truy cập Partner...</p>
       </div>
     );
   }

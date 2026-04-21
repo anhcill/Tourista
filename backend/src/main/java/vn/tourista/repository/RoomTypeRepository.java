@@ -72,6 +72,22 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
                         @Param("checkOut") LocalDate checkOut);
 
         @Query(value = """
+                        SELECT COALESCE(SUM(bhd.num_rooms), 0)
+                        FROM booking_hotel_details bhd
+                        JOIN bookings b ON b.id = bhd.booking_id
+                        WHERE bhd.room_type_id = :roomTypeId
+                          AND bhd.check_in_date < :checkOut
+                          AND bhd.check_out_date > :checkIn
+                          AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
+                          AND b.id != :excludeBookingId
+                        """, nativeQuery = true)
+        Integer countBookedRoomsInDateRangeExcluding(
+                        @Param("roomTypeId") Long roomTypeId,
+                        @Param("checkIn") LocalDate checkIn,
+                        @Param("checkOut") LocalDate checkOut,
+                        @Param("excludeBookingId") Long excludeBookingId);
+
+        @Query(value = """
             SELECT COALESCE(SUM(
               GREATEST(
                 rt.total_rooms - COALESCE((

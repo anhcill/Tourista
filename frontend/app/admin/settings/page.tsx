@@ -85,7 +85,7 @@ export default function AdminSettingsPage() {
 
       setOverview(response);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Khong the tai audit logs.';
+      const message = err instanceof Error ? err.message : 'Không thể tải nhật ký hệ thống.';
       setError(message);
     } finally {
       setLoading(false);
@@ -144,8 +144,8 @@ export default function AdminSettingsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>System Settings & Audit</h2>
-          <p>Dang tai du lieu audit logs...</p>
+          <h2>Cài đặt & Nhật ký Hệ thống</h2>
+          <p>Đang tải dữ liệu nhật ký...</p>
         </div>
       </section>
     );
@@ -155,8 +155,8 @@ export default function AdminSettingsPage() {
     return (
       <section className={styles.page}>
         <div className={styles.hero}>
-          <h2>System Settings & Audit</h2>
-          <p>{error || 'Khong co du lieu audit logs.'}</p>
+          <h2>Cài đặt & Nhật ký Hệ thống</h2>
+          <p>{error || 'Không có dữ liệu nhật ký.'}</p>
         </div>
       </section>
     );
@@ -166,17 +166,17 @@ export default function AdminSettingsPage() {
     <section className={styles.page}>
       <div className={styles.hero}>
         <div>
-          <h2>System Settings & Audit</h2>
-          <p>Day 4: trung tam giam sat thao tac admin voi filter, paging va log detail.</p>
+          <h2>Cài đặt & Nhật ký Hệ thống</h2>
+          <p>Trung tâm giám sát thao tác quản trị với khả năng truy vết rủi ro cao.</p>
         </div>
 
         <div className={styles.heroMeta}>
           <span className={styles.totalBadge}>{totalLogsText}</span>
           <span className={styles.inlineStat}>
-            <FaUserShield /> {actorCount} actors
+            <FaUserShield /> {actorCount} người thực hiện
           </span>
           <span className={styles.inlineStat}>
-            <FaShieldAlt /> {criticalCount} high-risk actions
+            <FaShieldAlt /> {criticalCount} thao tác rủi ro cao
           </span>
         </div>
       </div>
@@ -189,12 +189,12 @@ export default function AdminSettingsPage() {
               type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Tim actor email, action, reason"
+              placeholder="Tìm theo email, thao tác, lý do"
             />
           </label>
 
           <select
-            aria-label="Filter by action"
+            aria-label="Lọc theo thao tác"
             value={actionFilter}
             onChange={(event) => {
               setActionFilter(event.target.value);
@@ -203,13 +203,13 @@ export default function AdminSettingsPage() {
           >
             {actionOptions.map((item) => (
               <option key={item} value={item}>
-                {item === 'ALL' ? 'Tat ca actions' : compactLabel(item)}
+                {item === 'ALL' ? 'Tất cả thao tác' : compactLabel(item)}
               </option>
             ))}
           </select>
 
           <select
-            aria-label="Filter by resource"
+            aria-label="Lọc theo tài nguyên"
             value={resourceFilter}
             onChange={(event) => {
               setResourceFilter(event.target.value);
@@ -218,19 +218,19 @@ export default function AdminSettingsPage() {
           >
             {RESOURCE_OPTIONS.map((item) => (
               <option key={item} value={item}>
-                {item === 'ALL' ? 'Tat ca resources' : item}
+                {item === 'ALL' ? 'Tất cả tài nguyên' : item}
               </option>
             ))}
           </select>
 
           <button className={styles.primaryButton} type="submit">
             <FaSearch />
-            Search
+            Tìm kiếm
           </button>
 
           <button className={styles.ghostButton} type="button" onClick={resetFilters}>
             <FaStream />
-            Reset
+            Đặt lại
           </button>
 
           <button
@@ -240,7 +240,7 @@ export default function AdminSettingsPage() {
             disabled={refreshing}
           >
             <FaSyncAlt />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? 'Đang làm mới...' : 'Làm mới'}
           </button>
         </form>
 
@@ -248,13 +248,13 @@ export default function AdminSettingsPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Time</th>
-                <th>Actor</th>
-                <th>Action</th>
-                <th>Resource</th>
-                <th>Resource ID</th>
-                <th>Reason</th>
-                <th>Detail</th>
+                <th>Thời gian</th>
+                <th>Người gọi</th>
+                <th>Thao tác</th>
+                <th>Tài nguyên</th>
+                <th>Mã Tài nguyên</th>
+                <th>Lý do</th>
+                <th>Chi tiết</th>
               </tr>
             </thead>
             <tbody>
@@ -262,7 +262,7 @@ export default function AdminSettingsPage() {
                 <tr>
                   <td className={styles.emptyCell} colSpan={7}>
                     <FaClipboardList />
-                    <span>Khong co log nao phu hop bo loc hien tai.</span>
+                    <span>Không có nhật ký nào phù hợp với bộ lọc hiện tại.</span>
                   </td>
                 </tr>
               ) : (
@@ -280,7 +280,7 @@ export default function AdminSettingsPage() {
                     <td className={styles.reasonCell}>{log.reason || '-'}</td>
                     <td>
                       <button className={styles.inlineButton} type="button" onClick={() => setSelectedLog(log)}>
-                        View
+                        Xem
                       </button>
                     </td>
                   </tr>
@@ -297,11 +297,11 @@ export default function AdminSettingsPage() {
             disabled={page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
-            Prev
+            Trước
           </button>
 
           <span>
-            Page <strong>{page}</strong> / {totalPages}
+            Trang <strong>{page}</strong> / {totalPages}
           </span>
 
           <button
@@ -310,7 +310,7 @@ export default function AdminSettingsPage() {
             disabled={page >= totalPages}
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           >
-            Next
+            Sau
           </button>
         </div>
       </article>
@@ -321,50 +321,50 @@ export default function AdminSettingsPage() {
             className={styles.modal}
             role="dialog"
             aria-modal="true"
-            aria-label="Audit log detail"
+            aria-label="Chi tiết nhật ký"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>Audit Log Detail</h3>
+            <h3>Chi tiết Nhật ký Hệ thống</h3>
 
             <dl className={styles.detailGrid}>
               <div>
-                <dt>Timestamp</dt>
+                <dt>Thời gian</dt>
                 <dd>{formatDateTime(selectedLog.timestamp)}</dd>
               </div>
               <div>
-                <dt>Actor</dt>
+                <dt>Người gọi</dt>
                 <dd>{selectedLog.actorEmail || '-'}</dd>
               </div>
               <div>
-                <dt>Action</dt>
+                <dt>Thao tác</dt>
                 <dd>{selectedLog.action || '-'}</dd>
               </div>
               <div>
-                <dt>Resource</dt>
+                <dt>Tài nguyên</dt>
                 <dd>
                   {selectedLog.resource || '-'} #{selectedLog.resourceId || '-'}
                 </dd>
               </div>
               <div>
-                <dt>Reason</dt>
+                <dt>Lý do</dt>
                 <dd>{selectedLog.reason || '-'}</dd>
               </div>
             </dl>
 
             <div className={styles.payloadWrap}>
               <div>
-                <h4>Before Data</h4>
+                <h4>Dữ liệu trước</h4>
                 <pre>{formatPayload(selectedLog.beforeData)}</pre>
               </div>
               <div>
-                <h4>After Data</h4>
+                <h4>Dữ liệu sau</h4>
                 <pre>{formatPayload(selectedLog.afterData)}</pre>
               </div>
             </div>
 
             <div className={styles.modalActions}>
               <button type="button" className={styles.ghostButton} onClick={() => setSelectedLog(null)}>
-                Close
+                Đóng
               </button>
             </div>
           </div>
