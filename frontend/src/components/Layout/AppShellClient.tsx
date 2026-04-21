@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import ReduxProvider from '@/store/ReduxProvider';
 import Header from '@/components/Layout/Header/Header';
 import Footer from '@/components/Layout/Footer/Footer';
@@ -20,18 +20,16 @@ type AppShellClientProps = {
 
 export default function AppShellClient({ children }: AppShellClientProps) {
   useServiceWorker();
-  const router = useRouter();
   const pathname = usePathname();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    if (refreshTimer.current) return;
     refreshTimer.current = setTimeout(() => {
-      setRefreshKey(k => k + 1);
-      setIsRefreshing(false);
-    }, 600);
+      refreshTimer.current = null;
+    }, 1000);
+    window.location.reload();
   }, []);
 
   const authPathPrefixes = [

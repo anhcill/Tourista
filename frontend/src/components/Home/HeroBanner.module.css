@@ -481,4 +481,19 @@
   .dots {
     bottom: 70px;
   }
+
+  /* Mobile: date row stacks, guest selects stack */
+  .dateRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .dateSep {
+    display: none;
+  }
+  .guestRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .guestRow .guestSelect:last-child {
+    grid-column: 1 / -1;
+  }
 }

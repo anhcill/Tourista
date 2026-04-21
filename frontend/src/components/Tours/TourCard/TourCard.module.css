@@ -284,3 +284,42 @@
 .ctaBtn:active {
   transform: translateY(0);
 }
+
+/* ── Mobile layout: stack image + content ── */
+@media (max-width: 576px) {
+  .card {
+    flex-direction: column;
+    min-height: unset;
+  }
+
+  .imagePart {
+    width: 100%;
+    height: 180px;
+  }
+
+  .imagePlaceholder {
+    min-height: 180px;
+  }
+
+  .content {
+    padding: 14px 16px;
+  }
+
+  .tourTitle {
+    font-size: 0.95rem;
+  }
+
+  .bottomRow {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .ctaBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .priceAdult {
+    font-size: 1.2rem;
+  }
+}

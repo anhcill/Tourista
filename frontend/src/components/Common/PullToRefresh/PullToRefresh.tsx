@@ -9,11 +9,17 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => Promise<
   const [pullDistance, setPullDistance] = useState(0);
   const [isEnabled, setIsEnabled] = useState(false);
   const isRefreshing = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only enable on mobile
     setIsEnabled(window.innerWidth <= 768);
   }, []);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.style.setProperty('--pull-height', `${pullDistance}px`);
+    }
+  }, [pullDistance]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (isRefreshing.current || window.scrollY > 10) return;
@@ -32,8 +38,7 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => Promise<
   };
 
   const onTouchEnd = async () => {
-    if (!isEnabled) return;
-    if (status === 'refreshing') return;
+    if (!isEnabled || status === 'refreshing') return;
 
     if (pullDistance >= 80) {
       isRefreshing.current = true;
@@ -54,20 +59,15 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => Promise<
 
   if (!isEnabled) return null;
 
-  const spinnerDots = [0, 1, 2];
-
   return (
     <div
+      ref={containerRef}
       className={styles.pullContainer}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      style={{ '--pull-distance': `${pullDistance}px` } as React.CSSProperties}
     >
-      <div
-        className={`${styles.indicator} ${styles[status]}`}
-        style={{ height: `${pullDistance}px` }}
-      >
+      <div className={`${styles.indicator} ${styles[status]}`}>
         {status === 'pulling' && (
           <div className={styles.pullHint}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={styles.arrowDown}>
@@ -86,9 +86,9 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => Promise<
         )}
         {status === 'refreshing' && (
           <div className={styles.spinner}>
-            {spinnerDots.map((i) => (
-              <div key={i} className={styles.dot} style={{ animationDelay: `${i * 150}ms` }} />
-            ))}
+            <div className={styles.dot} />
+            <div className={styles.dot} />
+            <div className={styles.dot} />
           </div>
         )}
       </div>
