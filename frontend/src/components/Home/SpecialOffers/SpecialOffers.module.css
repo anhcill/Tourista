@@ -249,10 +249,6 @@
   background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
-.badge_purple {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-}
-
 /* Discount chip */
 .discountChip {
   position: absolute;
