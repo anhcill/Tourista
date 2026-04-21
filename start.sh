@@ -5,7 +5,13 @@ echo "===== Tourista on Railway ====="
 
 # Load .env variables into environment
 set -a
-source backend/.env
+if [ -f backend/.env ]; then
+    source backend/.env
+elif [ -f backend/.env.production ]; then
+    source backend/.env.production
+else
+    echo "WARNING: No .env file found in backend/"
+fi
 set +a
 
 # JAR is pre-built and copied to ./backend/app.jar
