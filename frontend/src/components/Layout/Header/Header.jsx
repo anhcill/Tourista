@@ -7,11 +7,11 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import {
-    FaUser, FaSearch, FaGlobe, FaSignOutAlt,
+    FaSearch, FaGlobe, FaSignOutAlt,
     FaBookmark, FaChevronDown, FaHeart,
     FaHotel, FaPlaneDeparture, FaMapMarkedAlt, FaBuilding,
-    FaBars, FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments,
-    FaMoon, FaSun, FaRegLightbulb
+    FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments,
+    FaMoon, FaSun, FaRegLightbulb, FaChevronRight
 } from 'react-icons/fa';
 import { logout } from '../../../store/slices/authSlice';
 import authApi from '../../../api/authApi';
@@ -31,21 +31,18 @@ const MAX_RECENT_SEARCHES = 6;
 
 const normalizeRecentSearches = (items) => {
     if (!Array.isArray(items)) return [];
-
     return items
         .map((item) => {
             if (typeof item === 'string') {
                 const value = item.trim();
                 return value ? { value, ts: Date.now() } : null;
             }
-
             if (item && typeof item === 'object') {
                 const value = String(item.value || '').trim();
                 if (!value) return null;
                 const ts = Number(item.ts || Date.now());
                 return { value, ts };
             }
-
             return null;
         })
         .filter(Boolean)
@@ -56,21 +53,15 @@ const groupRecentSearches = (items) => {
     const today = [];
     const recent = [];
     const now = new Date();
-
     items.forEach((item) => {
         const itemDate = new Date(item.ts || Date.now());
         const isToday =
             itemDate.getDate() === now.getDate() &&
             itemDate.getMonth() === now.getMonth() &&
             itemDate.getFullYear() === now.getFullYear();
-
-        if (isToday) {
-            today.push(item);
-        } else {
-            recent.push(item);
-        }
+        if (isToday) today.push(item);
+        else recent.push(item);
     });
-
     return [
         { title: 'Hôm nay', items: today },
         { title: 'Gần đây', items: recent },
@@ -88,7 +79,6 @@ const Header = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
     const [recentSearches, setRecentSearches] = useState([]);
@@ -104,9 +94,7 @@ const Header = () => {
         ],
     });
 
-    useEffect(() => {
-        setHasMounted(true);
-    }, []);
+    useEffect(() => { setHasMounted(true); }, []);
 
     useEffect(() => {
         try {
@@ -122,7 +110,6 @@ const Header = () => {
 
     useEffect(() => {
         if (!hasMounted || !isAuthenticated) return;
-
         let isAlive = true;
         const pullConversations = async () => {
             try {
@@ -131,20 +118,14 @@ const Header = () => {
                 if (!isAlive) return;
                 dispatch(setConversations(list));
             } catch {
-                // Silent: keep header stable even if chat API is temporarily unavailable
+                // Silent
             }
         };
-
         pullConversations();
         const timer = setInterval(pullConversations, 30000);
-
-        return () => {
-            isAlive = false;
-            clearInterval(timer);
-        };
+        return () => { isAlive = false; clearInterval(timer); };
     }, [dispatch, hasMounted, isAuthenticated]);
 
-    // Đóng dropdown khi click ra ngoài
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -158,18 +139,14 @@ const Header = () => {
     const handleLogout = async () => {
         setIsLoggingOut(true);
         setDropdownOpen(false);
-
         try {
-            // Gọi API logout để invalidate refresh token ở backend
             const refreshToken = getRefreshToken();
-            if (refreshToken) {
-                await authApi.logout(refreshToken);
-            }
+            if (refreshToken) await authApi.logout(refreshToken);
         } catch {
-            // Dù backend lỗi vẫn logout ở client
+            // continue
         } finally {
             dispatch(logout());
-            toast.success('Đã đăng xuất. Hẹn gặp lại! 👋');
+            toast.success('Đã đăng xuất. Hẹn gặp lại!');
             setIsLoggingOut(false);
             router.push('/');
         }
@@ -186,24 +163,16 @@ const Header = () => {
 
     const isTabActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
 
-    const activeSearchType = pathname.startsWith('/tours') ? 'TOUR' : 'HOTEL';
-
     const mixedSuggestions = useMemo(() => {
         if (!searchKeyword.trim()) return [];
         return apiSuggestions;
     }, [searchKeyword, apiSuggestions]);
 
     const showSearchSuggestions =
-        isSearchFocused &&
-        searchKeyword.trim().length > 0 &&
-        mixedSuggestions.length > 0;
-
+        isSearchFocused && searchKeyword.trim().length > 0 && mixedSuggestions.length > 0;
     const showRecentSearches =
-        isSearchFocused &&
-        searchKeyword.trim().length === 0 &&
-        recentSearches.length > 0;
+        isSearchFocused && searchKeyword.trim().length === 0 && recentSearches.length > 0;
 
-    // Lấy chữ cái đầu từ tên người dùng để làm avatar
     const getInitials = (name) => {
         if (!name) return 'U';
         return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
@@ -216,10 +185,8 @@ const Header = () => {
             toast.info('Nhập điểm đến để bắt đầu tìm kiếm.');
             return;
         }
-
         saveRecentSearch(keyword);
         router.push(`/hotels/search?destination=${encodeURIComponent(keyword)}&adults=2&rooms=1`);
-        setMobileSearchOpen(false);
         setIsSearchFocused(false);
         setActiveSuggestionIndex(-1);
     };
@@ -227,10 +194,11 @@ const Header = () => {
     const saveRecentSearch = (keyword) => {
         const normalized = String(keyword || '').trim();
         if (!normalized) return;
-
         setRecentSearches((prev) => {
-            const updated = [{ value: normalized, ts: Date.now() }, ...prev.filter((item) => item.value.toLowerCase() !== normalized.toLowerCase())]
-                .slice(0, MAX_RECENT_SEARCHES);
+            const updated = [
+                { value: normalized, ts: Date.now() },
+                ...prev.filter((item) => item.value.toLowerCase() !== normalized.toLowerCase())
+            ].slice(0, MAX_RECENT_SEARCHES);
             localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
             return updated;
         });
@@ -239,16 +207,13 @@ const Header = () => {
     const selectSuggestion = (value, type = 'Điểm đến') => {
         setSearchKeyword(value);
         saveRecentSearch(value);
-
         if (type === 'Tour') {
             router.push(`/tours/search?city=${encodeURIComponent(value)}`);
         } else {
             router.push(`/hotels/search?destination=${encodeURIComponent(value)}&adults=2&rooms=1`);
         }
-
         setIsSearchFocused(false);
         setActiveSuggestionIndex(-1);
-        setMobileSearchOpen(false);
     };
 
     const selectRecentSearch = (value) => {
@@ -256,7 +221,6 @@ const Header = () => {
         saveRecentSearch(value);
         router.push(`/hotels/search?destination=${encodeURIComponent(value)}&adults=2&rooms=1`);
         setIsSearchFocused(false);
-        setMobileSearchOpen(false);
     };
 
     const removeRecentSearch = (value) => {
@@ -273,30 +237,17 @@ const Header = () => {
     };
 
     const handleSearchKeyDown = (e) => {
-        if (!showSearchSuggestions) {
-            return;
-        }
-
+        if (!showSearchSuggestions) return;
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             setActiveSuggestionIndex((prev) => (prev + 1) % mixedSuggestions.length);
-            return;
-        }
-
-        if (e.key === 'ArrowUp') {
+        } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             setActiveSuggestionIndex((prev) => (prev <= 0 ? mixedSuggestions.length - 1 : prev - 1));
-            return;
-        }
-
-        if (e.key === 'Enter' && activeSuggestionIndex >= 0) {
+        } else if (e.key === 'Enter' && activeSuggestionIndex >= 0) {
             e.preventDefault();
-            const item = mixedSuggestions[activeSuggestionIndex];
-            selectSuggestion(item.value, item.type);
-            return;
-        }
-
-        if (e.key === 'Escape') {
+            selectSuggestion(mixedSuggestions[activeSuggestionIndex].value, mixedSuggestions[activeSuggestionIndex].type);
+        } else if (e.key === 'Escape') {
             setIsSearchFocused(false);
             setActiveSuggestionIndex(-1);
         }
@@ -308,345 +259,235 @@ const Header = () => {
         toast.info(`${tabLabel} đang được hoàn thiện, bạn quay lại sớm nhé.`);
     };
 
-    const quickFilters = activeSearchType === 'TOUR'
-        ? [
-            {
-                id: 'tour-weekend',
-                label: 'Tour cuối tuần',
-                action: () => router.push('/tours/search?durationMin=2&durationMax=3'),
-            },
-            {
-                id: 'tour-easy',
-                label: 'Mức dễ đi',
-                action: () => router.push('/tours/search?difficulty=EASY'),
-            },
-            {
-                id: 'tour-family',
-                label: 'Gia đình',
-                action: () => {
-                    setSearchKeyword('Tour gia đình');
-                    router.push('/tours');
-                },
-            },
-        ]
-        : [
-            {
-                id: 'hotel-dn',
-                label: 'Khách sạn Đà Nẵng',
-                action: () => router.push('/hotels/search?destination=Đà Nẵng&adults=2&rooms=1'),
-            },
-            {
-                id: 'hotel-weekend',
-                label: 'Cuối tuần này',
-                action: () => router.push('/hotels/search?destination=Vũng Tàu&adults=2&rooms=1'),
-            },
-            {
-                id: 'hotel-resort',
-                label: 'Resort biển',
-                action: () => router.push('/hotels/search?destination=Phú Quốc&adults=2&rooms=1'),
-            },
-        ];
-
     const recentGroups = groupRecentSearches(recentSearches);
 
     const renderSuggestionIcon = (type) => {
-        if (type === 'Tour') {
-            return <FaMapMarkedAlt className={styles.suggestionIcon} />;
-        }
-        if (type === 'Khach san' || type === 'Khách sạn') {
-            return <FaHotel className={styles.suggestionIcon} />;
-        }
+        if (type === 'Tour') return <FaMapMarkedAlt className={styles.suggestionIcon} />;
+        if (type === 'Khach san' || type === 'Khách sạn') return <FaHotel className={styles.suggestionIcon} />;
         return <FaMapMarkerAlt className={styles.suggestionIcon} />;
     };
 
     return (
         <header className={styles.header}>
-            <div className="container">
-                <div className={styles.unifiedBar}>
-                    <Link href="/" className={styles.logo}>
-                        <img src="/icon.svg" alt="Tourista Studio" className={styles.logoIcon} />
-                        <div className={styles.logoTextWrap}>
-                            <span className={styles.logoText}>Tourista Studio</span>
-                            <span className={styles.logoTagline}>Kế hoạch du lịch linh hoạt</span>
-                        </div>
-                    </Link>
+            <div className={styles.topBar}>
+                <div className="container">
+                    <div className={styles.topBarInner}>
 
-                    <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
-                        <FaSearch className={styles.searchIcon} />
-                        <input
-                            type="text"
-                            placeholder="Bạn muốn đi đâu? Khách sạn, tour, điểm đến..."
-                            className={styles.searchInput}
-                            value={searchKeyword}
-                            onFocus={() => setIsSearchFocused(true)}
-                            onBlur={() => {
-                                setTimeout(() => {
-                                    setIsSearchFocused(false);
-                                    setActiveSuggestionIndex(-1);
-                                }, 120);
-                            }}
-                            onKeyDown={handleSearchKeyDown}
-                            onChange={(event) => setSearchKeyword(event.target.value)}
-                        />
-                        <button type="submit" className={styles.searchButton}>Tìm nhanh</button>
-
-                        {showSearchSuggestions && (
-                            <ul className={styles.suggestionList}>
-                                {mixedSuggestions.map((item, idx) => (
-                                    <li key={`${item.type}-${item.value}`}>
-                                        <button
-                                            type="button"
-                                            className={`${styles.suggestionItem} ${idx === activeSuggestionIndex ? styles.suggestionItemActive : ''}`}
-                                            onMouseEnter={() => setActiveSuggestionIndex(idx)}
-                                            onMouseDown={() => selectSuggestion(item.value, item.type)}
-                                        >
-                                            <span className={styles.suggestionMainWrap}>
-                                                {renderSuggestionIcon(item.type)}
-                                                <span className={styles.suggestionMain}>{item.value}</span>
-                                            </span>
-                                            <span className={styles.suggestionType}>{item.type}</span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-
-                        {showRecentSearches && (
-                            <div className={styles.suggestionList}>
-                                <div className={styles.suggestionHeaderRow}>
-                                    <div className={styles.suggestionHeader}>Tìm kiếm gần đây</div>
-                                    <button
-                                        type="button"
-                                        className={styles.clearRecentBtn}
-                                        onMouseDown={clearRecentSearches}
-                                    >
-                                        Xóa tất cả
-                                    </button>
-                                </div>
-                                {recentGroups.map((group) => (
-                                    <div key={group.title}>
-                                        <div className={styles.recentGroupTitle}>{group.title}</div>
-                                        <ul className={styles.recentList}>
-                                            {group.items.map((item) => (
-                                                <li key={`recent-${item.value}-${item.ts}`}>
-                                                    <div className={styles.recentItemRow}>
-                                                        <button
-                                                            type="button"
-                                                            className={styles.suggestionItem}
-                                                            onMouseDown={() => selectRecentSearch(item.value)}
-                                                        >
-                                                            <span className={styles.suggestionMainWrap}>
-                                                                <FaClock className={styles.suggestionIcon} />
-                                                                <span className={styles.suggestionMain}>{item.value}</span>
-                                                            </span>
-                                                            <span className={styles.suggestionType}>Gần đây</span>
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className={styles.removeRecentBtn}
-                                                            onMouseDown={() => removeRecentSearch(item.value)}
-                                                            aria-label={`Xóa ${item.value}`}
-                                                        >
-                                                            <FaTimes />
-                                                        </button>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
+                        {/* --- Logo --- */}
+                        <Link href="/" className={styles.logo}>
+                            <img src="/icon.svg" alt="Tourista" className={styles.logoIcon} />
+                            <div className={styles.logoTextWrap}>
+                                <span className={styles.logoText}>Tourista</span>
+                                <span className={styles.logoTagline}>Studio</span>
                             </div>
-                        )}
-                    </form>
+                        </Link>
 
-                    <div className={styles.actions}>
-                        <div className={styles.utilityButtons}>
-                            <CurrencyLangDropdown />
-                            <button
-                                className={styles.themeToggleBtn}
-                                onClick={toggleTheme}
-                                aria-label={theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
-                                title={theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}
-                            >
-                                {theme === 'dark' ? <FaSun /> : <FaMoon />}
-                            </button>
-                            <NotificationDropdown />
-                            <SupportDropdown />
-                            {showAuthenticatedMenu && (
-                                <Link href="/partner/messages" className={styles.chatInboxBtn} aria-label="Tin nhan">
-                                    <FaComments />
-                                    {totalUnread > 0 ? (
-                                        <span className={styles.chatInboxBadge}>
-                                            {totalUnread > 9 ? '9+' : totalUnread}
-                                        </span>
-                                    ) : null}
-                                </Link>
-                            )}
-                        </div>
-
-                        <button
-                            className={styles.mobileSearchToggle}
-                            onClick={() => setMobileSearchOpen((prev) => !prev)}
-                            aria-label="Mở tìm kiếm"
-                        >
-                            {mobileSearchOpen ? <FaTimes /> : <FaBars />}
-                        </button>
-
-                        {showAuthenticatedMenu ? (
-                            <div className={styles.userMenu} ref={dropdownRef}>
-                                <button
-                                    className={styles.userButton}
-                                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                                    aria-expanded={dropdownOpen}
-                                >
-                                    <div className={styles.avatar}>
-                                        {user?.avatarUrl ? (
-                                            <img src={user.avatarUrl} alt={user.fullName} className={styles.avatarImg} />
-                                        ) : (
-                                            <span className={styles.avatarInitials}>{getInitials(user?.fullName || user?.name)}</span>
-                                        )}
-                                    </div>
-                                    <span className={styles.userName}>{user?.fullName || user?.name || 'Tài khoản'}</span>
-                                    <FaChevronDown className={`${styles.chevron} ${dropdownOpen ? styles.chevronUp : ''}`} />
+                        {/* --- Search Bar --- */}
+                        <div className={styles.searchWrap}>
+                            <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
+                                <div className={styles.searchField}>
+                                    <FaSearch className={styles.searchIcon} />
+                                    <input
+                                        type="text"
+                                        placeholder="Tìm kiếm điểm đến, khách sạn, tour..."
+                                        className={styles.searchInput}
+                                        value={searchKeyword}
+                                        onFocus={() => setIsSearchFocused(true)}
+                                        onBlur={() => {
+                                            setTimeout(() => {
+                                                setIsSearchFocused(false);
+                                                setActiveSuggestionIndex(-1);
+                                            }, 150);
+                                        }}
+                                        onKeyDown={handleSearchKeyDown}
+                                        onChange={(e) => setSearchKeyword(e.target.value)}
+                                    />
+                                </div>
+                                <button type="submit" className={styles.searchBtn}>
+                                    <FaSearch />
+                                    <span>Tìm kiếm</span>
                                 </button>
 
-                                {dropdownOpen && (
-                                    <div className={styles.dropdown}>
-                                        <div className={styles.dropdownHeader}>
-                                            <div className={styles.dropdownAvatar}>
-                                                {user?.avatarUrl ? (
-                                                    <img src={user.avatarUrl} alt="" className={styles.avatarImg} />
-                                                ) : (
-                                                    <span>{getInitials(user?.fullName || user?.name)}</span>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <div className={styles.dropdownName}>{user?.fullName || user?.name}</div>
-                                                <div className={styles.dropdownEmail}>{user?.email}</div>
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.dropdownDivider} />
-
-                                        {user?.role === 'ADMIN' && (
-                                            <>
-                                                <Link
-                                                    href="/admin"
-                                                    className={styles.dropdownItem}
-                                                    style={{ color: '#0f7fb6', fontWeight: 'bold' }}
-                                                    onClick={() => setDropdownOpen(false)}
+                                {showSearchSuggestions && (
+                                    <ul className={styles.suggestionList}>
+                                        {mixedSuggestions.map((item, idx) => (
+                                            <li key={`${item.type}-${item.value}`}>
+                                                <button
+                                                    type="button"
+                                                    className={`${styles.suggestionItem} ${idx === activeSuggestionIndex ? styles.suggestionItemActive : ''}`}
+                                                    onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                                                    onMouseDown={() => selectSuggestion(item.value, item.type)}
                                                 >
-                                                    <FaUserShield /> Bảng điều khiển Admin
-                                                </Link>
-                                                <div className={styles.dropdownDivider} />
-                                            </>
-                                        )}
+                                                    <span className={styles.suggestionMainWrap}>
+                                                        {renderSuggestionIcon(item.type)}
+                                                        <span className={styles.suggestionMain}>{item.value}</span>
+                                                    </span>
+                                                    <span className={styles.suggestionType}>{item.type}</span>
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
 
-                                        <Link
-                                            href="/profile"
-                                            className={styles.dropdownItem}
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            <FaUser /> Hồ sơ của tôi
-                                        </Link>
-                                        <Link
-                                            href="/profile/bookings"
-                                            className={styles.dropdownItem}
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            <FaBookmark /> Đặt chỗ của tôi
-                                        </Link>
-                                        <Link
-                                            href="/favorites"
-                                            className={styles.dropdownItem}
-                                            onClick={() => setDropdownOpen(false)}
-                                        >
-                                            <FaHeart /> Yêu thích
-                                        </Link>
-
-                                        <div className={styles.dropdownDivider} />
-
-                                        <button
-                                            onClick={handleLogout}
-                                            className={`${styles.dropdownItem} ${styles.logoutItem}`}
-                                            disabled={isLoggingOut}
-                                        >
-                                            <FaSignOutAlt />
-                                            {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
-                                        </button>
+                                {showRecentSearches && (
+                                    <div className={styles.suggestionList}>
+                                        <div className={styles.suggestionHeaderRow}>
+                                            <div className={styles.suggestionHeader}>Tìm kiếm gần đây</div>
+                                            <button type="button" className={styles.clearRecentBtn} onMouseDown={clearRecentSearches}>
+                                                Xóa tất cả
+                                            </button>
+                                        </div>
+                                        {recentGroups.map((group) => (
+                                            <div key={group.title}>
+                                                <div className={styles.recentGroupTitle}>{group.title}</div>
+                                                <ul className={styles.recentList}>
+                                                    {group.items.map((item) => (
+                                                        <li key={`recent-${item.value}-${item.ts}`}>
+                                                            <div className={styles.recentItemRow}>
+                                                                <button
+                                                                    type="button"
+                                                                    className={styles.suggestionItem}
+                                                                    onMouseDown={() => selectRecentSearch(item.value)}
+                                                                >
+                                                                    <span className={styles.suggestionMainWrap}>
+                                                                        <FaClock className={styles.suggestionIcon} />
+                                                                        <span className={styles.suggestionMain}>{item.value}</span>
+                                                                    </span>
+                                                                    <span className={styles.suggestionType}>Gần đây</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    className={styles.removeRecentBtn}
+                                                                    onMouseDown={() => removeRecentSearch(item.value)}
+                                                                    aria-label={`Xóa ${item.value}`}
+                                                                >
+                                                                    <FaTimes />
+                                                                </button>
+                                                            </div>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
+                            </form>
+                        </div>
+
+                        {/* --- Actions --- */}
+                        <div className={styles.actions}>
+                            <div className={styles.utilityButtons}>
+                                <CurrencyLangDropdown />
+                                <button
+                                    className={styles.iconBtn}
+                                    onClick={toggleTheme}
+                                    aria-label={theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}
+                                >
+                                    {theme === 'dark' ? <FaSun /> : <FaMoon />}
+                                </button>
+                                <NotificationDropdown />
+                                <SupportDropdown />
+                                {showAuthenticatedMenu && (
+                                    <Link href="/partner/messages" className={styles.iconBtn} aria-label="Tin nhắn">
+                                        <FaComments />
+                                        {totalUnread > 0 && (
+                                            <span className={styles.chatBadge}>{totalUnread > 9 ? '9+' : totalUnread}</span>
+                                        )}
+                                    </Link>
+                                )}
                             </div>
-                        ) : (
-                            <div className={styles.authButtons}>
-                                <Link href="/login">
-                                    <Button variant="outline" size="sm" className={styles.signInBtn}>
-                                        Đăng nhập
-                                    </Button>
-                                </Link>
-                                <Link href="/register">
-                                    <Button variant="primary" size="sm" className={styles.registerBtn}>
-                                        Đăng ký
-                                    </Button>
-                                </Link>
-                            </div>
-                        )}
+
+                            {showAuthenticatedMenu ? (
+                                <div className={styles.userMenu} ref={dropdownRef}>
+                                    <button
+                                        className={styles.userButton}
+                                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                                        aria-expanded={dropdownOpen}
+                                    >
+                                        <div className={styles.avatar}>
+                                            {user?.avatarUrl ? (
+                                                <img src={user.avatarUrl} alt="" className={styles.avatarImg} />
+                                            ) : (
+                                                <span className={styles.avatarInitials}>{getInitials(user?.fullName || user?.name)}</span>
+                                            )}
+                                        </div>
+                                        <span className={styles.userName}>{user?.fullName || user?.name || 'Tài khoản'}</span>
+                                        <FaChevronDown className={`${styles.chevron} ${dropdownOpen ? styles.chevronUp : ''}`} />
+                                    </button>
+
+                                    {dropdownOpen && (
+                                        <div className={styles.dropdown}>
+                                            <div className={styles.dropdownHeader}>
+                                                <div className={styles.dropdownAvatar}>
+                                                    {user?.avatarUrl ? (
+                                                        <img src={user.avatarUrl} alt="" className={styles.avatarImg} />
+                                                    ) : (
+                                                        <span>{getInitials(user?.fullName || user?.name)}</span>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div className={styles.dropdownName}>{user?.fullName || user?.name}</div>
+                                                    <div className={styles.dropdownEmail}>{user?.email}</div>
+                                                </div>
+                                            </div>
+                                            <div className={styles.dropdownDivider} />
+                                            {user?.role === 'ADMIN' && (
+                                                <>
+                                                    <Link href="/admin" className={styles.dropdownItem} style={{ color: '#0077b6', fontWeight: 'bold' }} onClick={() => setDropdownOpen(false)}>
+                                                        <FaUserShield /> Bảng điều khiển Admin
+                                                    </Link>
+                                                    <div className={styles.dropdownDivider} />
+                                                </>
+                                            )}
+                                            <Link href="/profile" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                                                <FaUser /> Hồ sơ của tôi
+                                            </Link>
+                                            <Link href="/profile/bookings" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                                                <FaBookmark /> Đặt chỗ của tôi
+                                            </Link>
+                                            <Link href="/favorites" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                                                <FaHeart /> Yêu thích
+                                            </Link>
+                                            <div className={styles.dropdownDivider} />
+                                            <button onClick={handleLogout} className={`${styles.dropdownItem} ${styles.logoutItem}`} disabled={isLoggingOut}>
+                                                <FaSignOutAlt />
+                                                {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className={styles.authButtons}>
+                                    <Link href="/login">
+                                        <Button variant="ghost" size="sm" className={styles.signInBtn}>Đăng nhập</Button>
+                                    </Link>
+                                    <Link href="/register">
+                                        <Button variant="primary" size="sm" className={styles.registerBtn}>Đăng ký</Button>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className={styles.navRow}>
-                        <nav className={styles.navTabs}>
+                    {/* --- Nav Row --- */}
+                    <nav className={styles.navRow}>
+                        <div className={styles.navTabs}>
                             {navigationTabs.map((tab) => (
                                 <Link
                                     key={tab.id}
                                     href={tab.href}
                                     className={`${styles.navTab} ${isTabActive(tab.href) ? styles.active : ''}`}
-                                    onClick={(event) => tab.comingSoon && handleComingSoon(event, tab.label)}
+                                    onClick={(e) => tab.comingSoon && handleComingSoon(e, tab.label)}
                                 >
-                                    <span className={styles.tabIconWrap}>
-                                        <tab.icon className={styles.tabIcon} />
-                                    </span>
-                                    <span className={styles.tabLabel}>{tab.label}</span>
+                                    <tab.icon className={styles.navTabIcon} />
+                                    <span>{tab.label}</span>
                                     {tab.comingSoon && <span className={styles.comingSoonBadge}>Sớm</span>}
+                                    {isTabActive(tab.href) && <span className={styles.activeIndicator} />}
                                 </Link>
                             ))}
-                        </nav>
-
-                        <div className={styles.quickFilterRow}>
-                            <div className={styles.quickFilterChips}>
-                                {quickFilters.map((filter) => (
-                                    <button
-                                        key={filter.id}
-                                        type="button"
-                                        className={styles.quickFilterChip}
-                                        onClick={filter.action}
-                                    >
-                                        {filter.label}
-                                    </button>
-                                ))}
-                            </div>
-                            <div className={styles.trustSignals}>
-                                <span className={styles.trustSignal}>Hỗ trợ 24/7</span>
-                                <span className={styles.trustSignal}>Xác nhận nhanh</span>
-                            </div>
                         </div>
-                    </div>
+                    </nav>
                 </div>
-
-                <form
-                    className={`${styles.mobileSearchPanel} ${mobileSearchOpen ? styles.mobileSearchPanelOpen : ''}`}
-                    onSubmit={handleSearchSubmit}
-                >
-                    <FaSearch className={styles.searchIcon} />
-                    <input
-                        type="text"
-                        placeholder="Tìm điểm đến, khách sạn, tour..."
-                        className={styles.searchInput}
-                        value={searchKeyword}
-                        onKeyDown={handleSearchKeyDown}
-                        onChange={(event) => setSearchKeyword(event.target.value)}
-                    />
-                    <button type="submit" className={styles.searchButton}>Tìm</button>
-                </form>
             </div>
         </header>
     );

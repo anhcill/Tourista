@@ -13,8 +13,8 @@ import styles from './SpecialOfferCategories.module.css';
 const OFFERS = [
     {
         id: 1,
-        title: 'Loyalty Discounts',
-        subtitle: 'Ưu đãi dành cho khách hàng thân thiết',
+        title: 'Giảm giá khách hàng thân thiết',
+        subtitle: 'Ưu đãi dành riêng cho khách đã từng đặt phòng',
         cover: 'https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=600&q=80',
         discount: '20%',
         color: '#667eea',
@@ -22,8 +22,8 @@ const OFFERS = [
     },
     {
         id: 2,
-        title: 'Early Booking Discounts',
-        subtitle: 'Đặt sớm — tiết kiệm nhiều hơn',
+        title: 'Đặt sớm — Giá tốt hơn',
+        subtitle: 'Book trước 7 ngày, tiết kiệm đến 35%',
         cover: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&q=80',
         discount: '35%',
         color: '#10b981',
@@ -31,8 +31,8 @@ const OFFERS = [
     },
     {
         id: 3,
-        title: 'Last-Minute Deals',
-        subtitle: 'Ưu đãi giờ chót giá sốc',
+        title: 'Xả hàng cuối tuần',
+        subtitle: 'Ưu đãi giờ chót, giá sốc chỉ hôm nay',
         cover: 'https://images.unsplash.com/photo-1455156218388-5e61b526818b?w=600&q=80',
         discount: '50%',
         color: '#f43f5e',
@@ -40,8 +40,8 @@ const OFFERS = [
     },
     {
         id: 4,
-        title: 'Family Packages',
-        subtitle: 'Trọn gói gia đình — vui vẻ ngay',
+        title: 'Gói gia đình — Trọn vẹn kỳ nghỉ',
+        subtitle: 'Phòng rộng, ưu đãi ăn sáng cho trẻ em',
         cover: 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=600&q=80',
         discount: '25%',
         color: '#f59e0b',
@@ -49,8 +49,8 @@ const OFFERS = [
     },
     {
         id: 5,
-        title: 'Birthday & Anniversary Specials',
-        subtitle: 'Quà tặng đặc biệt cho ngày trọng đại',
+        title: 'Quà tặng ngày sinh nhật',
+        subtitle: 'Nhận ưu đãi đặc biệt vào dịp trọng đại của bạn',
         cover: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80',
         discount: '30%',
         color: '#ec4899',
@@ -58,8 +58,8 @@ const OFFERS = [
     },
     {
         id: 6,
-        title: 'Referral Programs',
-        subtitle: 'Giới thiệu bạn bè — cùng hưởng ưu đãi',
+        title: 'Giới thiệu bạn bè — Cùng nhận quà',
+        subtitle: 'Mời bạn đặt phòng, hai người đều được giảm',
         cover: 'https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=600&q=80',
         discount: '15%',
         color: '#8b5cf6',
@@ -79,8 +79,8 @@ export default function SpecialOfferCategories() {
                             <MdLocalOffer />
                             <span>Danh mục ưu đãi</span>
                         </div>
-                        <h2 className={styles.title}>Special Offers</h2>
-                        <p className={styles.subtitle}>Khám phá các chương trình khuyến mãi độc quyền tại Tourista Studio</p>
+                        <h2 className={styles.title}>Ưu đãi khách sạn</h2>
+                        <p className={styles.subtitle}>Chương trình khuyến mãi độc quyền cho các đặt phòng khách sạn</p>
                     </div>
                     <button className={styles.viewAllBtn} onClick={() => router.push('/hotels')}>
                         Xem tất cả <FaArrowRight />

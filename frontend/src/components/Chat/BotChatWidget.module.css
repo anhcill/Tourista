@@ -18,6 +18,7 @@
   align-items: flex-end;
   gap: 14px;
   font-family: "Be Vietnam Pro", "Manrope", sans-serif;
+  overflow: visible;
 }
 
 .fab {
@@ -90,6 +91,10 @@
 }
 
 .chatBoxWrapper {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  right: 0;
+  overflow: visible;
   transform-origin: bottom right;
   animation: chatSlideUp 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -107,7 +112,8 @@
 
 .chatBox {
   width: 460px;
-  height: 680px;
+  max-height: 680px;
+  height: min(680px, calc(100vh - 120px));
   border-radius: 24px;
   overflow: hidden;
   display: flex;
@@ -486,7 +492,10 @@
   border-radius: 999px;
   padding: 9px 14px;
   font-size: 13px;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: left;
+  word-break: break-word;
+  hyphens: auto;
   color: #0f172a;
   background: rgba(240, 249, 255, 0.92);
   cursor: pointer;
@@ -581,14 +590,21 @@
 
 @media (max-width: 640px) {
   .widget {
-    right: 14px;
-    bottom: 14px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .chatBoxWrapper {
+    bottom: calc(100% + 12px);
+    right: 0;
   }
 
   .chatBox {
-    width: calc(100vw - 14px);
-    height: min(84vh, 720px);
+    width: calc(100vw - 24px);
+    max-width: 420px;
+    height: min(680px, calc(100vh - 110px));
     border-radius: 18px;
+    overflow: hidden;
   }
 
   .chatHeader {

@@ -1,10 +1,9 @@
 import dynamic from 'next/dynamic';
 import HeroBanner from '@/components/Home/HeroBanner';
-import ExclusiveHotelSearch from '@/components/Home/ExclusiveHotelSearch/ExclusiveHotelSearch';
 import TopAnnouncementBar from '@/components/Ads/TopAnnouncementBar';
 import PromoPopup from '@/components/Ads/PromoPopup';
 import FloatingGiftWidget from '@/components/Ads/FloatingGiftWidget';
-import BottomBannerCarousel from '@/components/Ads/BottomBannerCarousel';
+
 import styles from './page.module.css';
 
 // Reusable Skeleton Loading Fallback
@@ -68,8 +67,6 @@ export default function Home() {
             <HeroBanner />
 
             <main className={styles.homeMain}>
-                <ExclusiveHotelSearch />
-
                 {/* Below the Fold Content - Lazy Loaded */}
                 <TrendingDestinations />
 
@@ -83,7 +80,7 @@ export default function Home() {
 
 
                 <CTACards />
-                <BottomBannerCarousel />
+
                 <Newsletter />
 
                 {/* Floating Widgets & Popups */}

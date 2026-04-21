@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    FaHotel, FaUmbrellaBeach, FaStar,
     FaMapMarkerAlt, FaTag, FaArrowRight, FaClock, FaFire
 } from 'react-icons/fa';
 import hotelApi from '@/api/hotelApi';
@@ -13,7 +12,6 @@ import styles from './SpecialOffers.module.css';
 const TABS = [
     { id: 'ALL', label: 'Tất cả', icon: <FaTag /> },
     { id: 'HOTEL', label: 'Khách sạn', icon: <FaHotel /> },
-    { id: 'TOUR', label: 'Tour', icon: <FaUmbrellaBeach /> },
 ];
 
 const formatVND = (price) =>
@@ -48,12 +46,15 @@ const normalizeHotelsFromResponse = (response) => {
 
 const pickBadge = (isFeatured, isTrending) => {
     if (isFeatured && isTrending) {
-        return { badge: 'Hot', badge_color: 'red' };
+        return { badge: 'Siêu hot', badge_color: 'red' };
     }
     if (isTrending) {
-        return { badge: 'Trending', badge_color: 'blue' };
+        return { badge: 'Xu hướng', badge_color: 'blue' };
     }
-    return { badge: 'Featured', badge_color: 'gold' };
+    if (isFeatured) {
+        return { badge: 'Nổi bật', badge_color: 'gold' };
+    }
+    return { badge: 'Đề xuất', badge_color: 'purple' };
 };
 
 const buildDealsFromApi = (featuredHotels, trendingHotels) => {
@@ -78,7 +79,7 @@ const buildDealsFromApi = (featuredHotels, trendingHotels) => {
             nights: 1,
             promotion: null,
             highlight: Number(hotel.availableRoomTypes || 0) > 0
-                ? `Còn ${hotel.availableRoomTypes} loại phòng` : 'Kiểm tra tình trạng phòng trực tiếp',
+                ? `Còn ${hotel.availableRoomTypes} loại phòng` : 'Kiểm tra phòng trống',
         };
 
         if (source === 'FEATURED') current.is_featured = true;
@@ -121,13 +122,13 @@ const buildTourDealsFromApi = (featuredTours) => {
             nights: Number(tour.durationNights || 0),
             promotion: null,
             highlight: Number(tour.availableSlots || 0) > 0
-                ? `Con ${tour.availableSlots} cho`
-                : 'Tam het cho',
+                ? `Còn ${tour.availableSlots} chỗ`
+                : 'Tạm hết chỗ',
             duration_days: Number(tour.durationDays || 1),
             difficulty: tour.difficulty || 'EASY',
             price_per_adult: Number(tour.pricePerAdult || 0),
             price_per_child: Number(tour.pricePerChild || 0),
-            badge: 'Tour Hot',
+            badge: 'Tour hấp dẫn',
             badge_color: 'blue',
         }))
         .sort((a, b) => b.avg_rating - a.avg_rating);
@@ -208,9 +209,9 @@ export default function SpecialOffers() {
                             <FaFire className={styles.fireIcon} />
                             <span>Ưu đãi có thời hạn</span>
                         </div>
-                        <h2 className={styles.title}>Special Offers</h2>
+                        <h2 className={styles.title}>Ưu đãi nổi bật</h2>
                         <p className={styles.subtitle}>
-                            Dữ liệu khách sạn được đồng bộ trực tiếp từ hệ thống Tourista Studio.
+                            Ưu đãi hấp dẫn từ các khách sạn trên Tourista Studio.
                         </p>
                     </div>
 
@@ -287,7 +288,7 @@ function DealCard({ deal, onBook }) {
     const finalPrice = basePrice;
     const durationText = isHotel
         ? `${Number(deal.nights || 1)} đêm`
-        : `${Number(deal.duration_days || 1)} ngay`;
+        : `${Number(deal.duration_days || 1)} ngày`;
     const priceNote = isHotel ? '/ phòng / đêm' : '/ người lớn';
 
     const handleBook = () => {
@@ -324,7 +325,7 @@ function DealCard({ deal, onBook }) {
                 </span>
 
                 <span className={`${styles.typeBadge} ${isHotel ? styles.typeBadgeHotel : styles.typeBadgeTour}`}>
-                    {isHotel ? '🏨 HOTEL' : '🗺️ TOUR'}
+                    {isHotel ? 'Khách sạn' : 'Tour du lịch'}
                 </span>
             </div>
 
