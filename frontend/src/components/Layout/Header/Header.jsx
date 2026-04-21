@@ -77,7 +77,10 @@ const Header = () => {
     const { theme, toggleTheme } = useTheme();
     const [hasMounted, setHasMounted] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isMobileScrolled, setIsMobileScrolled] = useState(false);
+    const [isMobileScreen, setIsMobileScreen] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
@@ -95,6 +98,22 @@ const Header = () => {
     });
 
     useEffect(() => { setHasMounted(true); }, []);
+
+    // Sticky search bar on mobile: activate after scrolling down 80px
+    useEffect(() => {
+        const checkMobile = () => setIsMobileScreen(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
+        const handleScroll = () => {
+            if (window.innerWidth <= 768) setIsMobileScrolled(window.scrollY > 80);
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => {
+            window.removeEventListener('resize', checkMobile);
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     useEffect(() => {
         try {
@@ -379,6 +398,20 @@ const Header = () => {
                         {/* --- Actions --- */}
                         <div className={styles.actions}>
                             <div className={styles.utilityButtons}>
+                                <button
+                                    className={`${styles.iconBtn} ${styles.mobileMenuBtn}`}
+                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                    aria-label="Menu"
+                                    aria-expanded={mobileMenuOpen}
+                                >
+                                    {mobileMenuOpen ? <FaTimes /> : (
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="3" y1="6" x2="21" y2="6"/>
+                                            <line x1="3" y1="12" x2="21" y2="12"/>
+                                            <line x1="3" y1="18" x2="21" y2="18"/>
+                                        </svg>
+                                    )}
+                                </button>
                                 <CurrencyLangDropdown />
                                 <button
                                     className={styles.iconBtn}
@@ -489,6 +522,92 @@ const Header = () => {
                             ))}
                         </div>
                     </nav>
+                    {/* --- Sticky Mobile Search Bar (appears after scroll) --- */}
+                    {isMobileScreen && (
+                        <div className={`${styles.stickySearchWrap} ${isMobileScrolled ? styles.stickySearchVisible : ''}`}>
+                        <form className={styles.stickySearchForm} onSubmit={(e) => {
+                            e.preventDefault();
+                            const kw = searchKeyword.trim() || 'Da Nang';
+                            router.push(`/hotels/search?destination=${encodeURIComponent(kw)}&adults=2&rooms=1`);
+                        }}>
+                            <FaSearch className={styles.stickySearchIcon} />
+                            <input
+                                type="text"
+                                placeholder="Tìm khách sạn, tour..."
+                                className={styles.stickySearchInput}
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                            />
+                        </form>
+                        </div>
+                    )}
+
+                    {/* --- Mobile Menu --- */}
+                    {mobileMenuOpen && (
+                        <div className={styles.mobileMenu}>
+                            <div className={styles.mobileMenuHeader}>
+                                {showAuthenticatedMenu ? (
+                                    <div className={styles.mobileUserInfo}>
+                                        <div className={styles.mobileAvatar}>
+                                            {user?.avatarUrl ? (
+                                                <img src={user.avatarUrl} alt="" className={styles.avatarImg} />
+                                            ) : (
+                                                <span className={styles.avatarInitials}>{getInitials(user?.fullName || user?.name)}</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className={styles.mobileUserName}>{user?.fullName || user?.name}</div>
+                                            <div className={styles.mobileUserEmail}>{user?.email}</div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className={styles.mobileAuthBtns}>
+                                        <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="ghost" size="sm" className={styles.signInBtn}>Đăng nhập</Button>
+                                        </Link>
+                                        <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                                            <Button variant="primary" size="sm" className={styles.registerBtn}>Đăng ký</Button>
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                            <nav className={styles.mobileNav}>
+                                {navigationTabs.map((tab) => (
+                                    <Link
+                                        key={tab.id}
+                                        href={tab.href}
+                                        className={`${styles.mobileNavItem} ${isTabActive(tab.href) ? styles.active : ''}`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <span className={styles.mobileNavIcon}><tab.icon /></span>
+                                        <span className={styles.mobileNavLabel}>{tab.label}</span>
+                                        {tab.comingSoon && <span className={styles.comingSoonBadge}>Sớm</span>}
+                                    </Link>
+                                ))}
+                            </nav>
+                            {showAuthenticatedMenu && (
+                                <div className={styles.mobileMenuFooter}>
+                                    <Link href="/profile" className={styles.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>
+                                        <FaUser /> Hồ sơ của tôi
+                                    </Link>
+                                    <Link href="/profile/bookings" className={styles.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>
+                                        <FaBookmark /> Đặt chỗ của tôi
+                                    </Link>
+                                    <Link href="/favorites" className={styles.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>
+                                        <FaHeart /> Yêu thích
+                                    </Link>
+                                    {user?.role === 'ADMIN' && (
+                                        <Link href="/admin" className={styles.mobileMenuItem} onClick={() => setMobileMenuOpen(false)}>
+                                            <FaUserShield /> Quản trị Admin
+                                        </Link>
+                                    )}
+                                    <button onClick={handleLogout} className={`${styles.mobileMenuItem} ${styles.logoutItem}`}>
+                                        <FaSignOutAlt /> Đăng xuất
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </header>

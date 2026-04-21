@@ -1,0 +1,68 @@
+.pullContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+  touch-action: pan-y;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.05s linear;
+}
+
+.pullHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #0077b6;
+  font-size: 12px;
+  font-weight: 700;
+  padding-top: 8px;
+}
+
+.pullHint .arrowDown {
+  animation: bounceDown 1s ease-in-out infinite;
+  color: #0077b6;
+}
+
+.pullHint .arrowUp {
+  animation: bounceUp 0.6s ease-in-out infinite;
+  color: #0077b6;
+}
+
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+@keyframes bounceUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.spinner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0077b6;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(0.6); opacity: 0.4; }
+  50% { transform: scale(1); opacity: 1; }
+}

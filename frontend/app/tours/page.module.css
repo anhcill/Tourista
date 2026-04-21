@@ -722,6 +722,47 @@
   .categoriesGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .sectionHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .section {
+    padding: 40px 20px;
+  }
+
+  .categoriesSection {
+    padding: 40px 20px;
+  }
+
+  .whySection {
+    padding: 40px 20px;
+  }
+
+  .ctaSection {
+    padding: 40px 20px;
+  }
+
+  .whyGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .whyCard {
+    padding: 20px 16px;
+  }
+
+  .whyIconWrap {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .cardList {
+    gap: 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -733,7 +774,89 @@
     font-size: 1.75rem;
   }
 
+  .heroSubtitle {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .heroEyebrow {
+    font-size: 0.72rem;
+    padding: 5px 12px;
+  }
+
   .whyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroStats {
+    display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .heroStat {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .heroStatNum {
+    font-size: 1.2rem;
+  }
+
+  .ctaBanner {
+    padding: 32px 24px;
+  }
+
+  .ctaBtns {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ctaBtnPrimary,
+  .ctaBtnOutline {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .featuredSection {
+    padding: 40px 0;
+  }
+
+  .section {
+    padding: 32px 16px;
+  }
+
+  .categoriesSection {
+    padding: 32px 16px;
+  }
+
+  .whySection {
+    padding: 32px 16px;
+  }
+
+  .ctaSection {
+    padding: 32px 16px;
+  }
+
+  .categoriesGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .categoryContent {
+    padding: 14px 12px;
+  }
+
+  .categoryIcon {
+    font-size: 1.4rem;
+  }
+
+  .categoryName {
+    font-size: 0.85rem;
+  }
+
+  .categoryCount {
+    font-size: 0.7rem;
   }
 }

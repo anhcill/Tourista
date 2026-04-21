@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Không có kết nối — Tourista Studio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #1565c0;
+    }
+    .offline-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 32px;
+      text-align: center;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(21, 101, 192, 0.15);
+    }
+    .offline-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1565c0;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 14px;
+      color: #5a8fc7;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #1976d2, #42a5f5);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(25, 118, 210, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-card">
+    <div class="offline-icon">📡</div>
+    <h1>Mất kết nối internet</h1>
+    <p>Rất tiếc! Tourista hiện không thể kết nối. Vui lòng kiểm tra wifi hoặc dữ liệu di động và thử lại.</p>
+    <button class="retry-btn" onclick="location.reload()">
+      🔄 Thử lại ngay
+    </button>
+  </div>
+</body>
+</html>
