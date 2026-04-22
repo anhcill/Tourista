@@ -1,0 +1,29 @@
+# Dependencies
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Git
+.git
+.gitignore
+
+# Docs
+*.md
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Misc
+*.log
+*.tmp
+.DS_Store

@@ -35,8 +35,12 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     List<Long> findTrendingHotelIds(PageRequest pageRequest);
 
     @Query(value = "SELECT h.id FROM hotels h " +
+            "LEFT JOIN cities c ON c.id = h.city_id " +
             "WHERE h.is_active = true " +
-            "AND (:city IS NULL OR LOWER(h.name) LIKE CONCAT('%', LOWER(:city), '%'))",
+            "AND (:city IS NULL OR " +
+            "  LOWER(h.name) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(c.name_vi) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(c.name_en) LIKE CONCAT('%', LOWER(:city), '%'))",
             nativeQuery = true)
     List<Long> searchAvailableHotelIds(
             @Param("city") String city,
