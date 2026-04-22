@@ -19,11 +19,10 @@ public interface CityRepository extends JpaRepository<City, Integer> {
     @Query(value = """
             SELECT c.id, c.name_vi, c.name_en
             FROM cities c
-            WHERE c.is_active = TRUE
-              AND (
+            WHERE (
                   LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :query, '%'))
-                  OR LOWER(c.name_en) LIKE LOWER(CONCAT('%', :query, '%'))
-              )
+              OR LOWER(c.name_en) LIKE LOWER(CONCAT('%', :query, '%'))
+            )
             ORDER BY
                 CASE
                     WHEN LOWER(c.name_vi) LIKE LOWER(CONCAT(:query, '%')) THEN 1
