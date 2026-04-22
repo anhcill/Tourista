@@ -1,120 +1,80 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     FaStar, FaArrowRight, FaPlane, FaMapMarkerAlt,
     FaHotel, FaBox, FaLeaf, FaCampground, FaBuilding
 } from 'react-icons/fa';
 import { MdCompare } from 'react-icons/md';
+import homeApi from '@/api/homeApi';
 import styles from './CompareOffers.module.css';
 
-/* ─────────────────────────────────────────────────────────────
-   Mock data — khớp DB:
-   booking_type ENUM('FLIGHT','LOCATION','HOTEL','PACKAGE',
-                     'SEASONAL','CAMPS','BACKPACKING','HOSTELS')
-   JOIN promotions, hotels/tours, avg_rating
-   ───────────────────────────────────────────────────────────── */
-const CATEGORIES = [
+const ICON_MAP = {
+    FaHotel: <FaHotel />,
+    FaPlane: <FaPlane />,
+    FaBox: <FaBox />,
+    FaLeaf: <FaLeaf />,
+    FaCampground: <FaCampground />,
+    FaBuilding: <FaBuilding />,
+    FaMapMarkerAlt: <FaMapMarkerAlt />,
+};
+
+const FALLBACK_CATEGORIES = [
     {
         id: 1,
-        type: 'FLIGHT',
-        label: 'Vé máy bay',
-        icon: <FaPlane />,
-        avg_rating: 4.5,
-        offer_count: 123,
-        cover_image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80',
-        discount: '30%',
-        tag: 'Tiết kiệm nhất',
-        gradient: 'linear-gradient(135deg, #667eea, #764ba2)',
-    },
-    {
-        id: 2,
-        type: 'LOCATION',
-        label: 'Theo địa điểm',
-        icon: <FaMapMarkerAlt />,
-        avg_rating: 4.3,
-        offer_count: 123,
-        cover_image: 'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=400&q=80',
-        discount: '25%',
-        tag: 'Phổ biến',
-        gradient: 'linear-gradient(135deg, #f093fb, #f5576c)',
-    },
-    {
-        id: 3,
         type: 'HOTEL',
         label: 'Khách sạn',
         icon: <FaHotel />,
-        avg_rating: 4.7,
-        offer_count: 123,
+        avgRating: 4.7,
+        offerCount: 4538,
         cover_image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=80',
         discount: '40%',
         tag: 'Yêu thích nhất',
         gradient: 'linear-gradient(135deg, #4facfe, #00f2fe)',
     },
     {
-        id: 4,
-        type: 'PACKAGE',
-        label: 'Gói trọn bộ',
-        icon: <FaBox />,
-        avg_rating: 4.8,
-        offer_count: 123,
+        id: 2,
+        type: 'TOUR',
+        label: 'Tour du lịch',
+        icon: <FaPlane />,
+        avgRating: 4.5,
+        offerCount: 54,
         cover_image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80',
         discount: '35%',
-        tag: 'All Inclusive',
+        tag: 'Khám phá ngay',
         gradient: 'linear-gradient(135deg, #43e97b, #38f9d7)',
-    },
-    {
-        id: 5,
-        type: 'SEASONAL',
-        label: 'Theo mùa',
-        icon: <FaLeaf />,
-        avg_rating: 4.4,
-        offer_count: 123,
-        cover_image: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=400&q=80',
-        discount: '20%',
-        tag: 'Mùa lễ hội',
-        gradient: 'linear-gradient(135deg, #fa709a, #fee140)',
-    },
-    {
-        id: 6,
-        type: 'CAMPS',
-        label: 'Cắm trại',
-        icon: <FaCampground />,
-        avg_rating: 4.5,
-        offer_count: 123,
-        cover_image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400&q=80',
-        discount: '15%',
-        tag: 'Thiên nhiên',
-        gradient: 'linear-gradient(135deg, #a18cd1, #fbc2eb)',
-    },
-    {
-        id: 7,
-        type: 'BACKPACKING',
-        label: 'Phượt bụi',
-        icon: <FaMapMarkerAlt />,
-        avg_rating: 4.2,
-        offer_count: 123,
-        cover_image: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=400&q=80',
-        discount: '10%',
-        tag: 'Tự do',
-        gradient: 'linear-gradient(135deg, #fda085, #f6d365)',
-    },
-    {
-        id: 8,
-        type: 'HOSTELS',
-        label: 'Nhà nghỉ',
-        icon: <FaBuilding />,
-        avg_rating: 4.0,
-        offer_count: 123,
-        cover_image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&q=80',
-        discount: '50%',
-        tag: 'Giá tốt',
-        gradient: 'linear-gradient(135deg, #89f7fe, #66a6ff)',
     },
 ];
 
 export default function CompareOffers() {
+    const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await homeApi.getCompareCategories();
+                const data = Array.isArray(res?.data) ? res.data : [];
+                if (data.length > 0) {
+                    const mapped = data.map((cat) => ({
+                        ...cat,
+                        icon: ICON_MAP[cat.icon] || <FaHotel />,
+                        cover_image: cat.type === 'HOTEL'
+                            ? 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&q=80'
+                            : 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80',
+                    }));
+                    setCategories(mapped);
+                }
+            } catch {
+                // keep fallback
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCategories();
+    }, []);
+
     return (
         <section className={styles.section}>
             <div className={styles.container}>
@@ -129,10 +89,10 @@ export default function CompareOffers() {
                     <p className={styles.subtitle}>Browse By Type — Chọn loại dịch vụ phù hợp với chuyến đi của bạn</p>
                 </div>
 
-                {/* Grid 4×2 */}
+                {/* Grid 2 columns for hotel+tour */}
                 <div className={styles.grid}>
-                    {CATEGORIES.map((cat) => (
-                        <CategoryCard key={cat.id} cat={cat} />
+                    {categories.map((cat) => (
+                        <CategoryCard key={cat.id} cat={cat} loading={loading} />
                     ))}
                 </div>
 
@@ -149,8 +109,17 @@ export default function CompareOffers() {
 }
 
 /* ── Category Card ── */
-function CategoryCard({ cat }) {
+function CategoryCard({ cat, loading }) {
     const [hovered, setHovered] = useState(false);
+
+    if (loading) {
+        return (
+            <div className={styles.skeletonCard}>
+                <div className={styles.skeletonImage} />
+                <div className={styles.skeletonFooter} />
+            </div>
+        );
+    }
 
     return (
         <div
@@ -169,7 +138,7 @@ function CategoryCard({ cat }) {
 
                 {/* Offer count chip */}
                 <div className={styles.offerChip}>
-                    <span>{cat.offer_count}</span>
+                    <span>{cat.offerCount}</span>
                 </div>
 
                 {/* Discount badge */}
@@ -187,7 +156,7 @@ function CategoryCard({ cat }) {
                 </div>
                 <div className={styles.footerRight}>
                     <FaStar className={styles.starIcon} />
-                    <span className={styles.rating}>{cat.avg_rating.toFixed(1)}</span>
+                    <span className={styles.rating}>{(cat.avgRating || 4.5).toFixed(1)}</span>
                 </div>
             </div>
         </div>

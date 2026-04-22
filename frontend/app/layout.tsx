@@ -5,13 +5,13 @@ import AppShellClient from "@/components/Layout/AppShellClient";
 import I18nProvider from "@/components/I18nProvider/I18nProvider";
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin-ext"],
   variable: "--font-inter",
   display: "swap",
 });
 
 const poppins = Poppins({
-  subsets: ["latin"],
+  subsets: ["latin-ext"],
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-poppins",
   display: "swap",

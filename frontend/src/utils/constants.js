@@ -38,6 +38,7 @@ export const API_ENDPOINTS = {
   // Home
   HOME: {
     TESTIMONIALS: "/home/testimonials",
+    COMPARE_CATEGORIES: "/home/compare-categories",
   },
 
   // Bookings
@@ -87,6 +88,11 @@ export const API_ENDPOINTS = {
     LIKE: "/articles/:id/like",
     COMMENTS: "/articles/:id/comments",
     COMMENT_DELETE: "/articles/comments/:commentId",
+  },
+
+  // Promotions
+  PROMOTIONS: {
+    LIST: "/promotions",
   },
 };
 
