@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
   HOME: {
     TESTIMONIALS: "/home/testimonials",
     COMPARE_CATEGORIES: "/home/compare-categories",
+    DASHBOARD_STATS: "/home/dashboard-stats",
   },
 
   // Bookings

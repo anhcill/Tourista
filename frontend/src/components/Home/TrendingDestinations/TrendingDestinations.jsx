@@ -3,15 +3,15 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaStar, FaMapMarkerAlt, FaHotel, FaArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaStar, FaHotel, FaPlane, FaArrowRight, FaChevronLeft, FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
 import { MdExplore } from 'react-icons/md';
-import hotelApi from '@/api/hotelApi';
+import homeApi from '@/api/homeApi';
 import styles from './TrendingDestinations.module.css';
 
 const FALLBACK_DEST_IMAGE = 'https://images.unsplash.com/photo-1560969184-10fe8719e047?w=400&q=80';
 
 const formatVND = (price) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(price);
 
 const toIsoDate = (date) => {
     const year = date.getFullYear();
@@ -20,11 +20,10 @@ const toIsoDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const buildSearchUrl = (destination) => {
+const buildHotelSearchUrl = (destination) => {
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
-
     const params = new URLSearchParams({
         destination,
         checkIn: toIsoDate(today),
@@ -33,90 +32,75 @@ const buildSearchUrl = (destination) => {
         children: '0',
         rooms: '1',
     });
-
     return `/hotels/search?${params.toString()}`;
+};
+
+const buildTourSearchUrl = (destination) => {
+    const today = new Date();
+    const params = new URLSearchParams({
+        city: destination,
+        departureDate: toIsoDate(today),
+        adults: '1',
+    });
+    return `/tours/search?${params.toString()}`;
 };
 
 const ITEMS_PER_PAGE = 8;
 
+const getCoverForCity = (cityName) => {
+    const covers = {
+        'da-nang': 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=600&q=80',
+        'nha-trang': 'https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=600&q=80',
+        'phu-quoc': 'https://images.unsplash.com/photo-1528127269322-8d28b6b5f0f8?w=600&q=80',
+        'ho-chi-minh': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80',
+        'ha-noi': 'https://images.unsplash.com/photo-1553054537-0452e1b4f6fa?w=600&q=80',
+        'hoi-an': 'https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=600&q=80',
+        'sapa': 'https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=600&q=80',
+        'can-tho': 'https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=600&q=80',
+    };
+    const key = (cityName || '').toLowerCase().replace(/\s+/g, '-');
+    return covers[key] || FALLBACK_DEST_IMAGE;
+};
+
 export default function TrendingDestinations() {
     const router = useRouter();
     const [page, setPage] = useState(0);
-    const [destinations, setDestinations] = useState([]);
+    const [cities, setCities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchTrendingDestinations = async () => {
+        const fetchTrendingCities = async () => {
             try {
                 setLoading(true);
                 setError('');
-
-                const response = await hotelApi.getTrendingHotels({ limit: 24 });
-                const hotels = Array.isArray(response?.data) ? response.data : [];
-
-                const grouped = new Map();
-
-                hotels.forEach((hotel) => {
-                    const cityName = (hotel.city || 'Diem den').trim();
-                    const key = cityName.toLowerCase();
-
-                    if (!grouped.has(key)) {
-                        grouped.set(key, {
-                            id: Number(hotel.id || 0),
-                            city: { name_vi: cityName, name_en: cityName },
-                            country: { name_en: 'Viet Nam', flag: '🌏' },
-                            hotel_count: 0,
-                            avg_price_per_night: 0,
-                            avg_rating: 0,
-                            cover_image: hotel.coverImage || FALLBACK_DEST_IMAGE,
-                        });
-                    }
-
-                    const current = grouped.get(key);
-                    current.hotel_count += 1;
-                    current.avg_price_per_night += Number(hotel.minPricePerNight || 0);
-                    current.avg_rating += Number(hotel.avgRating || 0);
-                    if (!current.cover_image && hotel.coverImage) {
-                        current.cover_image = hotel.coverImage;
-                    }
-                });
-
-                const mapped = Array.from(grouped.values())
-                    .map((item) => ({
-                        ...item,
-                        avg_price_per_night: item.hotel_count > 0
-                            ? Math.round(item.avg_price_per_night / item.hotel_count)
-                            : 0,
-                        avg_rating: item.hotel_count > 0
-                            ? Number((item.avg_rating / item.hotel_count).toFixed(1))
-                            : 0,
-                        cover_image: item.cover_image || FALLBACK_DEST_IMAGE,
-                    }))
-                    .sort((a, b) => b.hotel_count - a.hotel_count);
-
-                setDestinations(mapped);
+                const response = await homeApi.getDashboardStats(16);
+                const stats = response?.data;
+                const cityList = Array.isArray(stats?.trendingCities) ? stats.trendingCities : [];
+                const mapped = cityList.map((city) => ({
+                    ...city,
+                    cover_image: city.coverImage || getCoverForCity(city.nameEn || city.nameVi),
+                }));
+                setCities(mapped);
                 setPage(0);
             } catch (err) {
-                const message = err instanceof Error ? err.message : 'Khong the tai diem den thinh hanh.';
-                setError(message);
-                setDestinations([]);
+                setError('Không thể tải điểm đến thịnh hành.');
+                setCities([]);
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchTrendingDestinations();
+        fetchTrendingCities();
     }, []);
 
     const totalPages = useMemo(
-        () => Math.max(1, Math.ceil(destinations.length / ITEMS_PER_PAGE)),
-        [destinations.length],
+        () => Math.max(1, Math.ceil(cities.length / ITEMS_PER_PAGE)),
+        [cities.length],
     );
 
     const visible = useMemo(
-        () => destinations.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE),
-        [destinations, page],
+        () => cities.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE),
+        [cities, page],
     );
 
     return (
@@ -154,25 +138,30 @@ export default function TrendingDestinations() {
                 </div>
 
                 {/* Grid 4 cột */}
-                {loading && <div className={styles.statusBox}>Dang tai diem den thinh hanh...</div>}
+                {loading && <div className={styles.statusBox}>Đang tải điểm đến thịnh hành...</div>}
 
                 {!loading && error && (
                     <div className={styles.statusBoxError}>
                         <p>{error}</p>
                         <button className={styles.retryBtn} onClick={() => window.location.reload()}>
-                            Tai lai
+                            Tải lại
                         </button>
                     </div>
                 )}
 
                 {!loading && !error && visible.length === 0 && (
-                    <div className={styles.statusBox}>Chua co du lieu diem den thinh hanh.</div>
+                    <div className={styles.statusBox}>Chưa có dữ liệu điểm đến thịnh hành.</div>
                 )}
 
                 {!loading && !error && visible.length > 0 && (
                     <div className={styles.grid}>
                         {visible.map((dest) => (
-                            <DestinationCard key={`${dest.city.name_en}-${dest.id}`} dest={dest} onExplore={(city) => router.push(buildSearchUrl(city))} />
+                            <DestinationCard
+                                key={`${dest.nameEn}-${dest.id}`}
+                                dest={dest}
+                                onExploreHotels={(city) => router.push(buildHotelSearchUrl(city))}
+                                onExploreTours={(city) => router.push(buildTourSearchUrl(city))}
+                            />
                         ))}
                     </div>
                 )}
@@ -190,11 +179,18 @@ export default function TrendingDestinations() {
 }
 
 /* ── Destination Card ── */
-function DestinationCard({ dest, onExplore }) {
+function DestinationCard({ dest, onExploreHotels, onExploreTours }) {
     const [hovered, setHovered] = useState(false);
+    const cityName = dest.nameVi || dest.nameEn || '';
 
-    const handleExplore = () => {
-        onExplore?.(dest.city.name_vi || dest.city.name_en);
+    const handleExploreHotels = (e) => {
+        e.stopPropagation();
+        onExploreHotels?.(cityName);
+    };
+
+    const handleExploreTours = (e) => {
+        e.stopPropagation();
+        onExploreTours?.(cityName);
     };
 
     return (
@@ -202,21 +198,14 @@ function DestinationCard({ dest, onExplore }) {
             className={styles.card}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            onClick={handleExplore}
             role="button"
             tabIndex={0}
-            onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    handleExplore();
-                }
-            }}
         >
             {/* Image */}
             <div className={styles.imageWrap}>
                 <img loading="lazy" decoding="async"
-                    src={dest.cover_image}
-                    alt={dest.city.name_en}
+                    src={dest.cover_image || FALLBACK_DEST_IMAGE}
+                    alt={cityName}
                     className={`${styles.image} ${hovered ? styles.imageZoom : ''}`}
                 />
                 <div className={styles.imageMask} />
@@ -224,17 +213,29 @@ function DestinationCard({ dest, onExplore }) {
                 {/* Rating chip */}
                 <div className={styles.ratingChip}>
                     <FaStar className={styles.starIcon} />
-                    <span>{dest.avg_rating.toFixed(1)}</span>
+                    <span>{(dest.avgRating || 0).toFixed(1)}</span>
                 </div>
 
                 {/* City name overlay */}
                 <div className={styles.cityOverlay}>
-                    <h3 className={styles.cityName}>
-                        {dest.city.name_en}
-                    </h3>
+                    <h3 className={styles.cityName}>{cityName}</h3>
                     <p className={styles.countryName}>
-                        {dest.country.flag} {dest.country.name_en}
+                        {dest.countryFlag || '🇻🇳'} {dest.countryName || 'Việt Nam'}
                     </p>
+                </div>
+
+                {/* Service chips */}
+                <div className={styles.serviceChips}>
+                    {dest.hotelCount > 0 && (
+                        <span className={styles.serviceChip}>
+                            <FaHotel /> {dest.hotelCount} KS
+                        </span>
+                    )}
+                    {dest.tourCount > 0 && (
+                        <span className={styles.serviceChipTour}>
+                            <FaPlane /> {dest.tourCount} Tour
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -243,28 +244,39 @@ function DestinationCard({ dest, onExplore }) {
                 <div className={styles.infoRow}>
                     <span className={styles.hotelCount}>
                         <FaHotel className={styles.hotelIcon} />
-                        {dest.hotel_count.toLocaleString()} khách sạn
+                        {dest.hotelCount || 0} khách sạn
                     </span>
-                    <div className={styles.locationBadge}>
-                        <FaMapMarkerAlt />
-                    </div>
+                    {dest.tourCount > 0 && (
+                        <span className={styles.tourCount}>
+                            <FaPlane className={styles.tourIcon} />
+                            {dest.tourCount} tour
+                        </span>
+                    )}
                 </div>
 
                 <div className={styles.priceRow}>
                     <span className={styles.priceLabel}>Từ</span>
-                    <span className={styles.price}>{formatVND(dest.avg_price_per_night)}</span>
+                    <span className={styles.price}>{formatVND(dest.avgHotelPrice || 0)}</span>
                     <span className={styles.priceNote}>/đêm</span>
                 </div>
 
-                <button
-                    className={`${styles.exploreBtn} ${hovered ? styles.exploreBtnActive : ''}`}
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        handleExplore();
-                    }}
-                >
-                    Khám phá ngay <FaArrowRight />
-                </button>
+                {/* Action buttons */}
+                <div className={styles.actionBtns}>
+                    <button
+                        className={`${styles.exploreBtn} ${hovered ? styles.exploreBtnActive : ''}`}
+                        onClick={handleExploreHotels}
+                    >
+                        <FaHotel /> Khách sạn
+                    </button>
+                    {dest.tourCount > 0 && (
+                        <button
+                            className={`${styles.tourBtn} ${hovered ? styles.tourBtnActive : ''}`}
+                            onClick={handleExploreTours}
+                        >
+                            <FaPlane /> Tour
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
