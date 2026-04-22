@@ -60,13 +60,13 @@ public interface CityRepository extends JpaRepository<City, Integer> {
                 c.id,
                 c.name_vi,
                 c.name_en,
-                COALESCE(hc.hotel_count, 0) AS hotel_count,
-                COALESCE(tc.tour_count, 0) AS tour_count,
-                COALESCE(hc.avg_price, 0) AS avg_price,
-                COALESCE(hc.avg_rating, 0) AS avg_rating,
+                COALESCE(hc.hotel_count, 0),
+                COALESCE(tc.tour_count, 0),
+                COALESCE(hc.avg_price, 0),
+                COALESCE(hc.avg_rating, 0),
                 hc.top_hotel_name,
                 hc.top_hotel_rating,
-                h.cover_image
+                NULL
             FROM cities c
             LEFT JOIN (
                 SELECT
@@ -86,14 +86,7 @@ public interface CityRepository extends JpaRepository<City, Integer> {
                 WHERE is_active = TRUE
                 GROUP BY city_id
             ) tc ON tc.city_id = c.id
-            LEFT JOIN LATERAL (
-                SELECT h.cover_image
-                FROM hotels h
-                WHERE h.city_id = c.id AND h.is_active = TRUE
-                ORDER BY h.avg_rating DESC, h.cover_image IS NOT NULL DESC
-                LIMIT 1
-            ) h ON TRUE
-            WHERE hc.hotel_count > 0 OR tc.tour_count > 0
+            WHERE (hc.hotel_count > 0 OR tc.tour_count > 0)
             ORDER BY (COALESCE(hc.hotel_count, 0) + COALESCE(tc.tour_count, 0)) DESC
             LIMIT :limit
             """, nativeQuery = true)
