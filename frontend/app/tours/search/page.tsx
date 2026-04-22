@@ -1,10 +1,11 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaSearch, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaSearch, FaChevronDown, FaChevronUp, FaSpinner, FaMapPin } from 'react-icons/fa';
 import tourApi from '@/api/tourApi';
 import TourCard from '@/components/Tours/TourCard/TourCard';
+import useHotelAutocomplete from '@/hooks/useHotelAutocomplete';
 import styles from './search.module.css';
 
 /* ── Types ────────────────────────────────────────────────── */
@@ -189,6 +190,22 @@ function TourSearchInner() {
   const [searchCity, setSearchCity] = useState('');
   const [searchDate, setSearchDate] = useState(getToday());
   const [searchAdults, setSearchAdults] = useState(2);
+  const [cityFocused, setCityFocused] = useState(false);
+  const [activeCityIdx, setActiveCityIdx] = useState(-1);
+  const [recentSearches, setRecentSearches] = useState<Array<{value: string}>>([]);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const { suggestions: citySuggestions, loading: cityLoading } = useHotelAutocomplete(searchCity);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('tourista_recent_tours');
+      if (stored) setRecentSearches(JSON.parse(stored).map(v => ({ value: v })));
+    } catch {}
+  }, []);
+
+  const showCityDropdown = cityFocused && (searchCity.trim().length > 0 || recentSearches.length > 0);
+  const cityItems = searchCity.trim().length > 0 ? citySuggestions : recentSearches;
 
   const query = useMemo(() => {
     const city = searchParams.get('city') || searchParams.get('destination') || '';
@@ -204,6 +221,29 @@ function TourSearchInner() {
     setSearchDate(query.departureDate);
     setSearchAdults(query.adults);
   }, [query]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setCityFocused(false);
+        setActiveCityIdx(-1);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const saveRecentTourSearch = (city: string) => {
+    try {
+      const key = 'tourista_recent_tours';
+      const stored = localStorage.getItem(key);
+      const list: string[] = stored ? JSON.parse(stored) : [];
+      const filtered = list.filter(v => v !== city);
+      const updated = [city, ...filtered].slice(0, 5);
+      localStorage.setItem(key, JSON.stringify(updated));
+      setRecentSearches(updated.map(v => ({ value: v })));
+    } catch {}
+  };
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -256,16 +296,54 @@ function TourSearchInner() {
     fetchTours();
   }, [query, localFilters, sort]);
 
-  const handleBannerSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchCity.trim()) return;
+  const handleBannerSearch = useCallback((e?: React.FormEvent, cityValue?: string) => {
+    if (e) e.preventDefault();
+    const dest = (cityValue || searchCity).trim();
+    if (!dest) return;
+    if (cityValue) setSearchCity(dest);
+    saveRecentTourSearch(dest);
     const params = new URLSearchParams({
-      city: searchCity.trim(),
+      city: dest,
       departureDate: searchDate,
       adults: String(Math.max(1, searchAdults)),
       children: '0',
     });
+    setCityFocused(false);
+    setActiveCityIdx(-1);
     router.push(`/tours/search?${params.toString()}`);
+  }, [searchCity, searchDate, searchAdults, router]);
+
+  const handleCityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showCityDropdown) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveCityIdx(prev => (prev + 1) % cityItems.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveCityIdx(prev => (prev <= 0 ? cityItems.length - 1 : prev - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeCityIdx >= 0 && cityItems[activeCityIdx]) {
+        handleBannerSearch(undefined, cityItems[activeCityIdx].value);
+      } else {
+        handleBannerSearch();
+      }
+    } else if (e.key === 'Escape') {
+      setCityFocused(false);
+      setActiveCityIdx(-1);
+    } else if (e.key === 'Tab') {
+      setCityFocused(false);
+      setActiveCityIdx(-1);
+    }
+  };
+
+  const getCityIcon = (type: string) => {
+    switch (type) {
+      case 'Diem den': return <FaMapPin />;
+      case 'Tour': return <FaSearch />;
+      case 'Khach san': return <FaMapMarkerAlt />;
+      default: return <FaMapPin />;
+    }
   };
 
   return (
@@ -281,14 +359,62 @@ function TourSearchInner() {
           </p>
 
           <form className={styles.inlineSearch} onSubmit={handleBannerSearch}>
-            <div className={styles.inlineField}>
+            <div className={styles.inlineField} ref={wrapperRef} style={{ position: 'relative' }}>
               <FaMapMarkerAlt className={styles.inlineIcon} />
               <input
                 className={styles.inlineInput}
                 value={searchCity}
-                onChange={(e) => setSearchCity(e.target.value)}
+                onFocus={() => setCityFocused(true)}
+                onChange={(e) => {
+                  setSearchCity(e.target.value);
+                  setActiveCityIdx(-1);
+                }}
+                onKeyDown={handleCityKeyDown}
                 placeholder="Điểm đến..."
+                autoComplete="off"
               />
+
+              {showCityDropdown && (
+                <div className={styles.cityDropdown}>
+                  {searchCity.trim().length === 0 && recentSearches.length > 0 && (
+                    <div className={styles.dropdownSectionTitle}>
+                      Tìm kiếm gần đây
+                    </div>
+                  )}
+                  {cityItems.length > 0 && (
+                    <ul className={styles.citySuggestionList}>
+                      {cityItems.map((item, idx) => (
+                        <li key={`${item.type || 'recent'}-${idx}`}>
+                          <button
+                            type="button"
+                            className={`${styles.citySuggestionItem} ${idx === activeCityIdx ? styles.citySuggestionActive : ''}`}
+                            onMouseDown={() => handleBannerSearch(undefined, item.value)}
+                            onMouseEnter={() => setActiveCityIdx(idx)}
+                          >
+                            <span className={styles.citySuggestionIcon}>
+                              {item.type ? getCityIcon(item.type) : <FaSearch />}
+                            </span>
+                            <span className={styles.citySuggestionMain}>{item.value}</span>
+                            {item.detail && (
+                              <span className={styles.citySuggestionDetail}>{item.detail}</span>
+                            )}
+                            {item.type && (
+                              <span className={styles.citySuggestionBadge}>{item.type}</span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {searchCity.trim().length > 0 && cityItems.length === 0 && !cityLoading && (
+                    <div className={styles.cityNoResults}>
+                      <button className={styles.citySearchAnyway} onMouseDown={() => handleBannerSearch()}>
+                        Tìm "{searchCity}"
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className={styles.inlineDivider} />
             <div className={styles.inlineField}>

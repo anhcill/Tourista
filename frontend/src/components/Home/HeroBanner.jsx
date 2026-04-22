@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaHotel, FaUmbrellaBeach, FaClock, FaRegClock } from 'react-icons/fa';
 import styles from './HeroBanner.module.css';
 import useHotelAutocomplete from '@/hooks/useHotelAutocomplete';
 
@@ -65,6 +65,44 @@ const buildDefaultSearchData = () => {
     };
 };
 
+const getIconForType = (type) => {
+    switch (type) {
+        case 'Diem den': return <FaMapMarkerAlt />;
+        case 'Khach san': return <FaHotel />;
+        case 'Tour': return <FaUmbrellaBeach />;
+        default: return <FaRegClock />;
+    }
+};
+
+const highlightMatch = (text, query) => {
+    if (!query || !query.trim()) return text;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) =>
+        regex.test(part) ? <mark key={i} style={{ background: '#fff3cd', color: '#b8860b', fontWeight: 700, borderRadius: '2px', padding: '0 1px' }}>{part}</mark> : part
+    );
+};
+
+const RECENT_SEARCHES_KEY = 'tourista_recent_searches';
+const MAX_RECENT = 5;
+
+const getRecentSearches = () => {
+    try {
+        const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const saveRecentSearch = (value) => {
+    try {
+        const recent = getRecentSearches().filter(item => item !== value);
+        const updated = [value, ...recent].slice(0, MAX_RECENT);
+        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+    } catch {}
+};
+
 const HeroBanner = ({ compact = false }) => {
     const router = useRouter();
     const [current, setCurrent] = useState(0);
@@ -72,12 +110,20 @@ const HeroBanner = ({ compact = false }) => {
     const [searchData, setSearchData] = useState(buildDefaultSearchData());
     const [isDestinationFocused, setIsDestinationFocused] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+    const [recentSearches, setRecentSearches] = useState([]);
     const destinationSuggestions = useHotelAutocomplete(searchData.destination);
 
-    const showDestinationSuggestions =
-        isDestinationFocused &&
-        searchData.destination.trim().length > 0 &&
-        destinationSuggestions.length > 0;
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+            if (stored) setRecentSearches(JSON.parse(stored));
+        } catch {}
+    }, []);
+
+    const hasQuery = searchData.destination.trim().length > 0;
+    const hasRecent = !hasQuery && recentSearches.length > 0;
+    const showDestinationSuggestions = isDestinationFocused && (hasQuery && destinationSuggestions.length > 0);
+    const showRecentSuggestions = isDestinationFocused && hasRecent;
 
     // Auto-play slideshow
     const goTo = useCallback((index) => {
@@ -99,8 +145,13 @@ const HeroBanner = ({ compact = false }) => {
     const handleSearch = (e) => {
         e.preventDefault();
 
+        const dest = (searchData.destination || '').trim();
+        if (!dest) return;
+
+        saveRecentSearch(dest);
+        setRecentSearches(getRecentSearches());
+
         const defaults = getDefaultDates();
-        const destination = (searchData.destination || '').trim();
         const checkIn = searchData.checkIn || defaults.checkIn;
         let checkOut = searchData.checkOut || defaults.checkOut;
 
@@ -111,7 +162,7 @@ const HeroBanner = ({ compact = false }) => {
         }
 
         const params = new URLSearchParams({
-            destination,
+            destination: dest,
             checkIn,
             checkOut,
             adults: String(searchData.adults),
@@ -229,7 +280,7 @@ const HeroBanner = ({ compact = false }) => {
                                             setTimeout(() => {
                                                 setIsDestinationFocused(false);
                                                 setActiveSuggestionIndex(-1);
-                                            }, 120);
+                                            }, 150);
                                         }}
                                         onKeyDown={handleDestinationKeyDown}
                                         onChange={(e) => {
@@ -241,19 +292,55 @@ const HeroBanner = ({ compact = false }) => {
                                     {showDestinationSuggestions && (
                                         <ul className={styles.suggestionList}>
                                             {destinationSuggestions.map((item, idx) => (
-                                                <li key={`${item.type}-${item.value}`}>
+                                                <li key={`${item.type}-${item.id}-${idx}`}>
                                                     <button
                                                         type="button"
                                                         className={`${styles.suggestionItem} ${idx === activeSuggestionIndex ? styles.suggestionItemActive : ''}`}
                                                         onMouseEnter={() => setActiveSuggestionIndex(idx)}
                                                         onMouseDown={() => selectDestinationSuggestion(item.value)}
                                                     >
-                                                        <span className={styles.suggestionMain}>{item.value}</span>
-                                                        <span className={styles.suggestionType}>{item.type}</span>
+                                                        <span className={styles.suggestionIcon}>{getIconForType(item.type)}</span>
+                                                        <div className={styles.suggestionContent}>
+                                                            <span className={styles.suggestionMain}>{highlightMatch(item.value, searchData.destination)}</span>
+                                                            {item.detail && (
+                                                                <span className={styles.suggestionDetail}>{item.detail}</span>
+                                                            )}
+                                                        </div>
+                                                        <span className={styles.suggestionBadge}>{item.type}</span>
                                                     </button>
                                                 </li>
                                             ))}
                                         </ul>
+                                    )}
+
+                                    {showRecentSuggestions && (
+                                        <>
+                                            <div className={styles.suggestionsSectionTitle}>
+                                                <FaClock style={{ fontSize: '10px' }} /> Tìm kiếm gần đây
+                                            </div>
+                                            <ul className={styles.suggestionList}>
+                                                {recentSearches.map((item, idx) => (
+                                                    <li key={`recent-${idx}`}>
+                                                        <button
+                                                            type="button"
+                                                            className={`${styles.suggestionItem} ${idx === activeSuggestionIndex ? styles.suggestionItemActive : ''}`}
+                                                            onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                                                            onMouseDown={() => selectDestinationSuggestion(item)}
+                                                        >
+                                                            <span className={`${styles.suggestionIcon} ${styles.iconRecent}`}><FaClock /></span>
+                                                            <span className={styles.suggestionMain}>{item}</span>
+                                                            <span className={styles.suggestionBadge} style={{ background: '#f0f0f0', color: '#888' }}>Lịch sử</span>
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
+
+                                    {isDestinationFocused && hasQuery && destinationSuggestions.length === 0 && !destinationSuggestions.loading && (
+                                        <div className={styles.noSuggestions}>
+                                            Không có gợi ý cho "{searchData.destination}"
+                                        </div>
                                     )}
                                 </div>
                             </div>

@@ -27,10 +27,31 @@ public interface CityRepository extends JpaRepository<City, Integer> {
                 CASE
                     WHEN LOWER(c.name_vi) LIKE LOWER(CONCAT(:query, '%')) THEN 1
                     WHEN LOWER(c.name_en) LIKE LOWER(CONCAT(:query, '%')) THEN 2
-                    ELSE 3
+                    WHEN LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :query, '%')) THEN 3
+                    ELSE 4
                 END,
                 c.name_vi ASC
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> searchCities(@Param("query") String query, @Param("limit") int limit);
+
+    @Query(value = """
+            SELECT c.id, c.name_vi, c.name_en
+            FROM cities c
+            WHERE LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :query, '%'))
+               OR LOWER(c.name_en) LIKE LOWER(CONCAT('%', :query, '%'))
+            ORDER BY
+                CASE
+                    WHEN LOWER(c.name_vi) = LOWER(:query) THEN 0
+                    WHEN LOWER(c.name_en) = LOWER(:query) THEN 1
+                    WHEN LOWER(c.name_vi) LIKE LOWER(CONCAT(:query, '%')) THEN 2
+                    WHEN LOWER(c.name_en) LIKE LOWER(CONCAT(:query, '%')) THEN 3
+                    WHEN LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :query)) THEN 4
+                    WHEN LOWER(c.name_en) LIKE LOWER(CONCAT('%', :query)) THEN 5
+                    ELSE 6
+                END,
+                c.name_vi ASC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> searchCitiesFuzzy(@Param("query") String query, @Param("limit") int limit);
 }

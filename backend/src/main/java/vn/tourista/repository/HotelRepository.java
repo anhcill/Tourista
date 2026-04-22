@@ -25,7 +25,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     List<Long> findIdsByPartnerId(@Param("partnerId") Long partnerId);
 
     @Query(value = "SELECT h.id FROM hotels h WHERE h.is_active = true " +
-            "AND h.is_trending = true",
+            "AND h.is_featured = true",
             nativeQuery = true)
     List<Long> findFeaturedHotelIds(PageRequest pageRequest);
 
@@ -78,11 +78,18 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
               )
             ORDER BY
                 CASE
+                    WHEN LOWER(h.name) = LOWER(:query) THEN 0
                     WHEN LOWER(h.name) LIKE LOWER(CONCAT(:query, '%')) THEN 1
-                    ELSE 2
+                    WHEN LOWER(h.address) LIKE LOWER(CONCAT(:query, '%')) THEN 2
+                    WHEN LOWER(c.name_vi) LIKE LOWER(CONCAT(:query, '%')) THEN 3
+                    WHEN LOWER(c.name_en) LIKE LOWER(CONCAT(:query, '%')) THEN 4
+                    ELSE 5
                 END,
                 h.avg_rating DESC
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> searchHotelsAutocomplete(@Param("query") String query, @Param("limit") int limit);
+
+    @Query(value = "SELECT COUNT(*) FROM hotels WHERE is_active = 1", nativeQuery = true)
+    long countActiveHotels();
 }

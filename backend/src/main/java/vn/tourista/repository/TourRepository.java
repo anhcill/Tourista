@@ -160,11 +160,17 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
             )
           ORDER BY
               CASE
+                  WHEN LOWER(t.title) = LOWER(:query) THEN 0
                   WHEN LOWER(t.title) LIKE LOWER(CONCAT(:query, '%')) THEN 1
-                  ELSE 2
+                  WHEN LOWER(c.name_vi) LIKE LOWER(CONCAT(:query, '%')) THEN 2
+                  WHEN LOWER(c.name_en) LIKE LOWER(CONCAT(:query, '%')) THEN 3
+                  ELSE 4
               END,
               t.avg_rating DESC
           LIMIT :limit
           """, nativeQuery = true)
   List<Object[]> searchToursAutocomplete(@Param("query") String query, @Param("limit") int limit);
+
+  @Query(value = "SELECT COUNT(*) FROM tours WHERE is_active = TRUE", nativeQuery = true)
+  long countActiveTours();
 }

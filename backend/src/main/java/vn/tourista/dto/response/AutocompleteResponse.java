@@ -16,4 +16,6 @@ public class AutocompleteResponse {
     private Long id;
     private String slug;
     private String detail;
+    @Builder.Default
+    private Integer score = 0;
 }
