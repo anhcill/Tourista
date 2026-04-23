@@ -3,7 +3,7 @@ node_modules
 .mvn/wrapper/maven-wrapper.jar
 
 # Build artifacts
-backend/target
+# backend/target - NOT ignored, needed for Railway Docker build
 frontend/.next
 frontend/out
 

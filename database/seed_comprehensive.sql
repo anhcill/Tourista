@@ -1,7 +1,7 @@
 -- ============================================================
 -- TOURISTA - Comprehensive Seed Data
 -- Seeds hotels and tours across multiple cities
--- Run: mysql -h maglev.proxy.rlwy.net -P 44405 -u root -p railway < database/seed_comprehensive.sql
+-- Run: mysql -h interchange.proxy.rlwy.net -P 38550 -u root -p railway < database/seed_comprehensive.sql
 -- Or import via phpMyAdmin / Adminer
 -- ============================================================
 

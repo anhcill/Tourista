@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- =========================== -->
+    <!-- APPENDER: CONSOLE (STDOUT)  -->
+    <!-- =========================== -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- =========================== -->
+    <!-- APPENDER: ASYNC CONSOLE     -->
+    <!-- Drop log events when queue is 75% full to protect against log bursts -->
+    <!-- Queue size 256 means max ~256 log lines buffered before any are dropped -->
+    <!-- =============================================================== -->
+    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="CONSOLE"/>
+        <queueSize>256</queueSize>
+        <disardingThreshold>0</disardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <!-- =========================== -->
+    <!-- ROOT LOG LEVEL              -->
+    <!-- WARN = far fewer logs than INFO; ERROR/FATAL still surface clearly  -->
+    <!-- =============================================================== -->
+    <root level="WARN">
+        <appender-ref ref="ASYNC_CONSOLE"/>
+    </root>
+
+    <!-- =========================== -->
+    <!-- PACKAGE-SPECIFIC LEVELS      -->
+    <!-- Keep DEBUG/WARN for components that matter for monitoring         -->
+    <!-- =============================================================== -->
+
+    <!-- Application services -->
+    <logger name="vn.tourista" level="INFO"/>
+
+    <!-- BotService: lower to WARN — error logs are noisy during normal use -->
+    <logger name="vn.tourista.service.BotService" level="WARN"/>
+
+    <!-- Gemini/TourRecommendation: can be noisy with AI calls -->
+    <logger name="vn.tourista.service.GeminiService" level="WARN"/>
+    <logger name="vn.tourista.service.TourRecommendationService" level="WARN"/>
+
+    <!-- Payment webhooks fire very frequently; keep only WARN+ -->
+    <logger name="vn.tourista.controller.PaymentWebhookController" level="WARN"/>
+
+    <!-- Chat/WebSocket — drop debug noise, keep WARN+ -->
+    <logger name="vn.tourista.controller.MessageController" level="WARN"/>
+
+    <!-- EmailService: INFO is fine for sent emails (low volume) -->
+    <logger name="vn.tourista.service.EmailService" level="INFO"/>
+
+    <!-- OAuth2: keep INFO for auth audit trail -->
+    <logger name="vn.tourista.security.OAuth2SuccessHandler" level="INFO"/>
+
+    <!-- AuthService: INFO for login attempt audit (minimal per-request) -->
+    <logger name="vn.tourista.service.impl.AuthServiceImpl" level="INFO"/>
+
+    <!-- Statistics: keep WARN only -->
+    <logger name="vn.tourista.service.StatisticsService" level="WARN"/>
+
+    <!-- Schedulers: INFO ok (runs infrequently) -->
+    <logger name="vn.tourista.scheduler.CleanupScheduler" level="INFO"/>
+
+    <!-- Spring framework: suppress verbose framework logs -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="io.github.bucket4j" level="WARN"/>
+    <logger name="org.reflections" level="WARN"/>
+
+    <!-- Tomcat/Undertow: reduce noise -->
+    <logger name="org.apache.catalina" level="WARN"/>
+    <logger name="org.apache.tomcat" level="WARN"/>
+    <logger name="org.apache.http" level="WARN"/>
+    <logger name="org.mongodb" level="WARN"/>
+
+    <!-- WebSocket STOMP — verbose, keep WARN+ -->
+    <logger name="org.springframework.messaging" level="WARN"/>
+    <logger name="org.springframework.web.socket" level="WARN"/>
+
+    <!-- Keep async request/interrupt noise at ERROR only -->
+    <logger name="org.springframework.web.context.request.async" level="ERROR"/>
+
+</configuration>

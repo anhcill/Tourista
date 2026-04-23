@@ -1,8 +1,8 @@
 <?php
-$host = 'maglev.proxy.rlwy.net';
-$port = 44405;
+$host = 'interchange.proxy.rlwy.net';
+$port = 38550;
 $user = 'root';
-$pass = 'EcQvhZIyDypbORoVrkpUhlcRTzaJNGOq';
+$pass = 'SZhkpiaBKssdXIyGLhTxbLQzGVlOnZBD';
 $db   = 'railway';
 
 try {

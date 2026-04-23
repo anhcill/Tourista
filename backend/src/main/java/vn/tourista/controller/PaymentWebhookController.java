@@ -46,7 +46,7 @@ public class PaymentWebhookController {
      */
     @PostMapping("/momo/ipn")
     public ResponseEntity<Map<String, Object>> momoIpn(@RequestBody Map<String, String> payload) {
-        log.info("MoMo IPN received: orderId={}, resultCode={}", payload.get("orderId"), payload.get("resultCode"));
+        log.debug("MoMo IPN received: orderId={}, resultCode={}", payload.get("orderId"), payload.get("resultCode"));
 
         try {
             String resultCode = payload.get("resultCode");
@@ -59,7 +59,7 @@ public class PaymentWebhookController {
 
             // Chỉ xử lý khi resultCode = 0 (thành công)
             if (!"0".equals(resultCode)) {
-                log.info("MoMo IPN: payment failed for orderId={}, resultCode={}", orderId, resultCode);
+                log.debug("MoMo IPN: payment failed for orderId={}, resultCode={}", orderId, resultCode);
                 return ResponseEntity.ok(Map.of("status", "fail", "code", resultCode));
             }
 
@@ -80,7 +80,7 @@ public class PaymentWebhookController {
 
     @PostMapping("/momo/create")
     public ResponseEntity<Map<String, Object>> createMoMoPayment(@RequestBody Map<String, String> payload) {
-        log.info("MoMo payment create request for booking: {}", payload.get("bookingCode"));
+        log.debug("MoMo payment create request for booking: {}", payload.get("bookingCode"));
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
                 .body(Map.of(
                         "error", "MoMo chua duoc cau hinh. Vui long su dung VNPay.",
@@ -96,7 +96,7 @@ public class PaymentWebhookController {
      */
     @PostMapping("/zalopay/ipn")
     public ResponseEntity<Map<String, Object>> zalopayIpn(@RequestBody Map<String, String> payload) {
-        log.info("ZaloPay IPN received: appTransId={}, status={}", payload.get("apptransid"), payload.get("status"));
+        log.debug("ZaloPay IPN received: appTransId={}, status={}", payload.get("apptransid"), payload.get("status"));
 
         try {
             String status = payload.get("status");
@@ -109,7 +109,7 @@ public class PaymentWebhookController {
 
             // status = 1 means success
             if (!"1".equals(status)) {
-                log.info("ZaloPay IPN: payment failed for appTransId={}, status={}", appTransId, status);
+                log.debug("ZaloPay IPN: payment failed for appTransId={}, status={}", appTransId, status);
                 return ResponseEntity.ok(Map.of("return_code", 0, "return_message", "payment status = " + status));
             }
 
@@ -129,7 +129,7 @@ public class PaymentWebhookController {
 
     @PostMapping("/zalopay/create")
     public ResponseEntity<Map<String, Object>> createZaloPayPayment(@RequestBody Map<String, String> payload) {
-        log.info("ZaloPay payment create request for booking: {}", payload.get("bookingCode"));
+        log.debug("ZaloPay payment create request for booking: {}", payload.get("bookingCode"));
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
                 .body(Map.of(
                         "error", "ZaloPay chua duoc cau hinh. Vui long su dung VNPay.",
@@ -158,7 +158,7 @@ public class PaymentWebhookController {
         if (booking.getStatus() == Booking.BookingStatus.CONFIRMED
                 || booking.getStatus() == Booking.BookingStatus.COMPLETED
                 || booking.getStatus() == Booking.BookingStatus.CHECKED_IN) {
-            log.info("Booking {} already confirmed, skipping duplicate IPN", booking.getBookingCode());
+            log.debug("Booking {} already confirmed, skipping duplicate IPN", booking.getBookingCode());
             return "0"; // Already processed, treat as success
         }
 
@@ -171,7 +171,7 @@ public class PaymentWebhookController {
         // 4. Gửi email xác nhận thanh toán
         sendBookingConfirmationEmail(booking, paymentMethod, transactionNo);
 
-        log.info("Booking {} confirmed via {} IPN", bookingCode, paymentMethod);
+        log.debug("Booking {} confirmed via {} IPN", bookingCode, paymentMethod);
         return "0";
     }
 

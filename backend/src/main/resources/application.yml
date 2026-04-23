@@ -90,12 +90,6 @@ app:
     order-type: other
     locale: vn
 
-logging:
-  level:
-    # Client aborts on async responses are common (browser refresh/close).
-    org.springframework.web.context.request.async: ERROR
-    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: ERROR
-
 # ===== GEMINI AI =====
 gemini:
   api-key: ${GEMINI_API_KEY:}

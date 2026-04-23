@@ -3,11 +3,11 @@
  * Quick check: verify seed data counts
  */
 
-$host = 'maglev.proxy.rlwy.net';
-$port = 44405;
+$host = 'interchange.proxy.rlwy.net';
+$port = 38550;
 $dbname = 'railway';
 $user = 'root';
-$pass = 'EcQvhZIyDypbORoVrkpUhlcRTzaJNGOq';
+$pass = 'SZhkpiaBKssdXIyGLhTxbLQzGVlOnZBD';
 
 try {
     $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $user, $pass, [

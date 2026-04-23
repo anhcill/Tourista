@@ -1,6 +1,6 @@
 <?php
 // Quick fix: add tour_images for 15 new tours
-$pdo = new PDO('mysql:host=maglev.proxy.rlwy.net;port=44405;dbname=railway;charset=utf8mb4', 'root', 'EcQvhZIyDypbORoVrkpUhlcRTzaJNGOq', [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$pdo = new PDO('mysql:host=interchange.proxy.rlwy.net;port=38550;dbname=railway;charset=utf8mb4', 'root', 'SZhkpiaBKssdXIyGLhTxbLQzGVlOnZBD', [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 
 $images = [
     8 => ['https://images.unsplash.com/photo-1564507592333-c60657eea523?w=1600&q=80', 'Hanoi Old Quarter'],

@@ -1,5 +1,5 @@
 <?php
-$pdo = new PDO('mysql:host=maglev.proxy.rlwy.net;port=44405;dbname=railway;charset=utf8mb4', 'root', 'EcQvhZIyDypbORoVrkpUhlcRTzaJNGOq', [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$pdo = new PDO('mysql:host=interchange.proxy.rlwy.net;port=38550;dbname=railway;charset=utf8mb4', 'root', 'SZhkpiaBKssdXIyGLhTxbLQzGVlOnZBD', [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 echo "=== Reviews Table Schema ===\n";
 $cols = $pdo->query('DESCRIBE reviews')->fetchAll();
 foreach ($cols as $c) echo "{$c['Field']} {$c['Type']} NULL={$c['Null']} Default={$c['Default']}\n";

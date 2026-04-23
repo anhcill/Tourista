@@ -62,23 +62,21 @@ public interface CityRepository extends JpaRepository<City, Integer> {
                 c.name_en,
                 COALESCE(hc.hotel_count, 0),
                 COALESCE(tc.tour_count, 0),
-                COALESCE(hc.avg_price, 0),
-                COALESCE(hc.avg_rating, 0),
+                0 AS avg_price,
+                COALESCE(hc.top_hotel_rating, 0),
                 hc.top_hotel_name,
                 hc.top_hotel_rating,
                 NULL
             FROM cities c
             LEFT JOIN (
                 SELECT
-                    city_id,
+                    h.city_id,
                     COUNT(*) AS hotel_count,
-                    ROUND(AVG(min_price_per_night)) AS avg_price,
-                    ROUND(AVG(avg_rating), 1) AS avg_rating,
-                    MAX(name) AS top_hotel_name,
-                    MAX(avg_rating) AS top_hotel_rating
-                FROM hotels
-                WHERE is_active = TRUE
-                GROUP BY city_id
+                    MAX(h.avg_rating) AS top_hotel_rating,
+                    MAX(CONCAT(h.avg_rating, '|', h.name)) AS best_hotel_info
+                FROM hotels h
+                WHERE h.is_active = TRUE
+                GROUP BY h.city_id
             ) hc ON hc.city_id = c.id
             LEFT JOIN (
                 SELECT city_id, COUNT(*) AS tour_count
