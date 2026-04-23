@@ -1,15 +1,16 @@
 <?php
 
-$host = '127.0.0.1';
+$host = 'interchange.proxy.rlwy.net';
+$port = 38550;
 $user = 'root';
-$pass = '28072003';
-$dbName = 'tourista';
+$pass = 'SZhkpiaBKssdXIyGLhTxbLQzGVlOnZBD';
+$dbName = 'railway';
 
 $adminEmail = 'admin@tourista.vn';
 $adminPassword = 'Admin@12345';
 $adminFullName = 'Admin Tourista';
 
-$mysqli = new mysqli($host, $user, $pass, $dbName);
+$mysqli = new mysqli($host, $user, $pass, $dbName, $port);
 if ($mysqli->connect_errno) {
     fwrite(STDERR, 'connect_error: ' . $mysqli->connect_error . PHP_EOL);
     exit(1);
