@@ -1,5 +1,7 @@
 'use client';
 
+const listeners = new Set();
+
 /** @returns {() => void} */
 const unsubscribe = (fn) => () => { listeners.delete(fn); };
 
