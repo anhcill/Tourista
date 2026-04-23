@@ -53,7 +53,7 @@ spring:
   # ===== RESEND EMAIL (Railway production) =====
   email:
     resend-api-key: ${RESEND_API_KEY:}
-    from: On behalf <noreply@resend.dev>
+    from: Tourista Studio <onboarding@resend.dev>
 
   # ===== GOOGLE OAUTH2 =====
   security:
