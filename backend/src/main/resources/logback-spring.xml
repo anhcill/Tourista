@@ -18,7 +18,7 @@
     <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="CONSOLE"/>
         <queueSize>256</queueSize>
-        <disardingThreshold>0</disardingThreshold>
+        <discardingThreshold>0</discardingThreshold>
         <includeCallerData>false</includeCallerData>
         <neverBlock>true</neverBlock>
     </appender>
