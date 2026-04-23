@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,10 +62,10 @@ public class Hotel {
     private String address;
 
     @Column(name = "latitude", precision = 10, scale = 7)
-    private java.math.BigDecimal latitude;
+    private BigDecimal latitude;
 
     @Column(name = "longitude", precision = 10, scale = 7)
-    private java.math.BigDecimal longitude;
+    private BigDecimal longitude;
 
     @Column(name = "star_rating", nullable = false)
     private Integer starRating;
@@ -110,4 +112,43 @@ public class Hotel {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = LocalDateTime.now();
+        }
+        if (this.checkInTime == null) {
+            this.checkInTime = LocalTime.of(14, 0);
+        }
+        if (this.checkOutTime == null) {
+            this.checkOutTime = LocalTime.of(12, 0);
+        }
+        if (this.avgRating == null) {
+            this.avgRating = BigDecimal.ZERO;
+        }
+        if (this.reviewCount == null) {
+            this.reviewCount = 0;
+        }
+        if (this.starRating == null) {
+            this.starRating = 3;
+        }
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
+        if (this.isFeatured == null) {
+            this.isFeatured = false;
+        }
+        if (this.isTrending == null) {
+            this.isTrending = false;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

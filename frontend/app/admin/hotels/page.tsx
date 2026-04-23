@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { FaBan, FaCheckCircle, FaEdit, FaHotel, FaPlusCircle, FaSearch, FaSyncAlt, FaTimesCircle } from 'react-icons/fa';
+import { FaBan, FaCheckCircle, FaEdit, FaFileImport, FaHotel, FaMapMarkedAlt, FaPlusCircle, FaSearch, FaSyncAlt, FaTimesCircle } from 'react-icons/fa';
 import adminApi from '@/api/adminApi';
 import type { AdminHotelRow, AdminHotelsOverview, AdminHotelStatus } from '../types';
 import styles from './page.module.css';
@@ -225,6 +225,14 @@ export default function AdminHotelsPage() {
           <Link href="/admin/hotels/create" className={styles.createButton}>
             <FaPlusCircle />
             Thêm mới
+          </Link>
+          <Link href="/admin/hotels/import" className={styles.createButton}>
+            <FaFileImport />
+            Import CSV
+          </Link>
+          <Link href="/admin/hotels/map" className={styles.createButton}>
+            <FaMapMarkedAlt />
+            Bản đồ
           </Link>
           <span
             className={`${styles.dataBadge} ${overview.hasMockFallback ? styles.dataBadgeMock : styles.dataBadgeLive}`}

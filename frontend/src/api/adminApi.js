@@ -1903,6 +1903,47 @@ const adminApi = {
       "Khong the tai so lieu review.",
     );
   },
+
+  // Hotel Import from CSV
+  importHotelsParse: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return safeRequest(
+      () => axiosClient.post('/admin/hotels/import/parse', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+      "Parse CSV that bai.",
+    );
+  },
+
+  importHotelsPreview: async (request) => {
+    return safeRequest(
+      () => axiosClient.post('/admin/hotels/import/preview', request),
+      "Preview import that bai.",
+    );
+  },
+
+  importHotelsExecute: async (request) => {
+    return safeRequest(
+      () => axiosClient.post('/admin/hotels/import/execute', request),
+      "Import hotels that bai.",
+    );
+  },
+
+  // Map endpoints
+  getHotelsForMap: async ({ city = 'ALL', status = 'ALL', limit = 500 } = {}) => {
+    return safeRequest(
+      () => axiosClient.get('/admin/hotels/map', { params: { city, status, limit } }),
+      "Khong the tai du lieu ban do.",
+    );
+  },
+
+  getCitiesWithHotels: async () => {
+    return safeRequest(
+      () => axiosClient.get('/admin/hotels/map/cities'),
+      "Khong the tai danh sach thanh pho.",
+    );
+  },
 };
 
 export default adminApi;

@@ -92,4 +92,6 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
 
     @Query(value = "SELECT COUNT(*) FROM hotels WHERE is_active = 1", nativeQuery = true)
     long countActiveHotels();
+
+    boolean existsBySlug(String slug);
 }

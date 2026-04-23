@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vn.tourista.entity.Booking;
+import vn.tourista.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
     Optional<Booking> findByBookingCodeAndUser_Email(String bookingCode, String email);
 
     List<Booking> findByUser_IdOrderByCreatedAtDesc(Long userId);
+
+    List<Booking> findByUserAndStatusIn(User user, List<Booking.BookingStatus> statuses);
 
     List<Booking> findByStatusAndCreatedAtBefore(Booking.BookingStatus status, LocalDateTime before);
 
