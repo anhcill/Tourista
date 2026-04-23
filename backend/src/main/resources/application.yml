@@ -77,16 +77,16 @@ app:
     login-per-minute: 5 # Tối đa 5 lần login / phút / IP
     register-per-minute: 3 # Tối đa 3 lần register / phút / IP
 
-  frontend-url: http://localhost:3000
+  frontend-url: ${FRONTEND_URL:https://tourista-nine.vercel.app}
 
   cors:
-    allowed-origins: http://localhost:3000
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://tourista-nine.vercel.app,http://localhost:3000}
 
   vnpay:
-    tmn-code: R5V2JO22
-    hash-secret: 55UIA7VSOA6V3B9HIN2HREEYGUQ7PRFL
-    pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-    return-url: http://localhost:3000/payments/vnpay/return
+    tmn-code: ${VNPAY_TMN_CODE:R5V2JO22}
+    hash-secret: ${VNPAY_HASH_SECRET:55UIA7VSOA6V3B9HIN2HREEYGUQ7PRFL}
+    pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    return-url: ${VNPAY_RETURN_URL:https://tourista-nine.vercel.app/payments/vnpay/return}
     order-type: other
     locale: vn
 
