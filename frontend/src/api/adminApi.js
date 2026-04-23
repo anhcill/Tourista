@@ -1486,7 +1486,7 @@ const adminApi = {
 
     try {
       const statsResponse = await axiosClient.get("/admin/statistics/dashboard");
-      const stats = statsResponse?.data?.data || {};
+      const stats = statsResponse?.data || {};
 
       const revenueByMonth = Array.isArray(stats.revenueByMonth) ? stats.revenueByMonth : [];
       const revenueSeries = revenueByMonth.map((item) => {

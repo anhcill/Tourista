@@ -130,9 +130,12 @@ export default function AdminReviewsPage() {
           adminApi.getReviewCounts(),
         ]);
 
-        const reviewData = (reviewRes as { content?: Review[] })?.content ?? [];
+        // ApiResponse wraps data inside .data — axios interceptor already unwraps one level
+        const reviewPayload = (reviewRes as any)?.data ?? reviewRes;
+        const reviewData = (reviewPayload as { content?: Review[] })?.content ?? [];
         setReviews(reviewData);
-        setCounts(countsRes as Counts);
+        const countsPayload = (countsRes as any)?.data ?? countsRes;
+        setCounts(countsPayload as Counts);
       } catch (err) {
         // On timeout or error, show mock data so page is usable
         const isTimeout = err && (err as { code?: string }).code === 'ECONNABORTED';
