@@ -4,15 +4,14 @@ server:
 
 spring:
   config:
-    # Support running from both backend/ and workspace root/.
-    import: optional:file:.env,optional:file:backend/.env,optional:file:backend/application.properties,optional:file:${user.dir}/.env,optional:file:${user.dir}/backend/.env,optional:file:${user.dir}/backend/application.properties
+    import: optional:classpath:application.properties
 
   # ===== DATABASE =====
   datasource:
     # Priority: explicit DB_* -> SPRING_DATASOURCE_* -> Railway MYSQL* -> local default
-    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:mysql://${MYSQLHOST:localhost}:${MYSQLPORT:3306}/${MYSQLDATABASE:tourista}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&autoReconnect=true&tcpKeepAlive=true}}
-    username: ${DB_USERNAME:${SPRING_DATASOURCE_USERNAME:${MYSQLUSER:root}}}
-    password: ${DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:${MYSQLPASSWORD:${MYSQL_ROOT_PASSWORD:}}}}
+    url: jdbc:mysql://localhost:3306/tourista?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&autoReconnect=true
+    username: root
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # HikariCP connection pool settings
     hikari:
@@ -42,8 +41,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    username: ducanhle28072003@gmail.com
+    password: zzwyoiqufiwgyrjq
     properties:
       mail:
         smtp:
@@ -67,7 +66,7 @@ spring:
 # ===== JWT + APP CONFIG =====
 app:
   jwt:
-    secret: ${JWT_SECRET:}
+    secret: A8kNV8BhXZuHAqvo/Ma7Y47H54ccGKYXJrCfKLJ3apMOk1xnS3/o5HDJYFHjuXPcm5lFgexL9+oCUbPiPMuIig==
     access-token-expiry-ms: 900000 # 15 phút (ms)
     refresh-token-expiry-days: 7 # 7 ngày
 
@@ -79,16 +78,16 @@ app:
     login-per-minute: 5 # Tối đa 5 lần login / phút / IP
     register-per-minute: 3 # Tối đa 3 lần register / phút / IP
 
-  frontend-url: ${APP_FRONTEND_URL:${FRONTEND_URL:http://localhost:3000}} # URL frontend (dùng cho redirect OAuth2, email link)
+  frontend-url: http://localhost:3000
 
   cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-origins: http://localhost:3000
 
   vnpay:
-    tmn-code: ${VNPAY_TMN_CODE:}
-    hash-secret: ${VNPAY_HASH_SECRET:}
-    pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
-    return-url: ${VNPAY_RETURN_URL:http://localhost:3000/payments/vnpay/return}
+    tmn-code: R5V2JO22
+    hash-secret: 55UIA7VSOA6V3B9HIN2HREEYGUQ7PRFL
+    pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    return-url: http://localhost:3000/payments/vnpay/return
     order-type: other
     locale: vn
 

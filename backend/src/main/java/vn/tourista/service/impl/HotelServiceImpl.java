@@ -236,10 +236,15 @@ public class HotelServiceImpl implements HotelService {
                 if (city == null) {
                         return null;
                 }
-                if (city.getNameVi() != null && !city.getNameVi().isBlank()) {
-                        return city.getNameVi();
+                try {
+                        String nameVi = city.getNameVi();
+                        if (nameVi != null && !nameVi.isBlank()) {
+                                return nameVi;
+                        }
+                        return city.getNameEn();
+                } catch (Exception e) {
+                        return null;
                 }
-                return city.getNameEn();
         }
 
         private int sanitizeLimit(Integer limit) {

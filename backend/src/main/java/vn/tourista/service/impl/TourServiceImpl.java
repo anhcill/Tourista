@@ -384,22 +384,30 @@ public class TourServiceImpl implements TourService {
         if (city == null) {
             return null;
         }
-        if (city.getNameVi() != null && !city.getNameVi().isBlank()) {
-            return city.getNameVi();
+        try {
+            String nameVi = city.getNameVi();
+            if (nameVi != null && !nameVi.isBlank()) {
+                return nameVi;
+            }
+            return city.getNameEn();
+        } catch (Exception e) {
+            return null;
         }
-        return city.getNameEn();
     }
 
     private String buildCategoryLabel(Tour tour) {
-        if (tour.getCategory() == null) {
+        if (tour == null || tour.getCategory() == null) {
             return null;
         }
-
-        String nameVi = tour.getCategory().getNameVi();
-        if (nameVi != null && !nameVi.isBlank()) {
-            return nameVi;
+        try {
+            String nameVi = tour.getCategory().getNameVi();
+            if (nameVi != null && !nameVi.isBlank()) {
+                return nameVi;
+            }
+            return tour.getCategory().getNameEn();
+        } catch (Exception e) {
+            return null;
         }
-        return tour.getCategory().getNameEn();
     }
 
     private List<String> parseListText(String raw) {
