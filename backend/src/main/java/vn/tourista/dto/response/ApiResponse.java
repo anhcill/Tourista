@@ -47,6 +47,14 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    // Thành công chỉ có data (không message)
+    public static <T> ApiResponse<T> success(T data) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .data(data)
+                .build();
+    }
+
     // Thất bại
     public static <T> ApiResponse<T> fail(String message) {
         return ApiResponse.<T>builder()
