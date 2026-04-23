@@ -26,7 +26,12 @@ public class HotelImportController {
     public ResponseEntity<ApiResponse<List<CsvHotelRow>>> parseCsv(
             @RequestParam("file") MultipartFile file) {
         try {
-            String csvContent = new String(file.getBytes(), "UTF-8");
+            byte[] bytes = file.getBytes();
+            String csvContent = new String(bytes, "UTF-8");
+            // Strip UTF-8 BOM if present
+            if (csvContent.startsWith("\uFEFF")) {
+                csvContent = csvContent.substring(1);
+            }
             List<CsvHotelRow> rows = hotelImportService.parseCsv(csvContent);
             return ResponseEntity.ok(ApiResponse.ok("Đã parse " + rows.size() + " dòng từ CSV", rows));
         } catch (Exception e) {
