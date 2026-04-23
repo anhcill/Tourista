@@ -12,7 +12,7 @@ import vn.tourista.entity.BookingTourDetail;
 import vn.tourista.repository.BookingHotelDetailRepository;
 import vn.tourista.repository.BookingRepository;
 import vn.tourista.repository.BookingTourDetailRepository;
-import vn.tourista.service.EmailService;
+import vn.tourista.service.ResendEmailService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,7 +34,7 @@ public class PaymentWebhookController {
     private final BookingRepository bookingRepository;
     private final BookingHotelDetailRepository bookingHotelDetailRepository;
     private final BookingTourDetailRepository bookingTourDetailRepository;
-    private final EmailService emailService;
+    private final ResendEmailService emailService;
 
     // ==================== MoMo IPN Webhook ====================
 

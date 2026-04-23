@@ -16,7 +16,7 @@ import vn.tourista.exception.*;
 import vn.tourista.repository.*;
 import vn.tourista.security.JwtUtil;
 import vn.tourista.service.AuthService;
-import vn.tourista.service.EmailService;
+import vn.tourista.service.ResendEmailService;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     @Autowired private LoginAttemptRepository loginAttemptRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtUtil jwtUtil;
-    @Autowired private EmailService emailService;
+    @Autowired private ResendEmailService emailService;
 
     @Value("${app.auth.max-failed-attempts}") private int maxFailedAttempts;
     @Value("${app.auth.lock-duration-minutes}") private int lockDurationMinutes;

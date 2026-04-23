@@ -36,18 +36,24 @@ spring:
       mode: always
       schema-locations: classpath:schema-chat.sql,classpath:schema-articles.sql
 
-  # ===== EMAIL (SMTP Gmail) =====
+  # ===== EMAIL (SMTP Gmail - local only) =====
+  # Railway uses Resend API instead (see app.email.* below)
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ducanhle28072003@gmail.com
-    password: zzwyoiqufiwgyrjq
+    username: ${MAIL_USERNAME:ducanhle28072003@gmail.com}
+    password: ${MAIL_PASSWORD:zzwyoiqufiwgyrjq}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
+  # ===== RESEND EMAIL (Railway production) =====
+  email:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: On behalf <noreply@resend.dev>
 
   # ===== GOOGLE OAUTH2 =====
   security:

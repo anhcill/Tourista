@@ -28,7 +28,7 @@ import vn.tourista.repository.TourDepartureRepository;
 import vn.tourista.repository.TourRepository;
 import vn.tourista.repository.UserRepository;
 import vn.tourista.service.BookingService;
-import vn.tourista.service.EmailService;
+import vn.tourista.service.ResendEmailService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -73,7 +73,7 @@ public class BookingServiceImpl implements BookingService {
     private BookingTourDetailRepository bookingTourDetailRepository;
 
     @Autowired
-    private EmailService emailService;
+    private ResendEmailService emailService;
 
     @Override
     public CreateBookingResponse createBooking(String userEmail, CreateBookingRequest request) {
