@@ -3,6 +3,10 @@ package vn.tourista.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,44 +64,49 @@ public class HotelImportServiceImpl implements HotelImportService {
             return rows;
         }
 
-        String[] lines = csvContent.split("\\r?\\n");
-        if (lines.length < 2) {
-            return rows;
-        }
+        try (CSVReader reader = new CSVReaderBuilder(new java.io.StringReader(csvContent))
+                .build()) {
 
-        String[] headers = splitCsvLine(lines[0]);
-        Map<String, Integer> headerMap = new HashMap<>();
-        for (int i = 0; i < headers.length; i++) {
-            headerMap.put(headers[i].trim().toLowerCase(), i);
-        }
+            String[] headers = reader.readNext();
+            if (headers == null || headers.length == 0) {
+                return rows;
+            }
 
-        for (int lineIdx = 1; lineIdx < lines.length; lineIdx++) {
-            String line = lines[lineIdx].trim();
-            if (line.isEmpty()) continue;
+            Map<String, Integer> headerMap = new HashMap<>();
+            for (int i = 0; i < headers.length; i++) {
+                headerMap.put(headers[i].trim().toLowerCase(), i);
+            }
 
-            String[] values = splitCsvLine(line);
-            CsvHotelRow row = CsvHotelRow.builder()
-                    .title(getValueSafe(values, headerMap, "title"))
-                    .category(getValueSafe(values, headerMap, "category"))
-                    .address(getValueSafe(values, headerMap, "address"))
-                    .openHours(getValueSafe(values, headerMap, "open_hours"))
-                    .website(getValueSafe(values, headerMap, "website"))
-                    .phone(getValueSafe(values, headerMap, "phone"))
-                    .plusCode(getValueSafe(values, headerMap, "plus_code"))
-                    .reviewCount(parseIntSafe(getValueSafe(values, headerMap, "review_count")))
-                    .reviewRating(parseDecimalSafe(getValueSafe(values, headerMap, "review_rating")))
-                    .latitude(parseDecimalSafe(getValueSafe(values, headerMap, "latitude")))
-                    .longitude(parseDecimalSafe(getValueSafe(values, headerMap, "longitude")))
-                    .placeId(getValueSafe(values, headerMap, "place_id"))
-                    .descriptions(getValueSafe(values, headerMap, "descriptions"))
-                    .thumbnail(getValueSafe(values, headerMap, "thumbnail"))
-                    .priceRange(getValueSafe(values, headerMap, "price_range"))
-                    .completeAddress(getValueSafe(values, headerMap, "complete_address"))
-                    .about(getValueSafe(values, headerMap, "about"))
-                    .images(getValueSafe(values, headerMap, "images"))
-                    .build();
+            String[] values;
+            while ((values = reader.readNext()) != null) {
+                if (values.length == 1 && values[0].trim().isEmpty()) continue;
 
-            rows.add(row);
+                CsvHotelRow row = CsvHotelRow.builder()
+                        .title(getValueSafe(values, headerMap, "title"))
+                        .category(getValueSafe(values, headerMap, "category"))
+                        .address(getValueSafe(values, headerMap, "address"))
+                        .openHours(getValueSafe(values, headerMap, "open_hours"))
+                        .website(getValueSafe(values, headerMap, "website"))
+                        .phone(getValueSafe(values, headerMap, "phone"))
+                        .plusCode(getValueSafe(values, headerMap, "plus_code"))
+                        .reviewCount(parseIntSafe(getValueSafe(values, headerMap, "review_count")))
+                        .reviewRating(parseDecimalSafe(getValueSafe(values, headerMap, "review_rating")))
+                        .latitude(parseDecimalSafe(getValueSafe(values, headerMap, "latitude")))
+                        .longitude(parseDecimalSafe(getValueSafe(values, headerMap, "longitude")))
+                        .placeId(getValueSafe(values, headerMap, "place_id"))
+                        .descriptions(getValueSafe(values, headerMap, "descriptions"))
+                        .thumbnail(getValueSafe(values, headerMap, "thumbnail"))
+                        .priceRange(getValueSafe(values, headerMap, "price_range"))
+                        .completeAddress(getValueSafe(values, headerMap, "complete_address"))
+                        .about(getValueSafe(values, headerMap, "about"))
+                        .images(getValueSafe(values, headerMap, "images"))
+                        .build();
+
+                rows.add(row);
+            }
+
+        } catch (IOException | CsvValidationException e) {
+            log.error("Error parsing CSV: {}", e.getMessage(), e);
         }
 
         return rows;
@@ -574,31 +583,6 @@ public class HotelImportServiceImpl implements HotelImportService {
         Integer idx = headerMap.get(key.toLowerCase());
         if (idx == null || idx >= values.length) return "";
         return values[idx] != null ? values[idx].trim() : "";
-    }
-
-    private String[] splitCsvLine(String line) {
-        List<String> result = new ArrayList<>();
-        boolean inQuotes = false;
-        StringBuilder current = new StringBuilder();
-
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            if (c == '"') {
-                if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
-                    current.append('"');
-                    i++;
-                } else {
-                    inQuotes = !inQuotes;
-                }
-            } else if (c == ',' && !inQuotes) {
-                result.add(current.toString());
-                current = new StringBuilder();
-            } else {
-                current.append(c);
-            }
-        }
-        result.add(current.toString());
-        return result.toArray(new String[0]);
     }
 
     private Integer parseIntSafe(String val) {
