@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import ReduxProvider from '@/store/ReduxProvider';
@@ -13,6 +13,7 @@ import BotChatWidget from '@/components/Chat/BotChatWidget';
 import { ThemeProvider } from '@/components/ThemeProvider/ThemeProvider';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import PullToRefresh from '@/components/Common/PullToRefresh/PullToRefresh';
+import { p2pModalBus } from '@/utils/p2pModalBus';
 
 type AppShellClientProps = {
   children: ReactNode;
@@ -22,7 +23,28 @@ export default function AppShellClient({ children }: AppShellClientProps) {
   useServiceWorker();
   const pathname = usePathname();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isP2PModalOpen, setIsP2PModalOpen] = useState(false);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Subscribe to P2P modal open/close events (no Redux dependency here)
+  useEffect(() => {
+    const unsub = p2pModalBus.subscribe((open) => {
+      setIsP2PModalOpen(open);
+    });
+    return unsub;
+  }, []);
+
+  // Lock body scroll when P2P chat modal is open
+  useEffect(() => {
+    if (isP2PModalOpen) {
+      document.body.classList.add('chat-modal-open');
+    } else {
+      document.body.classList.remove('chat-modal-open');
+    }
+    return () => {
+      document.body.classList.remove('chat-modal-open');
+    };
+  }, [isP2PModalOpen]);
 
   const handleRefresh = useCallback(async () => {
     if (refreshTimer.current) return;
@@ -58,9 +80,9 @@ export default function AppShellClient({ children }: AppShellClientProps) {
         ) : (
           <div className="app-shell">
             <PullToRefresh onRefresh={handleRefresh} key={refreshKey} />
-            {isHotelDetailPage ? <DetailTopSearchBar /> : <Header />}
+            {!isP2PModalOpen && (isHotelDetailPage ? <DetailTopSearchBar /> : <Header />)}
             <main className="app-main">{children}</main>
-            <MobileBottomNav />
+            {!isP2PModalOpen && <MobileBottomNav />}
             <Footer />
             <Toast />
             <BotChatWidget />

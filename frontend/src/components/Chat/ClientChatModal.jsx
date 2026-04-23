@@ -11,7 +11,9 @@ import {
   markConversationRead,
   setActiveP2PConversation,
   setMessages,
+  setP2PModalOpen,
 } from '@/store/slices/chatSlice';
+import { p2pModalBus } from '@/utils/p2pModalBus';
 import styles from './ClientChatModal.module.css';
 
 const unwrapPayload = (response) => response ?? null;
@@ -103,6 +105,16 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, closeModal]);
+
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(setP2PModalOpen(true));
+      p2pModalBus.publish(true);
+    } else {
+      dispatch(setP2PModalOpen(false));
+      p2pModalBus.publish(false);
+    }
+  }, [isOpen, dispatch]);
 
   useEffect(() => {
     if (!isOpen || !isAuthenticated) return;
