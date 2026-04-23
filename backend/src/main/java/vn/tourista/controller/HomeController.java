@@ -68,18 +68,7 @@ public class HomeController {
         List<Object[]> cityRows = cityRepository.findTrendingCities(safeLimit);
         List<TrendingCityResponse> trendingCities = cityRows.stream()
                 .map(row -> {
-                    String bestHotelInfo = toString(row[7]);
-                    String topHotelName = null;
                     Double topHotelRating = toDouble(row[8]);
-                    if (bestHotelInfo != null && bestHotelInfo.contains("|")) {
-                        String[] parts = bestHotelInfo.split("\\|", 2);
-                        try {
-                            topHotelRating = Double.parseDouble(parts[0]);
-                        } catch (NumberFormatException ignored) {}
-                        topHotelName = parts.length > 1 ? parts[1] : null;
-                    } else {
-                        topHotelName = bestHotelInfo;
-                    }
                     return TrendingCityResponse.builder()
                             .id(toLong(row[0]))
                             .nameVi(toString(row[1]))
@@ -90,7 +79,7 @@ public class HomeController {
                             .tourCount(toInt(row[4]))
                             .avgHotelPrice(toDouble(row[5]))
                             .avgRating(topHotelRating)
-                            .topHotelName(topHotelName)
+                            .topHotelName(toString(row[7]))
                             .topHotelRating(topHotelRating)
                             .coverImage(toString(row[9]))
                             .build();
