@@ -55,6 +55,7 @@ export default function AdminTourEditPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [imageUrls, setImageUrls] = useState('');
+  const [coverImage, setCoverImage] = useState('');
   const [reason, setReason] = useState('');
   const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
   const [departures, setDepartures] = useState<DepartureItem[]>([]);
@@ -98,6 +99,7 @@ export default function AdminTourEditPage() {
       setIsFeatured(data.isFeatured || false);
       setIsActive(data.isActive !== false);
       setImageUrls(Array.isArray(data.imageUrls) ? data.imageUrls.join('\n') : '');
+      setCoverImage(data.coverImage || '');
 
       if (Array.isArray(data.itinerary)) {
         setItinerary(data.itinerary.map((it: { id?: number; dayNumber: number; title: string; description?: string }) => ({
@@ -211,6 +213,7 @@ export default function AdminTourEditPage() {
       isFeatured,
       isActive,
       imageUrls: urls,
+      coverImage: coverImage || null,
       itineraryItems: validItinerary,
       reason: reason.trim(),
     };
@@ -343,14 +346,33 @@ export default function AdminTourEditPage() {
 
             {imageList.length > 0 && (
               <div className={`${styles.imagePreview} ${styles.fullWidth}`}>
-                {imageList.map((url, i) => (
-                  <div key={i} className={styles.previewItem}>
-                    <img src={url} alt={`Preview ${i + 1}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <button type="button" className={styles.removeImageBtn} onClick={() => removeImage(i)} title="Xoa anh">
-                      &times;
-                    </button>
+                <div className={styles.imagePreviewHeader}>
+                  <span>Chon anh lam cover (hien thi chinh)</span>
+                </div>
+                <div className={styles.imageGrid}>
+                  {imageList.map((url, i) => (
+                    <div
+                      key={i}
+                      className={`${styles.previewItem} ${coverImage === url ? styles.previewItemCover : ''}`}
+                      onClick={() => setCoverImage(coverImage === url ? '' : url)}
+                      title={coverImage === url ? 'Anh cover - click de bo chon' : 'Click de chon lam anh cover'}
+                    >
+                      <img src={url} alt={`Preview ${i + 1}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      {coverImage === url && (
+                        <div className={styles.coverBadge}>Cover</div>
+                      )}
+                      <button type="button" className={styles.removeImageBtn} onClick={(e) => { e.stopPropagation(); removeImage(i); }} title="Xoa anh">
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {coverImage && (
+                  <div className={styles.coverInfo}>
+                    <span className={styles.coverInfoLabel}>Cover hien tai:</span>
+                    <img src={coverImage} alt="Cover" className={styles.coverInfoImg} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </div>
-                ))}
+                )}
               </div>
             )}
 

@@ -72,6 +72,8 @@ public class AdminTourUpsertRequest {
     @JsonAlias({ "imageUrls" })
     private List<String> imageUrls;
 
+    private String coverImage;
+
     @JsonAlias({ "itineraryItems" })
     private List<ItineraryRequest> itineraryItems;
 

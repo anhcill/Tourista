@@ -270,6 +270,7 @@ function HotelDetailInner() {
     const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [helpfulMap, setHelpfulMap] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
+    const [canReview, setCanReview] = useState(false);
 
     const checkIn = searchParams.get('checkIn') || '';
     const checkOut = searchParams.get('checkOut') || '';
@@ -500,6 +501,23 @@ function HotelDetailInner() {
 
         fetchInitialReviews();
     }, [id, loadReviewPage]);
+
+    // Check if user can review this hotel
+    useEffect(() => {
+        const checkCanReview = async () => {
+            if (!isAuthenticated || !hotel?.id) {
+                setCanReview(false);
+                return;
+            }
+            try {
+                const res = await reviewApi.canUserReview('HOTEL', Number(hotel.id));
+                setCanReview(Boolean(res?.data?.data?.canReview));
+            } catch {
+                setCanReview(false);
+            }
+        };
+        checkCanReview();
+    }, [isAuthenticated, hotel?.id]);
 
     const handleLoadMoreReviews = useCallback(async () => {
         if (!hasMoreReviews || reviewLoadingMore) return;
@@ -1028,6 +1046,16 @@ function HotelDetailInner() {
 
                         <div className={styles.reviewComposeCard}>
                             <p className={styles.reviewComposeTitle}>Chia se trai nghiem luu tru cua ban</p>
+                            {!isAuthenticated ? (
+                                <div className={styles.reviewAuthPrompt}>
+                                    <p>Vui lòng <a href="/login" className={styles.reviewAuthLink}>đăng nhập</a> để gửi đánh giá.</p>
+                                </div>
+                            ) : !canReview ? (
+                                <div className={styles.reviewAuthPrompt}>
+                                    <p>Chỉ khách đã từng lưu trú tại khách sạn này mới có thể gửi đánh giá.</p>
+                                </div>
+                            ) : (
+                                <>
                             <div className={styles.reviewComposeRow}>
                                 <label className={styles.reviewComposeLabel} htmlFor="hotel-review-rating">Diem danh gia</label>
                                 <select
@@ -1098,6 +1126,8 @@ function HotelDetailInner() {
                             >
                                 {reviewSubmitState.loading ? 'Dang gui...' : 'Gui danh gia'}
                             </button>
+                                </>
+                            )}
                         </div>
 
                         {reviewLoading && <div className={styles.reviewStatusBox}>Dang tai danh gia...</div>}

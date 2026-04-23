@@ -25,6 +25,7 @@ type HotelForm = {
   isActive: boolean;
   status: string;
   imageUrls: string;
+  coverImage: string;
   reason: string;
 };
 
@@ -67,6 +68,7 @@ export default function AdminHotelEditPage() {
     isActive: true,
     status: '',
     imageUrls: '',
+    coverImage: '',
     reason: '',
   });
 
@@ -113,6 +115,7 @@ export default function AdminHotelEditPage() {
         isActive: data.isActive !== false,
         status: data.status || '',
         imageUrls: Array.isArray(data.imageUrls) ? data.imageUrls.join('\n') : '',
+        coverImage: data.coverImage || '',
       }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Khong the tai chi tiet hotel.');
@@ -173,6 +176,7 @@ export default function AdminHotelEditPage() {
       isActive: form.isActive,
       status: form.status || null,
       imageUrls,
+      coverImage: form.coverImage || null,
       reason: form.reason.trim(),
     };
 
@@ -291,14 +295,33 @@ export default function AdminHotelEditPage() {
 
             {imageList.length > 0 && (
               <div className={`${styles.imagePreview} ${styles.fullWidth}`}>
-                {imageList.map((url, i) => (
-                  <div key={i} className={styles.previewItem}>
-                    <img src={url} alt={`Preview ${i + 1}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <button type="button" className={styles.removeImageBtn} onClick={() => removeImage(i)} title="Xoa anh">
-                      &times;
-                    </button>
+                <div className={styles.imagePreviewHeader}>
+                  <span>Chon anh lam cover (hien thi chinh)</span>
+                </div>
+                <div className={styles.imageGrid}>
+                  {imageList.map((url, i) => (
+                    <div
+                      key={i}
+                      className={`${styles.previewItem} ${form.coverImage === url ? styles.previewItemCover : ''}`}
+                      onClick={() => set('coverImage', form.coverImage === url ? '' : url)}
+                      title={form.coverImage === url ? 'Anh cover - click de bo chon' : 'Click de chon lam anh cover'}
+                    >
+                      <img src={url} alt={`Preview ${i + 1}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      {form.coverImage === url && (
+                        <div className={styles.coverBadge}>Cover</div>
+                      )}
+                      <button type="button" className={styles.removeImageBtn} onClick={(e) => { e.stopPropagation(); removeImage(i); }} title="Xoa anh">
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {form.coverImage && (
+                  <div className={styles.coverInfo}>
+                    <span className={styles.coverInfoLabel}>Cover hien tai:</span>
+                    <img src={form.coverImage} alt="Cover" className={styles.coverInfoImg} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </div>
-                ))}
+                )}
               </div>
             )}
 

@@ -51,6 +51,13 @@ const reviewApi = {
     const params = reviewIds.map((id) => `reviewIds=${id}`).join("&");
     return axiosClient.get(`/reviews/helpful?${params}`);
   },
+
+  // Check if current user can review a hotel or tour
+  canUserReview: (targetType, targetId) => {
+    return axiosClient.get("/reviews/can-review", {
+      params: { targetType, targetId },
+    });
+  },
 };
 
 export default reviewApi;

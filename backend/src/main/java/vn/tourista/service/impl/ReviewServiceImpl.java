@@ -274,4 +274,72 @@ public class ReviewServiceImpl implements ReviewService {
 
         return new ArrayList<>(deduplicated);
     }
+
+    @Override
+    public boolean canUserReview(String userEmail, String targetType, Long targetId) {
+        if (userEmail == null || targetType == null || targetId == null) {
+            return false;
+        }
+        String normalized = normalizeText(targetType);
+        if (normalized == null) {
+            return false;
+        }
+        try {
+            Review.TargetType type = Review.TargetType.valueOf(normalized.toUpperCase(Locale.ROOT));
+            return switch (type) {
+                case HOTEL -> canUserReviewHotel(userEmail, targetId);
+                case TOUR -> canUserReviewTour(userEmail, targetId);
+            };
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean canUserReviewHotel(String userEmail, Long hotelId) {
+        if (userEmail == null || hotelId == null) {
+            return false;
+        }
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return false;
+        }
+        List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
+                List.of(Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+        for (Booking booking : bookings) {
+            if (booking.getBookingType() != Booking.BookingType.HOTEL) {
+                continue;
+            }
+            BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking(booking).orElse(null);
+            if (detail != null && detail.getHotel() != null
+                    && Objects.equals(detail.getHotel().getId(), hotelId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean canUserReviewTour(String userEmail, Long tourId) {
+        if (userEmail == null || tourId == null) {
+            return false;
+        }
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return false;
+        }
+        List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
+                List.of(Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+        for (Booking booking : bookings) {
+            if (booking.getBookingType() != Booking.BookingType.TOUR) {
+                continue;
+            }
+            BookingTourDetail detail = bookingTourDetailRepository.findByBooking(booking).orElse(null);
+            if (detail != null && detail.getTour() != null
+                    && Objects.equals(detail.getTour().getId(), tourId)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

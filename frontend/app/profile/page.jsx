@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCamera, FaKey, FaSave } from 'react-icons/fa';
+import {
+    FaUser, FaEnvelope, FaPhone, FaCamera, FaSave,
+    FaCheckCircle, FaTimesCircle, FaKey, FaHeart
+} from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import userApi from '@/api/userApi';
 import { updateUser } from '@/store/slices/authSlice';
@@ -13,12 +16,12 @@ export default function ProfilePage() {
     const router = useRouter();
     const dispatch = useDispatch();
     const { isAuthenticated, user } = useSelector((state) => state.auth);
-    
-    // Fallback UI State while checking auth
+
     const [mounted, setMounted] = useState(false);
-    const [isProfileLoading, setIsProfileLoading] = useState(true);
-    
-    // Form fields
+    const [authChecked, setAuthChecked] = useState(false);
+    const [profileLoaded, setProfileLoaded] = useState(false);
+    const [initialData, setInitialData] = useState(null);
+
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -26,67 +29,61 @@ export default function ProfilePage() {
         avatarUrl: '',
     });
     const [isSaving, setIsSaving] = useState(false);
-    const [loadingError, setLoadingError] = useState('');
+    const [hasUnsaved, setHasUnsaved] = useState(false);
+
+    const profileLoadedRef = useRef(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
+    // Auth guard
     useEffect(() => {
         if (!mounted) return;
-
         if (!isAuthenticated) {
             router.replace('/login');
             return;
         }
+        setAuthChecked(true);
+    }, [mounted, isAuthenticated, router]);
+
+    // Load profile data ONCE
+    useEffect(() => {
+        if (!authChecked || profileLoadedRef.current) return;
+        profileLoadedRef.current = true;
 
         const loadProfile = async () => {
-            setLoadingError('');
-            setIsProfileLoading(true);
-
             try {
                 const profile = await userApi.getMyProfile();
+                const name = profile?.fullName || user?.fullName || user?.name || '';
+                const email = profile?.email || user?.email || '';
+                const phone = profile?.phone || '';
+                const avatarUrl = profile?.avatarUrl || user?.avatarUrl || '';
 
-                setFormData({
-                    fullName: profile?.fullName || user?.fullName || user?.name || '',
-                    email: profile?.email || user?.email || '',
-                    phone: profile?.phone || '',
-                    avatarUrl: profile?.avatarUrl || user?.avatarUrl || '',
-                });
-
+                setInitialData({ fullName: name, email, phone, avatarUrl });
+                setFormData({ fullName: name, email, phone, avatarUrl });
                 dispatch(updateUser(profile || {}));
-            } catch (error) {
-                const message = error?.message || 'Khong the tai thong tin profile.';
-                setLoadingError(message);
-                toast.error(message);
-
-                setFormData({
-                    fullName: user?.fullName || user?.name || '',
-                    email: user?.email || '',
-                    phone: user?.phone || '',
-                    avatarUrl: user?.avatarUrl || '',
-                });
+            } catch {
+                // Fallback to redux user data
+                const name = user?.fullName || user?.name || '';
+                const email = user?.email || '';
+                const phone = user?.phone || '';
+                const avatarUrl = user?.avatarUrl || '';
+                setInitialData({ fullName: name, email, phone, avatarUrl });
+                setFormData({ fullName: name, email, phone, avatarUrl });
             } finally {
-                setIsProfileLoading(false);
+                setProfileLoaded(true);
             }
         };
 
         void loadProfile();
-    }, [dispatch, isAuthenticated, mounted, router, user]);
+    }, [authChecked, dispatch, user]);
 
-    // Fast return for Next.js hydration
-    if (!mounted) return <main className={styles.loadingPage}>Dang tai profile...</main>;
-
-    if (!isAuthenticated) {
-        return <main className={styles.loadingPage}>Dang chuyen den trang dang nhap...</main>;
-    }
-
-    if (isProfileLoading) return <main className={styles.loadingPage}>Dang tai thong tin profile...</main>;
-
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-    };
+        setHasUnsaved(true);
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -106,7 +103,7 @@ export default function ProfilePage() {
         }
 
         setIsSaving(true);
-        
+
         try {
             const updated = await userApi.updateMyProfile({
                 fullName: normalizedFullName,
@@ -114,13 +111,16 @@ export default function ProfilePage() {
                 avatarUrl: normalizedAvatarUrl || null,
             });
 
-            setFormData({
+            const newData = {
                 fullName: updated?.fullName || normalizedFullName,
                 email: updated?.email || formData.email,
                 phone: updated?.phone || '',
                 avatarUrl: updated?.avatarUrl || '',
-            });
+            };
 
+            setFormData(newData);
+            setInitialData(newData);
+            setHasUnsaved(false);
             dispatch(updateUser(updated || {}));
             toast.success('Ho so da duoc cap nhat thanh cong!');
         } catch (error) {
@@ -132,95 +132,145 @@ export default function ProfilePage() {
 
     const getInitials = (name) => {
         if (!name) return 'U';
-        return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+        return name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase();
     };
+
+    const displayName = formData.fullName || user?.fullName || user?.name || 'Thành viên mới';
+    const displayAvatar = formData.avatarUrl || user?.avatarUrl || null;
+    const isAdmin = user?.role === 'ADMIN';
 
     return (
         <main className={styles.page}>
             <section className={styles.hero}>
                 <div className={styles.heroContent}>
                     <h1>Hồ sơ của tôi</h1>
-                    <p>Quản lý thông tin cá nhân, cài đặt bảo mật và tùy chọn ưu tiên của bạn.</p>
+                    <p>Quản lý thông tin cá nhân, cài đặt bảo mật và tùy chỉnh trải nghiệm của bạn.</p>
                 </div>
             </section>
 
             <section className={styles.profileContainer}>
-                <div className={styles.sidebar}>
+                {/* Sidebar */}
+                <aside className={styles.sidebar}>
                     <div className={styles.avatarSection}>
                         <div className={styles.avatarWrapper}>
-                            {user?.avatarUrl ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img src={user.avatarUrl} alt="Avatar" className={styles.avatarImage} loading="lazy" decoding="async" />
+                            {displayAvatar ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={displayAvatar} alt="Avatar" className={styles.avatarImage} loading="lazy" decoding="async" />
                             ) : (
-                                <div className={styles.avatarLetter}>{getInitials(user?.fullName || user?.name)}</div>
+                                <div className={styles.avatarLetter}>{getInitials(displayName)}</div>
                             )}
-                            <button
-                                type="button"
-                                className={styles.changeAvatarBtn}
-                                title="Cap nhat URL avatar ben duoi"
-                                onClick={() => toast.info('Ban co the cap nhat avatar bang URL trong form.')}
-                            >
-                                <FaCamera />
-                            </button>
                         </div>
-                        <h2 className={styles.userNameCard}>{user?.fullName || user?.name || 'Thành viên mới'}</h2>
-                        <span className={styles.userRoleBadge}>{user?.role === 'ADMIN' ? 'Quản trị viên' : 'Khách hàng VIP'}</span>
+                        <h2 className={styles.userNameCard}>{displayName}</h2>
+                        <span className={`${styles.userRoleBadge} ${isAdmin ? styles.badgeAdmin : styles.badgeUser}`}>
+                            {isAdmin ? 'Quản trị viên' : 'Khách hàng'}
+                        </span>
                     </div>
 
                     <nav className={styles.profileNav}>
-                        <button className={`${styles.navItem} ${styles.activeNavItem}`}><FaUser /> Thông tin cá nhân</button>
-                        <button className={styles.navItem} onClick={() => router.push('/profile/bookings')}><FaKey /> Lịch sử Đặt chỗ</button>
-                        <button className={styles.navItem} onClick={() => router.push('/favorites')}><FaMapMarkerAlt /> Địa điểm Yêu thích</button>
+                        <button className={`${styles.navItem} ${styles.activeNavItem}`}>
+                            <FaUser /> Thông tin cá nhân
+                        </button>
+                        <button className={styles.navItem} onClick={() => router.push('/profile/bookings')}>
+                            <FaKey /> Lịch sử Đặt chỗ
+                        </button>
+                        <button className={styles.navItem} onClick={() => router.push('/favorites')}>
+                            <FaHeart /> Địa điểm Yêu thích
+                        </button>
                     </nav>
-                </div>
+                </aside>
 
+                {/* Main */}
                 <div className={styles.mainContent}>
                     <div className={styles.cardBox}>
                         <h3 className={styles.cardTitle}>Thông tin liên hệ</h3>
 
-                        {loadingError ? (
-                            <div className={styles.warningBanner}>{loadingError}</div>
-                        ) : null}
-                        
                         <form className={styles.formGrid} onSubmit={handleSubmit}>
                             <div className={styles.formGroup}>
-                                <label>Họ và tên</label>
+                                <label htmlFor="fullName">Họ và tên</label>
                                 <div className={styles.inputWrapper}>
                                     <FaUser className={styles.inputIcon} />
-                                    <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="VD: Lê Đức Anh" required />
+                                    <input
+                                        type="text"
+                                        id="fullName"
+                                        name="fullName"
+                                        value={formData.fullName}
+                                        onChange={handleChange}
+                                        placeholder="VD: Lê Đức Anh"
+                                        required
+                                    />
                                 </div>
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label>Email (Tài khoản Google)</label>
+                                <label htmlFor="email">Email</label>
                                 <div className={styles.inputWrapper}>
                                     <FaEnvelope className={styles.inputIcon} />
-                                    <input type="email" name="email" value={formData.email} disabled className={styles.disabledInput} />
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        value={formData.email}
+                                        disabled
+                                        className={styles.disabledInput}
+                                        readOnly
+                                    />
                                 </div>
-                                <span className={styles.helpText}>Email la dinh danh dang nhap va khong the thay doi.</span>
+                                <span className={styles.helpText}>Email là thông tin đăng nhập và không thể thay đổi.</span>
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label>Số điện thoại</label>
+                                <label htmlFor="phone">Số điện thoại</label>
                                 <div className={styles.inputWrapper}>
                                     <FaPhone className={styles.inputIcon} />
-                                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="0815913408" />
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        placeholder="VD: 0815913408"
+                                    />
                                 </div>
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label>Avatar URL</label>
+                                <label htmlFor="avatarUrl">Link Avatar</label>
                                 <div className={styles.inputWrapper}>
-                                    <FaUser className={styles.inputIcon} />
-                                    <input type="text" name="avatarUrl" value={formData.avatarUrl} onChange={handleChange} placeholder="https://..." />
+                                    <FaCamera className={styles.inputIcon} />
+                                    <input
+                                        type="text"
+                                        id="avatarUrl"
+                                        name="avatarUrl"
+                                        value={formData.avatarUrl}
+                                        onChange={handleChange}
+                                        placeholder="https://..."
+                                    />
                                 </div>
-                                <span className={styles.helpText}>Bo trong neu khong su dung avatar rieng.</span>
+                                <span className={styles.helpText}>Dán link ảnh hoặc bỏ trống để sử dụng avatar mặc định.</span>
                             </div>
 
                             <div className={styles.formActions}>
-                                <button type="submit" className={styles.btnSave} disabled={isSaving}>
-                                    {isSaving ? 'Đang cập nhật...' : <><FaSave /> Lưu thay đổi</>}
+                                <button type="submit" className={styles.btnSave} disabled={isSaving || !hasUnsaved}>
+                                    {isSaving ? (
+                                        <span className={styles.savingText}>Đang cập nhật...</span>
+                                    ) : (
+                                        <><FaSave /> Lưu thay đổi</>
+                                    )}
                                 </button>
+                                {hasUnsaved && (
+                                    <button
+                                        type="button"
+                                        className={styles.btnCancel}
+                                        onClick={() => {
+                                            if (initialData) {
+                                                setFormData(initialData);
+                                                setHasUnsaved(false);
+                                            }
+                                        }}
+                                    >
+                                        Hủy bỏ
+                                    </button>
+                                )}
                             </div>
                         </form>
                     </div>

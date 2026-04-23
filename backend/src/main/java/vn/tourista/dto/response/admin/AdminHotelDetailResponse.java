@@ -38,6 +38,7 @@ public class AdminHotelDetailResponse {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     List<String> imageUrls;
+    String coverImage;
     List<String> amenityNames;
     List<RoomTypeDetail> roomTypes;
 

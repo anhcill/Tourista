@@ -40,6 +40,7 @@ public class AdminTourDetailResponse {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     List<String> imageUrls;
+    String coverImage;
     List<ItineraryDetail> itinerary;
     List<DepartureDetail> departures;
 

@@ -878,7 +878,7 @@ public class AdminServiceImpl implements AdminService {
         Hotel saved = hotelRepository.save(hotel);
 
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            saveHotelImages(saved, request.getImageUrls());
+            saveHotelImages(saved, request.getImageUrls(), request.getCoverImage());
         }
 
         if (request.getRoomTypes() != null && !request.getRoomTypes().isEmpty()) {
@@ -940,7 +940,7 @@ public class AdminServiceImpl implements AdminService {
 
         if (request.getImageUrls() != null) {
             hotelImageRepository.deleteByHotel_Id(hotelId);
-            saveHotelImages(saved, request.getImageUrls());
+            saveHotelImages(saved, request.getImageUrls(), request.getCoverImage());
         }
 
         AdminHotelItemResponse after = toHotelItem(saved, null);
@@ -1009,7 +1009,7 @@ public class AdminServiceImpl implements AdminService {
         Tour saved = tourRepository.save(tour);
 
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            saveTourImages(saved, request.getImageUrls());
+            saveTourImages(saved, request.getImageUrls(), request.getCoverImage());
         }
         if (request.getItineraryItems() != null && !request.getItineraryItems().isEmpty()) {
             saveTourItinerary(saved, request.getItineraryItems());
@@ -1075,7 +1075,7 @@ public class AdminServiceImpl implements AdminService {
         if (request.getImageUrls() != null) {
             List<TourImage> existingImages = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(tourId);
             tourImageRepository.deleteAll(existingImages);
-            saveTourImages(saved, request.getImageUrls());
+            saveTourImages(saved, request.getImageUrls(), request.getCoverImage());
         }
 
         AdminTourItemResponse after = toTourItem(saved, null);
@@ -1085,12 +1085,14 @@ public class AdminServiceImpl implements AdminService {
 
     // ===================== PRIVATE HELPERS =====================
 
-    private void saveHotelImages(Hotel hotel, List<String> urls) {
+    private void saveHotelImages(Hotel hotel, List<String> urls, String coverUrl) {
         for (int i = 0; i < urls.size(); i++) {
+            String url = urls.get(i);
+            boolean isCover = coverUrl != null && coverUrl.equals(url);
             HotelImage image = HotelImage.builder()
                     .hotel(hotel)
-                    .url(urls.get(i))
-                    .isCover(i == 0)
+                    .url(url)
+                    .isCover(isCover)
                     .sortOrder(i)
                     .createdAt(LocalDateTime.now())
                     .build();
@@ -1118,12 +1120,14 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
-    private void saveTourImages(Tour tour, List<String> urls) {
+    private void saveTourImages(Tour tour, List<String> urls, String coverUrl) {
         for (int i = 0; i < urls.size(); i++) {
+            String url = urls.get(i);
+            boolean isCover = coverUrl != null && coverUrl.equals(url);
             TourImage image = TourImage.builder()
                     .tour(tour)
-                    .url(urls.get(i))
-                    .isCover(i == 0)
+                    .url(url)
+                    .isCover(isCover)
                     .sortOrder(i)
                     .build();
             tourImageRepository.save(image);
@@ -1183,6 +1187,7 @@ public class AdminServiceImpl implements AdminService {
                 .createdAt(hotel.getCreatedAt())
                 .updatedAt(hotel.getUpdatedAt())
                 .imageUrls(images.stream().map(HotelImage::getUrl).toList())
+                .coverImage(images.stream().filter(img -> Boolean.TRUE.equals(img.getIsCover())).findFirst().map(HotelImage::getUrl).orElse(images.isEmpty() ? null : images.get(0).getUrl()))
                 .amenityNames(List.of())
                 .roomTypes(roomTypes.stream()
                         .map(rt -> AdminHotelDetailResponse.RoomTypeDetail.builder()
@@ -1233,6 +1238,7 @@ public class AdminServiceImpl implements AdminService {
                 .createdAt(tour.getCreatedAt())
                 .updatedAt(tour.getUpdatedAt())
                 .imageUrls(images.stream().map(TourImage::getUrl).toList())
+                .coverImage(images.stream().filter(img -> Boolean.TRUE.equals(img.getIsCover())).findFirst().map(TourImage::getUrl).orElse(images.isEmpty() ? null : images.get(0).getUrl()))
                 .itinerary(itinerary.stream()
                         .map(it -> AdminTourDetailResponse.ItineraryDetail.builder()
                                 .id(it.getId())

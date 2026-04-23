@@ -70,6 +70,8 @@ public class AdminHotelUpsertRequest {
     @JsonAlias({ "imageUrls" })
     private List<String> imageUrls;
 
+    private String coverImage;
+
     @JsonAlias({ "roomTypes" })
     private List<RoomTypeRequest> roomTypes;
 

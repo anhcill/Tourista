@@ -172,6 +172,7 @@ function TourDetailInner() {
     error: '',
     success: '',
   });
+  const [canReview, setCanReview] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -238,6 +239,23 @@ function TourDetailInner() {
 
     checkFav();
   }, [tour?.id, isAuthenticated]);
+
+  // Check if user can review this tour
+  useEffect(() => {
+    const checkCanReview = async () => {
+      if (!isAuthenticated || !tour?.id) {
+        setCanReview(false);
+        return;
+      }
+      try {
+        const res = await reviewApi.canUserReview('TOUR', Number(tour.id));
+        setCanReview(Boolean(res?.data?.data?.canReview));
+      } catch {
+        setCanReview(false);
+      }
+    };
+    checkCanReview();
+  }, [isAuthenticated, tour?.id]);
 
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
@@ -602,6 +620,16 @@ function TourDetailInner() {
 
             <div className={styles.reviewComposeCard}>
               <p className={styles.reviewComposeTitle}>Chia se trai nghiem chuyen di cua ban</p>
+              {!isAuthenticated ? (
+                <div className={styles.reviewAuthPrompt}>
+                  <p>Vui lòng <a href="/login" className={styles.reviewAuthLink}>đăng nhập</a> để gửi đánh giá.</p>
+                </div>
+              ) : !canReview ? (
+                <div className={styles.reviewAuthPrompt}>
+                  <p>Chỉ khách đã tham gia tour này mới có thể gửi đánh giá.</p>
+                </div>
+              ) : (
+                <>
               <div className={styles.reviewComposeRow}>
                 <label className={styles.reviewComposeLabel} htmlFor="tour-review-rating">Diem danh gia</label>
                 <select
@@ -672,6 +700,8 @@ function TourDetailInner() {
               >
                 {reviewSubmitState.loading ? 'Dang gui...' : 'Gui danh gia'}
               </button>
+                </>
+              )}
             </div>
 
             {/* Summary */}
