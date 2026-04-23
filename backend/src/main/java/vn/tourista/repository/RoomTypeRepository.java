@@ -1,6 +1,7 @@
 package vn.tourista.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.tourista.entity.RoomType;
@@ -130,4 +131,12 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
             GROUP BY rt.hotel_id
             """, nativeQuery = true)
         List<Object[]> countActiveRoomTypesByHotelIds(@Param("hotelIds") List<Long> hotelIds);
+
+        @Modifying
+        @Query(value = """
+            UPDATE room_types rt
+            SET rt.total_rooms = rt.total_rooms + :rooms
+            WHERE rt.id = :roomTypeId
+            """, nativeQuery = true)
+        void incrementRoomsAvailable(@Param("roomTypeId") Long roomTypeId, @Param("rooms") int rooms);
 }

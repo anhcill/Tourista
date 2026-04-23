@@ -486,12 +486,17 @@ public class BookingServiceImpl implements BookingService {
         booking.setCancelReason(cancelReason);
         booking.setCancelledAt(LocalDateTime.now());
 
-        // Nếu là tour booking, khôi phục số chỗ trống
+        // Khôi phục số phòng/chỗ trống khi hủy
         if (booking.getBookingType() == Booking.BookingType.TOUR) {
             BookingTourDetail tourDetail = bookingTourDetailRepository.findByBooking(booking).orElse(null);
             if (tourDetail != null && tourDetail.getDeparture() != null) {
                 int guests = tourDetail.getNumAdults() + tourDetail.getNumChildren();
                 tourDepartureRepository.incrementAvailableSlots(tourDetail.getDeparture().getId(), guests);
+            }
+        } else if (booking.getBookingType() == Booking.BookingType.HOTEL) {
+            BookingHotelDetail hotelDetail = bookingHotelDetailRepository.findByBooking(booking).orElse(null);
+            if (hotelDetail != null && hotelDetail.getRoomType() != null) {
+                roomTypeRepository.incrementRoomsAvailable(hotelDetail.getRoomType().getId(), hotelDetail.getNumRooms());
             }
         }
 
