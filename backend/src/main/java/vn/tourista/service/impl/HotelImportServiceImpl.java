@@ -66,13 +66,6 @@ public class HotelImportServiceImpl implements HotelImportService {
             return rows;
         }
 
-    @Override
-    public List<CsvHotelRow> parseCsv(String csvContent) {
-        List<CsvHotelRow> rows = new ArrayList<>();
-        if (csvContent == null || csvContent.isBlank()) {
-            return rows;
-        }
-
         String[] lines = splitCsvContent(csvContent);
         if (lines.length < 2) {
             return rows;
