@@ -453,3 +453,14 @@ img {
 .slide-down {
   animation: slideDown var(--transition-base);
 }
+
+/* ========================================
+   CHAT MODAL - BODY SCROLL LOCK
+   ======================================== */
+
+body.chat-modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  touch-action: none;
+}

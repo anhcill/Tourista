@@ -3,6 +3,10 @@ package vn.tourista.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +25,7 @@ import vn.tourista.repository.HotelRepository;
 import vn.tourista.repository.RoomTypeRepository;
 import vn.tourista.service.HotelImportService;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
@@ -67,16 +72,19 @@ public class HotelImportServiceImpl implements HotelImportService {
         }
 
         String[] headers = splitCsvLine(lines[0]);
+        if (headers == null || headers.length == 0) {
+            return rows;
+        }
+
         Map<String, Integer> headerMap = new HashMap<>();
         for (int i = 0; i < headers.length; i++) {
             headerMap.put(headers[i].trim().toLowerCase(), i);
         }
 
         for (int lineIdx = 1; lineIdx < lines.length; lineIdx++) {
-            String line = lines[lineIdx].trim();
-            if (line.isEmpty()) continue;
+            String[] values = splitCsvLine(lines[lineIdx]);
+            if (values.length == 1 && values[0].trim().isEmpty()) continue;
 
-            String[] values = splitCsvLine(line);
             CsvHotelRow row = CsvHotelRow.builder()
                     .title(getValueSafe(values, headerMap, "title"))
                     .category(getValueSafe(values, headerMap, "category"))
@@ -613,7 +621,6 @@ public class HotelImportServiceImpl implements HotelImportService {
             char c = line.charAt(i);
             if (c == '"') {
                 if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
-                    // Escaped quote "" inside a quoted field → add single "
                     current.append('"');
                     i++;
                 } else {
@@ -632,7 +639,6 @@ public class HotelImportServiceImpl implements HotelImportService {
 
     /**
      * Splits full CSV content into individual lines, respecting quoted fields.
-     * Fields wrapped in double quotes may span multiple actual lines.
      */
     private String[] splitCsvContent(String csvContent) {
         List<String> lines = new ArrayList<>();
@@ -646,14 +652,12 @@ public class HotelImportServiceImpl implements HotelImportService {
                 currentLine.append(c);
             } else if ((c == '\r' && i + 1 < csvContent.length() && csvContent.charAt(i + 1) == '\n')
                     || (c == '\n' && !(i > 0 && csvContent.charAt(i - 1) == '\r'))) {
-                // End of line (not inside quotes)
                 if (!inQuotes) {
                     String line = currentLine.toString();
-                    // Also strip any stray \r if we hit \n alone
                     line = line.replaceAll("\\r$", "");
                     lines.add(line);
                     currentLine = new StringBuilder();
-                    if (c == '\r') i++; // skip the \n part of CRLF
+                    if (c == '\r') i++;
                     continue;
                 } else {
                     currentLine.append(c);
@@ -662,7 +666,6 @@ public class HotelImportServiceImpl implements HotelImportService {
                 currentLine.append(c);
             }
         }
-        // Don't forget the last line
         String lastLine = currentLine.toString().replaceAll("\\r$", "");
         if (!lastLine.isEmpty()) {
             lines.add(lastLine);

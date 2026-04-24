@@ -45,6 +45,13 @@ const isTokenExpired = (token, skewSeconds = 20) => {
 };
 
 const resolveWsUrl = () => {
+  // 1. Nếu có env var chỉ định rõ WS URL, dùng luôn ( Railway / Vercel )
+  const envWsUrl = process.env.NEXT_PUBLIC_WS_URL;
+  if (envWsUrl) return envWsUrl;
+
+  // 2. Build từ API_BASE_URL origin + /ws
+  //    VD: http://localhost:8080/api  →  http://localhost:8080/ws
+  //        https://tourista-backend.up.railway.app/api  →  https://tourista-backend.up.railway.app/ws
   try {
     const apiUrl = new URL(API_BASE_URL, window.location.origin);
     return `${apiUrl.origin}/ws`;

@@ -19,6 +19,8 @@ const initialState = {
     activeBotConversationId: null,
     // ID phiên P2P đang mở (Partner modal)
     activeP2PConversationId: null,
+    // P2P modal đang mở hay đóng (dùng để ẩn Header/MobileBottomNav)
+    isP2PModalOpen: false,
     // Tổng số tin chưa đọc (để hiển thị badge Navbar)
     totalUnread: 0,
     // Trạng thái WebSocket
@@ -48,6 +50,10 @@ const chatSlice = createSlice({
         },
         closeP2P: (state) => {
             state.activeP2PConversationId = null;
+            state.isP2PModalOpen = false;
+        },
+        setP2PModalOpen: (state, action) => {
+            state.isP2PModalOpen = action.payload;
         },
 
         // ── Conversations ────────────────────────────────────────────────
@@ -117,7 +123,7 @@ const chatSlice = createSlice({
 export const {
     openBot, closeBot, toggleBot,
     setActiveBotConversation,
-    setActiveP2PConversation, closeP2P,
+    setActiveP2PConversation, closeP2P, setP2PModalOpen,
     setConversations, setMessages, addMessage, markConversationRead,
     setWsConnected,
     setLoading, setError,

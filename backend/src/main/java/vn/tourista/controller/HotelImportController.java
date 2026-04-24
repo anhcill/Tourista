@@ -39,7 +39,6 @@ public class HotelImportController {
             if (csvContent.length() > 0 && csvContent.charAt(0) == '\uFEFF') {
                 csvContent = csvContent.substring(1);
             }
-
             List<CsvHotelRow> rows = hotelImportService.parseCsv(csvContent);
             return ResponseEntity.ok(ApiResponse.ok("Đã parse " + rows.size() + " dòng từ CSV", rows));
         } catch (Exception e) {
