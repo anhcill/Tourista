@@ -1,15 +1,11 @@
 'use client';
 
 import { I18nextProvider } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useHydrated } from '@/hooks/useHydrated';
 import i18n from '@/i18n';
 
 export default function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   if (!mounted) {
     return <>{children}</>;

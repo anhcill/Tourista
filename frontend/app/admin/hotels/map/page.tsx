@@ -73,7 +73,7 @@ export default function AdminHotelMapPage() {
         const L = (await import('leaflet')).default;
         if (!isMounted || mapInstanceRef.current) return;
 
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
         L.Icon.Default.mergeOptions({
           iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
           iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -82,8 +82,8 @@ export default function AdminHotelMapPage() {
 
         const mapEl = mapRef.current;
         if (!mapEl) return;
-        if ((mapEl as any)._leaflet_id) {
-          (mapEl as any)._leaflet_id = null;
+        if ((mapEl as unknown as Record<string, unknown>)._leaflet_id) {
+          (mapEl as unknown as Record<string, unknown>)._leaflet_id = null;
         }
 
         const map = L.map(mapEl, {
@@ -127,7 +127,7 @@ export default function AdminHotelMapPage() {
       markersRef.current.forEach((m: unknown) => (m as { remove: () => void }).remove());
       markersRef.current = [];
 
-      let bounds: [number, number][] = [];
+      const bounds: [number, number][] = [];
       const mapInst = mapInstanceRef.current;
       if (!mapInst) return;
 

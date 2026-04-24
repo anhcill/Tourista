@@ -9,7 +9,7 @@ import {
     FaChevronRight, FaRegClock, FaRegMoneyBillAlt,
     FaHeart, FaShoppingCart, FaBed, FaCar, FaGem
 } from 'react-icons/fa';
-import { MdFamilyRestroom, MdBusiness, MdFlightTakeoff } from 'react-icons/md';
+import { MdFamilyRestroom, MdBusiness } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import travelPlanApi from '@/api/travelPlanApi';
 import styles from './page.module.css';
@@ -50,6 +50,33 @@ const ACTIVITY_ICONS: Record<string, React.ReactElement> = {
     shopping: <FaShoppingCart />,
 };
 
+type PlanActivity = {
+    type?: string;
+    time?: string;
+    title?: string;
+    description?: string;
+    location?: string;
+    tips?: string;
+    estimatedCost?: number;
+};
+
+type DayPlan = {
+    day?: string | number;
+    date?: string;
+    title?: string;
+    activities?: PlanActivity[];
+};
+
+type TravelPlan = {
+    destination?: string;
+    tripDuration?: string;
+    summary?: string;
+    dayPlans?: DayPlan[];
+    packingList?: string[];
+    weatherNote?: string;
+    localTips?: string;
+};
+
 function formatVND(amount: number | string | null | undefined) {
     if (!amount && amount !== 0) return '';
     return Number(amount).toLocaleString('vi-VN');
@@ -58,7 +85,7 @@ function formatVND(amount: number | string | null | undefined) {
 export default function AITravelPlannerPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [plan, setPlan] = useState<Record<string, any> | null>(null);
+    const [plan, setPlan] = useState<TravelPlan | null>(null);
     const [activeDay, setActiveDay] = useState(0);
 
     const [form, setForm] = useState<{
@@ -120,9 +147,10 @@ export default function AITravelPlannerPage() {
                 setPlan(result);
                 setActiveDay(0);
             } else {
-                toast.error((data as any)?.message || 'Tạo lịch trình thất bại');
+                const msg = (data as { message?: string })?.message;
+                toast.error(msg || 'Tạo lịch trình thất bại');
             }
-        } catch (err) {
+        } catch {
             toast.error('Tạo lịch trình thất bại. Vui lòng thử lại.');
         } finally {
             setLoading(false);
@@ -294,7 +322,7 @@ export default function AITravelPlannerPage() {
                             <div className={styles.emptyState}>
                                 <div className={styles.emptyIcon}><FaMapMarkerAlt /></div>
                                 <h3>Chưa có lịch trình</h3>
-                                <p>Điền thông tin bên trái và nhấn "Tạo lịch trình AI" để nhận gợi ý lịch trình hoàn hảo cho chuyến đi của bạn.</p>
+                                <p>Điền thông tin bên trái và nhấn &ldquo;Tạo lịch trình AI&rdquo; để nhận gợi ý lịch trình hoàn hảo cho chuyến đi của bạn.</p>
                             </div>
                         ) : (
                             <div className={styles.planResult}>
@@ -312,7 +340,7 @@ export default function AITravelPlannerPage() {
                                 {/* Day tabs */}
                                 {plan.dayPlans && plan.dayPlans.length > 0 && (
                                     <div className={styles.dayTabs}>
-                                        {plan.dayPlans.map((day: any, idx: number) => (
+                                        {plan.dayPlans.map((day: DayPlan, idx: number) => (
                                             <button
                                                 key={idx}
                                                 className={`${styles.dayTab} ${activeDay === idx ? styles.dayTabActive : ''}`}
@@ -333,17 +361,17 @@ export default function AITravelPlannerPage() {
                                         </h3>
 
                                         <div className={styles.activitiesList}>
-                                            {(plan.dayPlans[activeDay].activities || []).map((act: any, idx: number) => (
+                                            {(plan.dayPlans[activeDay].activities || []).map((act: PlanActivity, idx: number) => (
                                                 <div key={idx} className={`${styles.activityCard} ${styles[`activity_${act.type || 'sight_seeing'}`]}`}>
                                                     <div className={styles.activityTime}>{act.time || '--:--'}</div>
                                                     <div className={styles.activityDot} />
                                                     <div className={styles.activityBody}>
                                                         <div className={styles.activityHeader}>
                                                             <span className={styles.activityTypeIcon}>
-                                                                {ACTIVITY_ICONS[act.type] || <FaCamera />}
+                                                                {ACTIVITY_ICONS[act.type || 'sight_seeing'] || <FaCamera />}
                                                             </span>
                                                             <strong className={styles.activityTitle}>{act.title}</strong>
-                                                            {act.estimatedCost > 0 && (
+                                                            {act.estimatedCost != null && act.estimatedCost > 0 && (
                                                                 <span className={styles.activityCost}>
                                                                     ~{formatVND(act.estimatedCost)}đ
                                                                 </span>
@@ -376,7 +404,7 @@ export default function AITravelPlannerPage() {
                                             <FaSuitcaseRolling /> Đồ dùng cần mang
                                         </h3>
                                         <div className={styles.packingGrid}>
-                                            {plan.packingList.map((item: any, idx: number) => (
+                                            {plan.packingList.map((item: string, idx: number) => (
                                                 <div key={idx} className={styles.packingItem}>
                                                     <FaCheck className={styles.checkIcon} />
                                                     <span>{item}</span>
@@ -406,10 +434,10 @@ export default function AITravelPlannerPage() {
 
                                 {/* Actions */}
                                 <div className={styles.planActions}>
-                                    <button className={styles.actionBtnPrimary} onClick={() => router.push(`/tours/search?destination=${encodeURIComponent(plan.destination)}`)}>
+                                    <button className={styles.actionBtnPrimary} onClick={() => router.push(`/tours/search?destination=${encodeURIComponent(plan.destination || '')}`)}>
                                         <FaChevronRight /> Tìm tour phù hợp
                                     </button>
-                                    <button className={styles.actionBtnSecondary} onClick={() => router.push(`/hotels/search?city=${encodeURIComponent(plan.destination)}`)}>
+                                    <button className={styles.actionBtnSecondary} onClick={() => router.push(`/hotels/search?city=${encodeURIComponent(plan.destination || '')}`)}>
                                         <FaBed /> Tìm khách sạn
                                     </button>
                                 </div>

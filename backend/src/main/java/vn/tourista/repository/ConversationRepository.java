@@ -39,4 +39,16 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     // Đếm số tin chưa đọc trong Inbox của Client
     @Query("SELECT COUNT(m) FROM ChatMessage m WHERE m.conversation.client = :client AND m.isRead = false AND m.sender <> :client")
     long countUnreadForClient(@Param("client") User client);
+
+    // Admin: lay tat ca hoi thoai, moi nhat truoc
+    @Query("SELECT c FROM Conversation c ORDER BY c.updatedAt DESC")
+    List<Conversation> findAllOrderByUpdatedAtDesc();
+
+    // Admin: lay tat ca hoi thoai ke ca booking (eager fetch)
+    @Query("SELECT DISTINCT c FROM Conversation c LEFT JOIN FETCH c.booking ORDER BY c.updatedAt DESC")
+    List<Conversation> findAllWithBooking();
+
+    // Admin: dem tin chua doc cua 1 hoi thoai (bat cu ai gui)
+    @Query("SELECT COUNT(m) FROM ChatMessage m WHERE m.conversation = :conv AND m.isRead = false AND m.sender IS NOT NULL")
+    long countUnreadForAdmin(@Param("conv") Conversation conv);
 }

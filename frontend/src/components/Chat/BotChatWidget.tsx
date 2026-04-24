@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { openBot, closeBot } from '../../store/slices/chatSlice';
-import faqApi from '../../api/faqApi';
+import { openBot, closeBot, setActiveBotConversation, addMessage } from '../../store/slices/chatSlice';
+import chatApi from '../../api/chatApi';
+import { useChatWebSocket } from '../../hooks/useChatWebSocket';
 import type { ChatMessage, ContentType } from '../../types/chat';
 import styles from './BotChatWidget.module.css';
 
@@ -22,6 +23,22 @@ const OFFERS: Offer[] = [
     { id: 'visa', emoji: '🛂', label: 'Visa & Giấy tờ', hint: 'Thủ tục Visa, hộ chiếu' },
     { id: 'insurance', emoji: '🔄', label: 'Đổi/Trả/Hoàn', hint: 'Chính sách đổi trả hoàn tiền' },
 ];
+
+const GREETING = `Xin chào! Mình là **Tourista Travel Buddy** — trợ lý du lịch của bạn.\n\nMình có thể giúp bạn giải đáp nhanh: chính sách hủy, thanh toán, lịch trình tour, visa, bảo hiểm và nhiều hơn nữa.\n\n**Chọn một chủ đề bên dưới** hoặc **nhắn tin trực tiếp** để mình hỗ trợ nhé! 👇`;
+
+/* ───────────────────────── Safe Markdown Parser ───────────────────────── */
+const renderSafeText = (text: string): React.ReactNode[] => {
+    const segments: React.ReactNode[] = [];
+    const parts = (text || '').split(/(\*\*.*?\*\*)/g);
+    parts.forEach((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+            segments.push(<strong key={i}>{part.slice(2, -2)}</strong>);
+        } else if (part) {
+            segments.push(<span key={i}>{part}</span>);
+        }
+    });
+    return segments;
+};
 
 /* ───────────────────────── Message Bubble ───────────────────────── */
 interface MessageBubbleProps {
@@ -46,12 +63,7 @@ const MessageBubble = React.memo<MessageBubbleProps>(({ msg, isOwn }) => {
             <div className={`${styles.bubbleContent} ${isOwn ? styles.bubbleContentOwn : styles.bubbleContentBot}`}>
                 <div className={styles.bubbleText}>
                     {(msg.content ?? '').split('\n').map((line, i) => (
-                        <p
-                            key={i}
-                            dangerouslySetInnerHTML={{
-                                __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'),
-                            }}
-                        />
+                        <p key={i}>{renderSafeText(line)}</p>
                     ))}
                 </div>
                 <span className={styles.bubbleTime}>
@@ -97,80 +109,102 @@ const OfferButtons = ({ onSelect, disabled }: OfferButtonsProps) => (
 /* ───────────────────────── Bot Chat Box ───────────────────────── */
 const BotChatBox = () => {
     const dispatch = useDispatch();
+    const { sendMessage } = useChatWebSocket();
     const { user } = useSelector(
         (state: { auth: { isAuthenticated: boolean; user?: { id?: number; fullName?: string } } }) => state.auth
+    );
+    const { messages: wsMessages, activeBotConversationId } = useSelector(
+        (state: { chat: { messages: Record<number, ChatMessage[]>; activeBotConversationId: number | null } }) => state.chat
     );
 
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [showOffers, setShowOffers] = useState(true);
+    const [conversationId, setConversationId] = useState<number | null>(null);
+    const [isWsReady, setIsWsReady] = useState(false);
 
     const endRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const initializedRef = useRef(false);
 
-    // Greeting
-    useEffect(() => {
-        if (messages.length === 0) {
-            setMessages([
-                {
-                    id: 1,
-                    senderId: 0 as number,
-                    contentType: 'TEXT' as ContentType,
-                    content: `Xin chào${user?.fullName ? ` ${user.fullName.split(' ')[0]}` : ''}! Mình là **Tourista Travel Buddy** — trợ lý du lịch của bạn.\n\nMình có thể giúp bạn giải đáp nhanh: chính sách hủy, thanh toán, lịch trình tour, visa, bảo hiểm và nhiều hơn nữa.\n\n**Chọn một chủ đề bên dưới** hoặc **nhắn tin trực tiếp** để mình hỗ trợ nhé! 👇`,
-                    createdAt: new Date().toISOString(),
-                },
-            ]);
+    // Merge greeting + WebSocket messages into one display list
+    const displayMessages = React.useMemo<ChatMessage[]>(() => {
+        if (!conversationId) return [];
+        const wsList: ChatMessage[] = wsMessages[conversationId] || [];
+
+        // If wsList is empty (not yet loaded from WS), prepend greeting
+        if (wsList.length === 0 && !initializedRef.current) {
+            return [{
+                id: 0,
+                senderId: 0 as number,
+                contentType: 'TEXT' as ContentType,
+                content: GREETING,
+                createdAt: new Date().toISOString(),
+            }];
         }
+
+        // If wsList already has messages from WS, use them (server sent greeting + history)
+        return wsList;
+    }, [conversationId, wsMessages]);
+
+    // Initialize BOT conversation via REST, then subscribe to WebSocket
+    useEffect(() => {
+        if (initializedRef.current || !user) return;
+        initializedRef.current = true;
+
+        const init = async () => {
+            try {
+                const res = await chatApi.createConversation({ type: 'BOT' });
+                const conv = res?.data?.data ?? res?.data;
+                if (conv?.id) {
+                    setConversationId(conv.id);
+                    dispatch(setActiveBotConversation(conv.id));
+
+                    // Load existing message history
+                    const histRes = await chatApi.getMessages(conv.id);
+                    const hist: ChatMessage[] = histRes?.data?.content ?? [];
+                    hist.forEach(msg => dispatch(addMessage({ ...msg, conversationId: conv.id })));
+
+                    setIsWsReady(true);
+                }
+            } catch (err) {
+                console.error('[Bot] Failed to init conversation:', err);
+            }
+        };
+
+        void init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [user]);
+
+    // Handle incoming WebSocket messages for bot typing indicator
+    useEffect(() => {
+        if (!conversationId) return;
+        const msgs = wsMessages[conversationId] || [];
+        const lastMsg = msgs[msgs.length - 1];
+        setIsTyping(false);
+    }, [wsMessages, conversationId]);
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping]);
+    }, [displayMessages]);
 
-    const sendAnswer = async (question: string) => {
-        if (isTyping) return;
-
-        const userMsg: ChatMessage = {
-            id: Date.now(),
-            senderId: user?.id ?? null,
-            contentType: 'TEXT' as ContentType,
-            content: question,
-            createdAt: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, userMsg]);
-        setShowOffers(false);
-        setIsTyping(true);
-
-        try {
-            const res = await faqApi.askQuestion(question, 'GENERAL') as any;
-            const data = res?.data?.data ?? res?.data ?? res;
-            const answer = typeof data === 'string' ? data : (data?.answer || '');
-
-            const botMsg: ChatMessage = {
-                id: Date.now() + 1,
-                senderId: 0 as number,
-                contentType: 'TEXT' as ContentType,
-                content: answer || 'Xin lỗi, mình chưa tìm được câu trả lời phù hợp cho bạn. Bạn thử hỏi cách khác nhé!',
-                createdAt: new Date().toISOString(),
-            };
-            setMessages(prev => [...prev, botMsg]);
-        } catch (error) {
-            console.error('[Bot] FAQ Error:', error);
-            const errorMsg: ChatMessage = {
-                id: Date.now() + 1,
-                senderId: 0 as number,
-                contentType: 'TEXT' as ContentType,
-                content: 'Xin lỗi, hiện tại hệ thống đang bận. Bạn vui lòng thử lại sau ít phút nhé!',
-                createdAt: new Date().toISOString(),
-            };
-            setMessages(prev => [...prev, errorMsg]);
-        } finally {
-            setIsTyping(false);
-            setTimeout(() => inputRef.current?.focus(), 100);
+    const sendText = async (text: string) => {
+        if (!conversationId || !text.trim()) return;
+        if (!isWsReady) {
+            console.warn('[Bot] WebSocket not ready yet');
+            return;
         }
+
+        const sent = sendMessage(conversationId, text.trim());
+        if (!sent) {
+            console.warn('[Bot] Failed to send via WebSocket');
+        }
+        setIsTyping(true);
+        setShowOffers(false);
+        setInput('');
+        setTimeout(() => inputRef.current?.focus(), 100);
     };
+
+    const [showOffers, setShowOffers] = useState(true);
 
     const handleOfferSelect = (offer: Offer) => {
         const questionMap: Record<string, string> = {
@@ -181,18 +215,13 @@ const BotChatBox = () => {
             visa: 'Cho mình hỏi về thủ tục Visa và giấy tờ cần thiết khi đi du lịch nước ngoài',
             insurance: 'Chính sách đổi, trả và hoàn tiền trên Tourista Studio như thế nào?',
         };
-        void sendAnswer(questionMap[offer.id] || offer.label);
+        void sendText(questionMap[offer.id] || offer.label);
     };
 
     const handleSend = () => {
         const text = input.trim();
         if (!text) return;
-        setInput(text);
-        setShowOffers(false);
-        // Set input as text, then send
-        const finalText = text;
-        setInput('');
-        void sendAnswer(finalText);
+        void sendText(text);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -216,7 +245,7 @@ const BotChatBox = () => {
                         <div className={styles.chatHeaderName}>Tourista Travel Buddy</div>
                         <div className={styles.chatHeaderStatus}>
                             <span className={styles.onlineDot} />
-                            Chọn Offer để được hỗ trợ nhanh
+                            Chat 24/7
                         </div>
                     </div>
                 </div>
@@ -231,11 +260,11 @@ const BotChatBox = () => {
 
             {/* ── Messages Area ── */}
             <div className={styles.messagesArea}>
-                {messages.map((msg, idx) => (
+                {displayMessages.map((msg, idx) => (
                     <MessageBubble
                         key={msg.id ?? idx}
                         msg={msg}
-                        isOwn={msg.senderId !== 0}
+                        isOwn={msg.senderId != null && user?.id != null && Number(msg.senderId) === Number(user.id)}
                     />
                 ))}
                 {isTyping && (
@@ -252,7 +281,7 @@ const BotChatBox = () => {
             </div>
 
             {/* ── Offer Buttons ── */}
-            {showOffers && !isTyping && (
+            {showOffers && !isTyping && displayMessages.length > 0 && (
                 <OfferButtons onSelect={handleOfferSelect} disabled={isTyping} />
             )}
 

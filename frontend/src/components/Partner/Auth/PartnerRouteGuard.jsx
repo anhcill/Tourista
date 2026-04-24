@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
+import { useHydrated } from '@/hooks/useHydrated';
 import styles from './PartnerRouteGuard.module.css';
 
 const PARTNER_ROLE_SET = new Set(['ROLE_PARTNER', 'PARTNER', 'ROLE_HOST', 'HOST', 'ROLE_ADMIN', 'ADMIN']);
@@ -86,11 +87,7 @@ const collectRolesFromToken = (token) => {
 export default function PartnerRouteGuard({ children }) {
   const router = useRouter();
   const { isAuthenticated, user, token } = useSelector((state) => state.auth);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const hasPartnerRole = useMemo(() => {
     const roles = [

@@ -32,6 +32,7 @@ public class DynamicPricingController {
         this.pricingRuleRepository = pricingRuleRepository;
     }
 
+    @SuppressWarnings("unchecked")
     @GetMapping("/dynamic/hotel/{hotelId}")
     public ResponseEntity<ApiResponse<HotelPriceResponse>> getDynamicHotelPrice(
             @PathVariable Long hotelId,
@@ -48,8 +49,7 @@ public class DynamicPricingController {
             ORDER BY rt.base_price_per_night ASC
             """;
 
-        @SuppressWarnings("unchecked")
-        List<Object[]> rows = em.createNativeQuery(sql)
+        List<Object[]> rows = em.createNativeQuery(sql.toString())
                 .setParameter(1, hotelId)
                 .getResultList();
 
@@ -176,6 +176,7 @@ public class DynamicPricingController {
         return 0.0;
     }
 
+    @SuppressWarnings("unchecked")
     @GetMapping("/dynamic/prices")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDynamicPrices(
             @RequestParam(required = false) String city,
@@ -203,7 +204,6 @@ public class DynamicPricingController {
         sql.append("ORDER BY h.avg_rating DESC LIMIT ?");
         params.add(safeLimit);
 
-        @SuppressWarnings("unchecked")
         List<Object[]> rows;
         if (params.size() == 1) {
             rows = em.createNativeQuery(sql.toString())

@@ -51,8 +51,8 @@ const PAYMENT_CLASS = (s: string) => ({
 export default function PartnerBookingsPage() {
   const [activeTab, setActiveTab] = useState<'hotel' | 'tour'>('hotel');
 
-  const [hotelBookings, setHotelBookings] = useState<any[]>([]);
-  const [tourBookings, setTourBookings] = useState<any[]>([]);
+  const [hotelBookings, setHotelBookings] = useState<Record<string, unknown>[]>([]);
+  const [tourBookings, setTourBookings] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -110,7 +110,22 @@ export default function PartnerBookingsPage() {
   const currentPage = activeTab === 'hotel' ? hotelPage : tourPage;
   const setPage = activeTab === 'hotel' ? setHotelPage : setTourPage;
 
-  const renderRow = (b: any) => (
+  type BookingRow = {
+    id: number;
+    bookingCode?: string;
+    guestName?: string;
+    guestEmail?: string;
+    serviceName?: string;
+    checkIn?: string;
+    checkOut?: string;
+    createdAt?: string;
+    status?: string;
+    paymentStatus?: string;
+    totalAmount?: number;
+    currency?: string;
+};
+
+const renderRow = (b: BookingRow) => (
     <tr key={b.id}>
       <td>
         <div className={styles.bookingCode}>{b.bookingCode}</div>
@@ -127,12 +142,12 @@ export default function PartnerBookingsPage() {
       <td>{formatDate(b.checkIn || b.createdAt)}</td>
       <td>{formatDate(b.checkOut)}</td>
       <td>
-        <span className={`${styles.badge} ${STATUS_CLASS(b.status)}`}>
+        <span className={`${styles.badge} ${STATUS_CLASS(b.status || '')}`}>
           {STATUS_LABELS[b.status as keyof typeof STATUS_LABELS] || b.status}
         </span>
       </td>
       <td>
-        <span className={`${styles.badge} ${PAYMENT_CLASS(b.paymentStatus)}`}>
+        <span className={`${styles.badge} ${PAYMENT_CLASS(b.paymentStatus || '')}`}>
           {PAYMENT_LABELS[b.paymentStatus as keyof typeof PAYMENT_LABELS] || b.paymentStatus}
         </span>
       </td>
@@ -204,7 +219,7 @@ export default function PartnerBookingsPage() {
                 <th>Tổng tiền</th>
               </tr>
             </thead>
-            <tbody>{bookings.map(renderRow)}</tbody>
+            <tbody>{bookings.map((b) => renderRow(b as BookingRow))}</tbody>
           </table>
         )}
       </div>

@@ -1002,7 +1002,7 @@ public class BotService {
 
             String faqJson = """
                     {
-                      "title": "🤔 Mình có thể giúp bạn什么呢?",
+                      "title": "🤔 Mình có thể giúp gì?",
                       "subtitle": "%s",
                       "items": [
                         { "id": "faq_huy",     "emoji": "❌", "label": "Hủy/Hoàn tiền",        "payload": "chính sách hủy và hoàn tiền" },
@@ -1161,15 +1161,23 @@ public class BotService {
     }
 
     /**
-     * Một số DB MySQL cũ dùng utf8mb3 không lưu được ký tự Supplementary Plane.
-     * Loại bỏ nhóm ký tự này để tránh DataIntegrityViolation → rollback-only trong
-     * luồng async.
+     * Escape HTML entities so bot-generated content is safe to render via dangerouslySetInnerHTML.
+     * Used for all user-facing strings stored in DB metadata and sent to the frontend.
+     * Also removes Unicode Supplementary Plane chars for DB charset compatibility.
      */
     private String sanitizeForStorage(String text) {
         if (text == null) {
             return null;
         }
-        return text.replaceAll("[\\x{10000}-\\x{10FFFF}]", "");
+        return text
+                // Strip chars that can't be stored in utf8mb3 DB columns
+                .replaceAll("[\\x{10000}-\\x{10FFFF}]", "")
+                // Escape HTML entities to prevent XSS if any consumer uses dangerouslySetInnerHTML
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 
     // =====================================================================

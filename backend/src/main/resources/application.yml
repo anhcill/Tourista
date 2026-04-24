@@ -1,3 +1,16 @@
+# ===== CLOUDINARY (Image Upload) =====
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+
+# ===== FILE UPLOAD =====
+spring.servlet:
+  multipart:
+    enabled: true
+    max-file-size: 10MB
+    max-request-size: 50MB
+
 server:
   port: 8080
   forward-headers-strategy: FRAMEWORK
@@ -50,10 +63,11 @@ spring:
           starttls:
             enable: true
 
-  # ===== RESEND EMAIL (Railway production) =====
+  # ===== BREVO EMAIL (Sendinblue - no domain verification needed) =====
   email:
-    resend-api-key: ${RESEND_API_KEY:}
-    from: Tourista Studio <onboarding@resend.dev>
+    brevo-api-key: ${BREVO_API_KEY:}
+    from: ${BREVO_FROM_EMAIL:noreply@tourista.vn}
+    from-name: ${BREVO_FROM_NAME:Tourista Studio}
 
   # ===== GOOGLE OAUTH2 =====
   security:

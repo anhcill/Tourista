@@ -15,15 +15,50 @@ const TITLE_MAP = {
   promotions: 'Quản lý Khuyến mãi',
   reviews: 'Kiểm duyệt Đánh giá',
   settings: 'Cài đặt Hệ thống',
+  // Sub-pages
+  create: 'Tạo mới',
+  edit: 'Chỉnh sửa',
+  import: 'Import CSV',
+  map: 'Bản đồ',
 };
 
+/**
+ * Build breadcrumb labels from pathname.
+ * Handles: /admin/hotels, /admin/hotels/create, /admin/hotels/123/edit, /admin/hotels/map
+ * Also handles: /admin/tours/create, /admin/tours/123/edit
+ */
 const getBreadcrumb = (pathname) => {
   const segments = (pathname || '').split('/').filter(Boolean);
   if (!segments.length) return ['Admin'];
 
   return segments.map((segment, index) => {
     if (segment === 'admin' && index === 0) return 'Admin';
-    return TITLE_MAP[segment] || segment;
+
+    // Check TITLE_MAP first
+    const mapped = TITLE_MAP[segment];
+    if (mapped) return mapped;
+
+    // Check if it's a known sub-page keyword
+    if (segment === 'create') return 'Tạo mới';
+    if (segment === 'edit') return 'Chỉnh sửa';
+    if (segment === 'import') return 'Import CSV';
+    if (segment === 'map') return 'Bản đồ';
+
+    // For numeric IDs in /admin/{entity}/[id]/edit routes,
+    // return entity name from parent segment
+    if (/^\d+$/.test(segment)) {
+      // Find parent segment to determine entity type
+      if (index > 1) {
+        const parent = segments[index - 1];
+        if (parent === 'hotels') return 'Chi tiết Khách sạn';
+        if (parent === 'tours') return 'Chi tiết Tour';
+        if (parent === 'users') return 'Chi tiết Người dùng';
+      }
+      return 'Chi tiết';
+    }
+
+    // Unknown segment - capitalize first letter
+    return segment.charAt(0).toUpperCase() + segment.slice(1);
   });
 };
 

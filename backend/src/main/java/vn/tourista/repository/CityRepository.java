@@ -62,7 +62,16 @@ public interface CityRepository extends JpaRepository<City, Integer> {
                 c.name_en,
                 COALESCE(hc.hotel_count, 0),
                 COALESCE(tc.tour_count, 0),
-                0 AS avg_price,
+                COALESCE(
+                    (SELECT MIN(rt.base_price_per_night)
+                     FROM room_types rt
+                     JOIN hotels h ON rt.hotel_id = h.id
+                     WHERE h.city_id = c.id
+                       AND h.is_active = TRUE
+                       AND rt.is_active = TRUE
+                       AND rt.base_price_per_night > 0
+                    ), 0
+                ) AS avg_price,
                 COALESCE(hc.top_hotel_rating, 0),
                 (
                     SELECT h3.name

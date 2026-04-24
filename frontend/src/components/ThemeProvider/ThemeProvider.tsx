@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useHydrated } from '@/hooks/useHydrated';
 
 type Theme = 'light' | 'dark';
 
@@ -17,21 +18,20 @@ const ThemeContext = createContext<ThemeContextType>({
 const STORAGE_KEY = 'tourista_theme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light';
+    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'light';
+  });
+  const mounted = useHydrated();
 
   useEffect(() => {
+    // Sync theme to DOM on mount
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (stored === 'dark' || stored === 'light') {
-      setTheme(stored);
-      document.documentElement.setAttribute('data-theme', stored);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const defaultTheme: Theme = prefersDark ? 'dark' : 'light';
-      setTheme(defaultTheme);
-      document.documentElement.setAttribute('data-theme', defaultTheme);
-    }
-    setMounted(true);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initial: Theme = (stored === 'dark' || stored === 'light')
+      ? stored
+      : (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', initial);
   }, []);
 
   const toggleTheme = () => {

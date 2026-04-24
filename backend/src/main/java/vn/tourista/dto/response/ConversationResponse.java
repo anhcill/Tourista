@@ -29,6 +29,12 @@ public class ConversationResponse {
     private Long bookingId;
     private String bookingCode;
 
+    // Thong tin booking them (cho admin hien thi card)
+    private String bookingStatus;
+    private String guestName;
+    private String serviceName;     // ten khach san / tour
+    private String bookingDates;    // "2026-04-22 → 2026-04-23" hoac "Khoi hanh: 2026-05-01"
+
     // Tin nhắn cuối để hiển thị snippet
     private String lastMessageSnippet;
     private String lastMessageType;
@@ -68,8 +74,11 @@ public class ConversationResponse {
         }
 
         if (conv.getBooking() != null) {
-            builder.bookingId(conv.getBooking().getId())
-                    .bookingCode(conv.getBooking().getBookingCode());
+            var b = conv.getBooking();
+            builder.bookingId(b.getId())
+                    .bookingCode(b.getBookingCode())
+                    .bookingStatus(b.getStatus() != null ? b.getStatus().name() : null)
+                    .guestName(b.getGuestName());
         }
 
         return builder.build();

@@ -31,16 +31,66 @@ const PERIODS = [
   { label: 'Năm nay', value: '1y' },
 ];
 
+type PropertyItem = {
+    name?: string;
+    type: 'hotel' | 'tour';
+    revenue: number;
+    bookings: number;
+    rating: number;
+    city?: string;
+};
+
+type MonthlyBucket = {
+    hotel: number;
+    tour: number;
+};
+
+type HotelRecord = {
+    name?: string;
+    isActive?: boolean;
+    totalRevenue?: number;
+    totalBookings?: number;
+    avgRating?: number;
+    city?: string;
+};
+
+type TourRecord = {
+    title?: string;
+    isActive?: boolean;
+    totalRevenue?: number;
+    totalBookings?: number;
+    avgRating?: number;
+    city?: string;
+};
+
+type BookingRecord = {
+    id?: string | number;
+    serviceName?: string;
+    hotelName?: string;
+    tourTitle?: string;
+    guestName?: string;
+    bookingCode?: string;
+    totalAmount?: number;
+    status?: string;
+    createdAt?: string;
+};
+
 export default function PartnerPage() {
-  const [hotels, setHotels] = useState<any[]>([]);
-  const [tours, setTours] = useState<any[]>([]);
-  const [hotelBookings, setHotelBookings] = useState<any[]>([]);
-  const [tourBookings, setTourBookings] = useState<any[]>([]);
+  const [hotels, setHotels] = useState<HotelRecord[]>([]);
+  const [tours, setTours] = useState<TourRecord[]>([]);
+  const [hotelBookings, setHotelBookings] = useState<BookingRecord[]>([]);
+  const [tourBookings, setTourBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [period, setPeriod] = useState('30d');
   const [refreshing, setRefreshing] = useState(false);
-  const [revenueStats, setRevenueStats] = useState<any>(null);
+  const [revenueStats, setRevenueStats] = useState<{
+    dailyData?: { date: string; revenue: number; bookings: number }[];
+    totalRevenue?: number;
+    totalBookings?: number;
+    avgDailyRevenue?: number;
+    revenueGrowth?: number;
+  } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -72,7 +122,7 @@ export default function PartnerPage() {
 
   // Revenue data from real backend
   const revenueData = useMemo(() => {
-    if (!revenueStats?.dailyData?.length) {
+    if (!revenueStats || !revenueStats?.dailyData?.length) {
       // Fallback: generate empty placeholder for the selected period
       const days = period === '7d' ? 7 : period === '90d' ? 90 : period === '1y' ? 365 : 30;
       const now = new Date();
@@ -133,7 +183,7 @@ export default function PartnerPage() {
       city: t.city,
     }));
     return [...hotelItems, ...tourItems]
-      .sort((a: any, b: any) => b.revenue - a.revenue)
+      .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
   }, [hotels, tours]);
 
@@ -141,7 +191,7 @@ export default function PartnerPage() {
   const monthlyData = useMemo(() => {
     const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'];
     // Aggregate revenueData into monthly buckets
-    const monthlyMap: any = {};
+    const monthlyMap: Record<string, MonthlyBucket> = {};
     revenueData.forEach((d) => {
       const monthKey = d.fullDate ? d.fullDate.slice(0, 7) : null; // "2026-03"
       if (!monthKey) return;
@@ -168,12 +218,12 @@ export default function PartnerPage() {
 
   // Recent bookings
   const recentBookings = useMemo(() => {
-    const all = [
-      ...hotelBookings.map(b => ({ ...b, _type: 'hotel', _name: b.serviceName || b.hotelName })),
-      ...tourBookings.map(b => ({ ...b, _type: 'tour', _name: b.serviceName || b.tourTitle })),
+    const all: (BookingRecord & { _type: 'hotel' | 'tour'; _name: string })[] = [
+      ...hotelBookings.map(b => ({ ...b, _type: 'hotel' as const, _name: b.serviceName || b.hotelName || '' })),
+      ...tourBookings.map(b => ({ ...b, _type: 'tour' as const, _name: b.serviceName || b.tourTitle || '' })),
     ];
     return all
-      .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .sort((a, b) => new Date(String(b.createdAt || 0)).getTime() - new Date(String(a.createdAt || 0)).getTime())
       .slice(0, 5);
   }, [hotelBookings, tourBookings]);
 

@@ -33,4 +33,10 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Transactional
     @Query("UPDATE ChatMessage m SET m.isRead = true WHERE m.conversation = :conv AND m.sender <> :reader")
     void markAllAsRead(@Param("conv") Conversation conv, @Param("reader") User reader);
+
+    // Admin: đánh dấu tất cả tin nhắn là đã đọc (khong loai tru ai)
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChatMessage m SET m.isRead = true WHERE m.conversation = :conv")
+    void markAllAsReadForAdmin(@Param("conv") Conversation conv);
 }

@@ -7,7 +7,12 @@ import availabilityApi from '@/api/availabilityApi';
 import styles from './AvailabilityBadge.module.css';
 
 export default function AvailabilityBadge({ hotelId, checkIn, checkOut, adults, rooms, roomTypeId, compact = false }) {
-  const [availability, setAvailability] = useState<any[]>([]);
+  const [availability, setAvailability] = useState<{
+    roomTypeId?: string | number;
+    availableRooms?: number;
+    totalRooms?: number;
+    roomTypeName?: string;
+  }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 

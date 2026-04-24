@@ -46,14 +46,10 @@ export default function HotelPageSearch() {
     const [query, setQuery] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
-    const [recentSearches, setRecentSearches] = useState([]);
+    const [recentSearches, setRecentSearches] = useState(getRecentSearches);
     const wrapperRef = useRef(null);
 
     const { suggestions, loading } = useHotelAutocomplete(query);
-
-    useEffect(() => {
-        setRecentSearches(getRecentSearches());
-    }, []);
 
     const showDropdown = isFocused && (query.trim().length > 0 || recentSearches.length > 0);
 
@@ -183,9 +179,9 @@ export default function HotelPageSearch() {
 
                             {query.trim().length > 0 && suggestions.length === 0 && !loading && (
                                 <div className={styles.noResults}>
-                                    <p>Không tìm thấy kết quả cho "{query}"</p>
+                                    <p>Không tìm thấy kết quả cho &ldquo;{query}&rdquo;</p>
                                     <button className={styles.searchAnyway} onMouseDown={() => handleSearch()}>
-                                        Tìm kiếm "{query}"
+                                        Tìm kiếm &ldquo;{query}&rdquo;
                                     </button>
                                 </div>
                             )}

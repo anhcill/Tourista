@@ -131,10 +131,10 @@ export default function AdminReviewsPage() {
         ]);
 
         // ApiResponse wraps data inside .data — axios interceptor already unwraps one level
-        const reviewPayload = (reviewRes as any)?.data ?? reviewRes;
+        const reviewPayload = reviewRes?.data ?? reviewRes;
         const reviewData = (reviewPayload as { content?: Review[] })?.content ?? [];
         setReviews(reviewData);
-        const countsPayload = (countsRes as any)?.data ?? countsRes;
+        const countsPayload = countsRes?.data ?? countsRes;
         setCounts(countsPayload as Counts);
       } catch (err) {
         // On timeout or error, show mock data so page is usable

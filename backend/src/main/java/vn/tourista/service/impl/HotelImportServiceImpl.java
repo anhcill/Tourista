@@ -41,6 +41,7 @@ public class HotelImportServiceImpl implements HotelImportService {
     private static final Pattern MULTI_SPACE = Pattern.compile("\\s+");
     private static final Pattern VIETNAMESE_DIACRITICS = Pattern.compile(
             "[\\p{InCombiningDiacriticalMarks}]");
+    private static final Pattern ESCAPED_BACKSLASH_QUOTE = Pattern.compile("\\\\\"");
 
     public HotelImportServiceImpl(HotelRepository hotelRepository,
                                    HotelImageRepository hotelImageRepository,
@@ -60,7 +61,7 @@ public class HotelImportServiceImpl implements HotelImportService {
             return rows;
         }
 
-        String[] lines = csvContent.split("\\r?\\n");
+        String[] lines = splitCsvContent(csvContent);
         if (lines.length < 2) {
             return rows;
         }
@@ -441,6 +442,10 @@ public class HotelImportServiceImpl implements HotelImportService {
 
         try {
             String cleaned = imagesJson.trim();
+
+            // Replace \" escaped quotes with actual quotes so JSON parser can read them
+            cleaned = ESCAPED_BACKSLASH_QUOTE.matcher(cleaned).replaceAll("\"");
+
             if (cleaned.startsWith("[")) {
                 List<ImageItem> items = objectMapper.readValue(cleaned,
                         new TypeReference<List<ImageItem>>() {});
@@ -458,9 +463,23 @@ public class HotelImportServiceImpl implements HotelImportService {
         return urls.stream().distinct().limit(10).toList();
     }
 
+    /**
+     * Validates image URLs.
+     * - Must start with http:// or https://
+     * - Must not be a Street View thumbnail
+     * - Google Photos URLs may contain \" inside quoted CSV fields — cleaned before this check
+     */
     private boolean isValidImageUrl(String url) {
-        return url != null && (url.startsWith("http://") || url.startsWith("https://"))
-                && !url.contains("streetviewpixels");
+        if (url == null || url.isEmpty()) return false;
+        String trimmed = url.trim();
+        if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return false;
+        // Block Street View pixel thumbnails
+        if (trimmed.contains("streetviewpixels")) return false;
+        // Block empty or placeholder URLs
+        if (trimmed.equals("null") || trimmed.equals("undefined")) return false;
+        // Reject URLs that still contain backslash artifacts (unclosed JSON strings)
+        if (trimmed.contains("\\")) return false;
+        return true;
     }
 
     private void createFakeRoomTypes(Hotel hotel, BigDecimal rating) {
@@ -526,6 +545,10 @@ public class HotelImportServiceImpl implements HotelImportService {
         String result = input.trim();
         result = NON_PRINTABLE.matcher(result).replaceAll("");
         result = result.replaceAll("[\\x{200B}-\\x{200F}\\x{FEFF}]", "");
+        // Remove backslash-escaped quotes (\") left over from CSV-escaped JSON
+        result = ESCAPED_BACKSLASH_QUOTE.matcher(result).replaceAll("\"");
+        // Remove any remaining stray backslashes (not valid in text)
+        result = result.replace("\\", "");
         result = MULTI_SPACE.matcher(result).replaceAll(" ");
         return result;
     }
@@ -576,6 +599,11 @@ public class HotelImportServiceImpl implements HotelImportService {
         return values[idx] != null ? values[idx].trim() : "";
     }
 
+    /**
+     * Splits a CSV line by comma, respecting RFC 4180 rules:
+     * - Quoted fields may contain commas and newlines
+     * - Double quotes inside quotes are escaped as ""
+     */
     private String[] splitCsvLine(String line) {
         List<String> result = new ArrayList<>();
         boolean inQuotes = false;
@@ -585,6 +613,7 @@ public class HotelImportServiceImpl implements HotelImportService {
             char c = line.charAt(i);
             if (c == '"') {
                 if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                    // Escaped quote "" inside a quoted field → add single "
                     current.append('"');
                     i++;
                 } else {
@@ -599,6 +628,47 @@ public class HotelImportServiceImpl implements HotelImportService {
         }
         result.add(current.toString());
         return result.toArray(new String[0]);
+    }
+
+    /**
+     * Splits full CSV content into individual lines, respecting quoted fields.
+     * Fields wrapped in double quotes may span multiple actual lines.
+     */
+    private String[] splitCsvContent(String csvContent) {
+        List<String> lines = new ArrayList<>();
+        boolean inQuotes = false;
+        StringBuilder currentLine = new StringBuilder();
+
+        for (int i = 0; i < csvContent.length(); i++) {
+            char c = csvContent.charAt(i);
+            if (c == '"') {
+                inQuotes = !inQuotes;
+                currentLine.append(c);
+            } else if ((c == '\r' && i + 1 < csvContent.length() && csvContent.charAt(i + 1) == '\n')
+                    || (c == '\n' && !(i > 0 && csvContent.charAt(i - 1) == '\r'))) {
+                // End of line (not inside quotes)
+                if (!inQuotes) {
+                    String line = currentLine.toString();
+                    // Also strip any stray \r if we hit \n alone
+                    line = line.replaceAll("\\r$", "");
+                    lines.add(line);
+                    currentLine = new StringBuilder();
+                    if (c == '\r') i++; // skip the \n part of CRLF
+                    continue;
+                } else {
+                    currentLine.append(c);
+                }
+            } else {
+                currentLine.append(c);
+            }
+        }
+        // Don't forget the last line
+        String lastLine = currentLine.toString().replaceAll("\\r$", "");
+        if (!lastLine.isEmpty()) {
+            lines.add(lastLine);
+        }
+
+        return lines.toArray(new String[0]);
     }
 
     private Integer parseIntSafe(String val) {

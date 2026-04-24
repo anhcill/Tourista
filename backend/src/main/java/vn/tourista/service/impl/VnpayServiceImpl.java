@@ -13,7 +13,7 @@ import vn.tourista.entity.BookingTourDetail;
 import vn.tourista.repository.BookingHotelDetailRepository;
 import vn.tourista.repository.BookingRepository;
 import vn.tourista.repository.BookingTourDetailRepository;
-import vn.tourista.service.ResendEmailService;
+import vn.tourista.service.BrevoEmailService;
 import vn.tourista.service.VnpayService;
 
 import javax.crypto.Mac;
@@ -46,7 +46,7 @@ public class VnpayServiceImpl implements VnpayService {
     private final BookingRepository bookingRepository;
     private final BookingHotelDetailRepository bookingHotelDetailRepository;
     private final BookingTourDetailRepository bookingTourDetailRepository;
-    private final ResendEmailService emailService;
+    private final BrevoEmailService emailService;
 
     @Value("${app.vnpay.tmn-code:}")
     private String tmnCode;
@@ -69,7 +69,7 @@ public class VnpayServiceImpl implements VnpayService {
     public VnpayServiceImpl(BookingRepository bookingRepository,
             BookingHotelDetailRepository bookingHotelDetailRepository,
             BookingTourDetailRepository bookingTourDetailRepository,
-            ResendEmailService emailService) {
+            BrevoEmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.bookingHotelDetailRepository = bookingHotelDetailRepository;
         this.bookingTourDetailRepository = bookingTourDetailRepository;

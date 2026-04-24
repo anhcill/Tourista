@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
+import { useHydrated } from '@/hooks/useHydrated';
 import styles from './AdminRouteGuard.module.css';
 
 const ADMIN_ROLE_SET = new Set(['ROLE_ADMIN', 'ADMIN']);
@@ -86,11 +87,7 @@ const collectRolesFromToken = (token) => {
 export default function AdminRouteGuard({ children }) {
   const router = useRouter();
   const { isAuthenticated, user, token } = useSelector((state) => state.auth);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const hasAdminRole = useMemo(() => {
     const roles = [

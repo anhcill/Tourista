@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaExclamationTriangle, FaFileCsv, FaMapMarkerAlt,
-  FaSearch, FaTimesCircle, FaUpload
+  FaTimesCircle
 } from 'react-icons/fa';
 import adminApi from '@/api/adminApi';
 import styles from './page.module.css';

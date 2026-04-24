@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import PartnerRouteGuard from '@/components/Partner/Auth/PartnerRouteGuard';
 import styles from './layout.module.css';
 
@@ -37,15 +38,15 @@ export default function PartnerLayout({
             <a href="/partner/reviews" className={styles.navItem}>
               ⭐ Review
             </a>
-            <a href="/partner/messages" className={styles.navItem}>
+            <Link href="/partner/messages" className={styles.navItem}>
               💬 Tin nhắn
-            </a>
+            </Link>
           </nav>
 
           <div className={styles.footerBlock}>
-            <a href="/" className={styles.backLink}>
+            <Link href="/" className={styles.backLink}>
               ← Về trang chủ
-            </a>
+            </Link>
           </div>
         </aside>
 

@@ -12,6 +12,7 @@ import vn.tourista.dto.response.HotelImportPreviewResponse;
 import vn.tourista.dto.response.HotelImportResultResponse;
 import vn.tourista.service.HotelImportService;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -22,11 +23,23 @@ public class HotelImportController {
     @Autowired
     private HotelImportService hotelImportService;
 
+    /**
+     * Handles CSV file upload.
+     * - Strips UTF-8 BOM (\uFEFF) from file start before parsing
+     * - Supports any encoding; prefers UTF-8
+     */
     @PostMapping("/parse")
     public ResponseEntity<ApiResponse<List<CsvHotelRow>>> parseCsv(
             @RequestParam("file") MultipartFile file) {
         try {
-            String csvContent = new String(file.getBytes(), "UTF-8");
+            byte[] rawBytes = file.getBytes();
+            String csvContent = new String(rawBytes, StandardCharsets.UTF_8);
+
+            // Strip UTF-8 BOM if present (common in files saved from Excel/Google Sheets)
+            if (csvContent.length() > 0 && csvContent.charAt(0) == '\uFEFF') {
+                csvContent = csvContent.substring(1);
+            }
+
             List<CsvHotelRow> rows = hotelImportService.parseCsv(csvContent);
             return ResponseEntity.ok(ApiResponse.ok("Đã parse " + rows.size() + " dòng từ CSV", rows));
         } catch (Exception e) {

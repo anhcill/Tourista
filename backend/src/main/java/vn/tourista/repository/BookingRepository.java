@@ -79,6 +79,29 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
 
     long countByStatusAndCreatedAtBefore(Booking.BookingStatus status, LocalDateTime before);
 
+    // Lay service name + dates cho chat admin
+    // Tra ve Object[]: [serviceName, dateRange]
+    @Query(value = """
+        SELECT
+          CASE
+            WHEN hd.hotelName IS NOT NULL THEN hd.hotelName
+            WHEN td.tourTitle IS NOT NULL THEN td.tourTitle
+            ELSE NULL
+          END,
+          CASE
+            WHEN hd.checkInDate IS NOT NULL AND hd.checkOutDate IS NOT NULL
+              THEN CONCAT(hd.checkInDate, ' → ', hd.checkOutDate)
+            WHEN td.departureDate IS NOT NULL
+              THEN CONCAT('Khởi hành: ', td.departureDate)
+            ELSE NULL
+          END
+        FROM Booking b
+        LEFT JOIN BookingHotelDetail hd ON hd.booking = b
+        LEFT JOIN BookingTourDetail td ON td.booking = b
+        WHERE b.id = :bookingId
+        """, nativeQuery = true)
+    Object[] findServiceInfoByBookingId(@Param("bookingId") Long bookingId);
+
     // ===== Revenue stats queries =====
 
     @Query("""

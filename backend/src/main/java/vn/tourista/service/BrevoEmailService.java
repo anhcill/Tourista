@@ -1,22 +1,26 @@
 package vn.tourista.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
- * Email service using Resend API (works on Railway without SMTP blocked).
- * Resend: free 100 emails/day, no SMTP port needed.
+ * Email service using Brevo (Sendinblue) API.
+ * Does NOT require domain verification — works with free tier immediately.
+ * Free: 300 emails/day.
  */
 @Service
 @Slf4j
-public class ResendEmailService {
+public class BrevoEmailService {
+
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
@@ -24,20 +28,73 @@ public class ResendEmailService {
     @Value("${app.email.from:noreply@tourista.vn}")
     private String fromEmail;
 
-    @Value("${app.email.resend-api-key:}")
-    private String resendApiKey;
+    @Value("${app.email.from-name:Tourista Studio}")
+    private String fromName;
 
-    private Resend getResendClient() {
-        if (resendApiKey == null || resendApiKey.isBlank()) {
-            log.warn("RESEND_API_KEY not configured. Emails will be skipped.");
-            return null;
+    @Value("${app.email.brevo-api-key:}")
+    private String brevoApiKey;
+
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+
+    private boolean sendEmail(String toEmail, String subject, String textContent) {
+        if (brevoApiKey == null || brevoApiKey.isBlank()) {
+            log.warn("BREVO_API_KEY not configured. Email to {} skipped.", toEmail);
+            return false;
         }
-        return new Resend(resendApiKey);
+
+        try {
+            String jsonBody = """
+                {
+                    "sender": {"name": "%s", "email": "%s"},
+                    "to": [{"email": "%s"}],
+                    "subject": "%s",
+                    "textContent": "%s"
+                }
+                """.formatted(
+                    escapeJson(fromName),
+                    escapeJson(fromEmail),
+                    escapeJson(toEmail),
+                    escapeJson(subject),
+                    escapeJson(textContent)
+            );
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BREVO_API_URL))
+                    .header("api-key", brevoApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+            int statusCode = response.statusCode();
+            if (statusCode >= 200 && statusCode < 300) {
+                log.info("Brevo email sent successfully to {} (status {})", toEmail, statusCode);
+                return true;
+            } else {
+                log.error("Brevo API error {}: {}", statusCode, response.body());
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("Failed to send Brevo email to {}: {}", toEmail, e.getMessage());
+            return false;
+        }
     }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    // ===================== EMAIL BODY BUILDERS =====================
 
     private String buildVerificationBody(String verifyLink) {
         return """
-            Xin chào!
+            Xin chao!
 
             Cam on ban da dang ky tai khoan Tourista.
 
@@ -200,48 +257,18 @@ public class ResendEmailService {
 
     @Async("emailExecutor")
     public void sendVerificationEmail(String toEmail, String token) {
-        Resend resend = getResendClient();
-        if (resend == null) {
-            log.info("[RESEND-STUB] Verification email would be sent to {} with link: {}/verify-email?token={}", toEmail, frontendUrl, token);
-            return;
-        }
-
-        try {
-            String verifyLink = frontendUrl + "/verify-email?token=" + token;
-            CreateEmailOptions email = CreateEmailOptions.builder()
-                    .from(fromEmail)
-                    .to(toEmail)
-                    .subject("Tourista Studio - Xac thuc tai khoan cua ban")
-                    .text(buildVerificationBody(verifyLink))
-                    .build();
-            resend.emails().send(email);
-            log.info("Verification email sent via Resend to {}", toEmail);
-        } catch (ResendException e) {
-            log.error("Failed to send verification email via Resend to {}: {}", toEmail, e.getMessage());
-        }
+        String verifyLink = frontendUrl + "/verify-email?token=" + token;
+        String subject = "Tourista Studio - Xac thuc tai khoan cua ban";
+        String body = buildVerificationBody(verifyLink);
+        sendEmail(toEmail, subject, body);
     }
 
     @Async("emailExecutor")
     public void sendPasswordResetEmail(String toEmail, String token) {
-        Resend resend = getResendClient();
-        if (resend == null) {
-            log.info("[RESEND-STUB] Password reset email would be sent to {} with link: {}/reset-password?token={}", toEmail, frontendUrl, token);
-            return;
-        }
-
-        try {
-            String resetLink = frontendUrl + "/reset-password?token=" + token;
-            CreateEmailOptions email = CreateEmailOptions.builder()
-                    .from(fromEmail)
-                    .to(toEmail)
-                    .subject("Tourista Studio - Dat lai mat khau")
-                    .text(buildPasswordResetBody(resetLink))
-                    .build();
-            resend.emails().send(email);
-            log.info("Password reset email sent via Resend to {}", toEmail);
-        } catch (ResendException e) {
-            log.error("Failed to send password reset email via Resend to {}: {}", toEmail, e.getMessage());
-        }
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        String subject = "Tourista Studio - Dat lai mat khau";
+        String body = buildPasswordResetBody(resetLink);
+        sendEmail(toEmail, subject, body);
     }
 
     @Async("emailExecutor")
@@ -259,27 +286,11 @@ public class ResendEmailService {
             BigDecimal totalAmount,
             String currency) {
 
-        Resend resend = getResendClient();
-        if (resend == null) {
-            log.info("[RESEND-STUB] Booking created email for {}", bookingCode);
-            return;
-        }
-
-        try {
-            String subject = String.format("Tourista Studio - Xac nhan yeu cau dat %s #%s",
-                    "HOTEL".equals(bookingType) ? "khach san" : "tour", bookingCode);
-            CreateEmailOptions email = CreateEmailOptions.builder()
-                    .from(fromEmail)
-                    .to(toEmail)
-                    .subject(subject)
-                    .text(buildBookingCreatedBody(bookingCode, bookingType, serviceName, serviceSubtitle,
-                            checkIn, checkOut, adults, children, roomsOrSlots, totalAmount, currency))
-                    .build();
-            resend.emails().send(email);
-            log.info("Booking created email sent via Resend for {} to {}", bookingCode, toEmail);
-        } catch (ResendException e) {
-            log.error("Failed to send booking created email via Resend for {} to {}: {}", bookingCode, toEmail, e.getMessage());
-        }
+        String subject = String.format("Tourista Studio - Xac nhan yeu cau dat %s #%s",
+                "HOTEL".equals(bookingType) ? "khach san" : "tour", bookingCode);
+        String body = buildBookingCreatedBody(bookingCode, bookingType, serviceName, serviceSubtitle,
+                checkIn, checkOut, adults, children, roomsOrSlots, totalAmount, currency);
+        sendEmail(toEmail, subject, body);
     }
 
     @Async("emailExecutor")
@@ -299,28 +310,12 @@ public class ResendEmailService {
             String paymentMethod,
             String transactionNo) {
 
-        Resend resend = getResendClient();
-        if (resend == null) {
-            log.info("[RESEND-STUB] Booking confirmed email for {}", bookingCode);
-            return;
-        }
-
-        try {
-            String subject = String.format("Tourista Studio - Thanh toan thanh cong cho %s #%s",
-                    "HOTEL".equals(bookingType) ? "khach san" : "tour", bookingCode);
-            CreateEmailOptions email = CreateEmailOptions.builder()
-                    .from(fromEmail)
-                    .to(toEmail)
-                    .subject(subject)
-                    .text(buildBookingConfirmedBody(bookingCode, bookingType, serviceName, serviceSubtitle,
-                            checkIn, checkOut, adults, children, roomsOrSlots, totalAmount, currency,
-                            paymentMethod, transactionNo))
-                    .build();
-            resend.emails().send(email);
-            log.info("Booking confirmed email sent via Resend for {} to {}", bookingCode, toEmail);
-        } catch (ResendException e) {
-            log.error("Failed to send booking confirmed email via Resend for {} to {}: {}", bookingCode, toEmail, e.getMessage());
-        }
+        String subject = String.format("Tourista Studio - Thanh toan thanh cong cho %s #%s",
+                "HOTEL".equals(bookingType) ? "khach san" : "tour", bookingCode);
+        String body = buildBookingConfirmedBody(bookingCode, bookingType, serviceName, serviceSubtitle,
+                checkIn, checkOut, adults, children, roomsOrSlots, totalAmount, currency,
+                paymentMethod, transactionNo);
+        sendEmail(toEmail, subject, body);
     }
 
     @Async("emailExecutor")
@@ -331,24 +326,8 @@ public class ResendEmailService {
             String serviceName,
             String cancelReason) {
 
-        Resend resend = getResendClient();
-        if (resend == null) {
-            log.info("[RESEND-STUB] Booking cancelled email for {}", bookingCode);
-            return;
-        }
-
-        try {
-            String subject = String.format("Tourista Studio - Booking #%s da bi huy", bookingCode);
-            CreateEmailOptions email = CreateEmailOptions.builder()
-                    .from(fromEmail)
-                    .to(toEmail)
-                    .subject(subject)
-                    .text(buildBookingCancelledBody(bookingCode, bookingType, serviceName, cancelReason))
-                    .build();
-            resend.emails().send(email);
-            log.info("Booking cancelled email sent via Resend for {} to {}", bookingCode, toEmail);
-        } catch (ResendException e) {
-            log.error("Failed to send booking cancelled email via Resend for {} to {}: {}", bookingCode, toEmail, e.getMessage());
-        }
+        String subject = String.format("Tourista Studio - Booking #%s da bi huy", bookingCode);
+        String body = buildBookingCancelledBody(bookingCode, bookingType, serviceName, cancelReason);
+        sendEmail(toEmail, subject, body);
     }
 }

@@ -97,13 +97,6 @@
 			<version>${bucket4j.version}</version>
 		</dependency>
 
-		<!-- ===== EMAIL (Resend API) ===== -->
-		<dependency>
-			<groupId>com.resend</groupId>
-			<artifactId>resend-java</artifactId>
-			<version>4.9.0</version>
-		</dependency>
-
 		<!-- ===== CLOUDINARY (Image Upload) ===== -->
 		<dependency>
 			<groupId>com.cloudinary</groupId>

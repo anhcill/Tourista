@@ -26,7 +26,9 @@ function getLatLngFromAddress(address, hotelName) {
 
 export default function HotelMap({ hotel, className = '' }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markersRef = useRef<any[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -55,24 +57,14 @@ export default function HotelMap({ hotel, className = '' }) {
         if (mapInstanceRef.current) return;
 
         // Fix default marker icon path issue with webpack
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        });
-
         const mapEl = mapRef.current;
         if (!mapEl) return;
-        
-        if ((mapEl as any)._leaflet_id) {
-          (mapEl as any)._leaflet_id = null;
-        }
 
         const lat = hasCoords ? Number(hotelLat) : 16.0544;
         const lng = hasCoords ? Number(hotelLng) : 108.2022;
 
-        const map = L.map(mapEl as HTMLElement, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const map = (L.map as any)(mapEl, {
           center: [lat, lng],
           zoom: 15,
           zoomControl: true,

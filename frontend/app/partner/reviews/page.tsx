@@ -26,11 +26,19 @@ const StarRating = ({ rating }) => (
 );
 
 export default function PartnerReviewsPage() {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [replyModal, setReplyModal] = useState<any>(null);
+  const [replyModal, setReplyModal] = useState<{
+    id: unknown;
+    userName: unknown;
+    targetName: unknown;
+    overallRating: unknown;
+    comment: unknown;
+    partnerReply: unknown;
+    partnerRepliedAt: unknown;
+  } | null>(null);
   const [replyText, setReplyText] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -55,9 +63,17 @@ export default function PartnerReviewsPage() {
     void loadReviews();
   }, [loadReviews]);
 
-  const openReplyModal = (review) => {
-    setReplyModal(review);
-    setReplyText(review.partnerReply || '');
+  const openReplyModal = (review: Record<string, unknown>) => {
+    setReplyModal({
+      id: review.id,
+      userName: review.userName,
+      targetName: review.targetName,
+      overallRating: review.overallRating,
+      comment: review.comment,
+      partnerReply: review.partnerReply,
+      partnerRepliedAt: review.createdAt,
+    });
+    setReplyText(String(review.partnerReply || ''));
   };
 
   const handleSubmitReply = async () => {
@@ -143,30 +159,30 @@ export default function PartnerReviewsPage() {
       ) : (
         <div className={styles.reviewList}>
           {reviews.map((review) => (
-            <article key={review.id} className={styles.reviewCard}>
+            <article key={String(review.id)} className={styles.reviewCard}>
               <div className={styles.reviewLeft}>
                 <div className={styles.reviewHeader}>
                   <div className={styles.reviewMeta}>
                     <span className={`${styles.typeBadge} ${review.targetType === 'HOTEL' ? styles.typeHotel : styles.typeTour}`}>
                       {review.targetType === 'HOTEL' ? 'Khách sạn' : 'Tour'}
                     </span>
-                    <span className={styles.targetName}>{review.targetName}</span>
+                    <span className={styles.targetName}>{String(review.targetName)}</span>
                   </div>
-                  <StarRating rating={Math.round(review.overallRating / 2)} />
+                  <StarRating rating={Math.round(Number(review.overallRating) / 2)} />
                 </div>
-                <p className={styles.reviewComment}>{review.comment || 'Không có bình luận'}</p>
+                <p className={styles.reviewComment}>{String(review.comment || 'Không có bình luận')}</p>
                 <div className={styles.reviewFooter}>
                   <span className={styles.reviewAuthor}>
-                    {review.userName || 'Khách hàng'} · {formatDate(review.createdAt)}
+                    {String(review.userName || 'Khách hàng')} · {formatDate(review.createdAt)}
                   </span>
-                  {review.isVerified && (
+                  {review.isVerified ? (
                     <span className={styles.verifiedBadge}>
                       <FaCheckCircle size={12} /> Đã xác thực
                     </span>
-                  )}
+                  ) : null}
                 </div>
 
-                {review.partnerReply && (
+                {Boolean(review.partnerReply) ? (
                   <div className={styles.existingReply}>
                     <div className={styles.existingReplyHeader}>
                       <span className={styles.existingReplyLabel}>Phản hồi của bạn</span>
@@ -174,9 +190,9 @@ export default function PartnerReviewsPage() {
                         {formatDate(review.partnerRepliedAt)}
                       </span>
                     </div>
-                    <p className={styles.existingReplyText}>{review.partnerReply}</p>
+                    <p className={styles.existingReplyText}>{String(review.partnerReply)}</p>
                   </div>
-                )}
+                ) : null}
 
                 <button className={styles.replyBtn} onClick={() => openReplyModal(review)}>
                   <FaReply /> {review.partnerReply ? 'Sửa phản hồi' : 'Phản hồi'}
@@ -192,18 +208,18 @@ export default function PartnerReviewsPage() {
           <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
             <h3>Phản hồi Review</h3>
             <p className={styles.modalMeta}>
-              Review của <strong>{replyModal.userName || 'Khách hàng'}</strong> về{' '}
-              <strong>{replyModal.targetName}</strong>
+              Review của <strong>{String(replyModal.userName || 'Khách hàng')}</strong> về{' '}
+              <strong>{String(replyModal.targetName)}</strong>
             </p>
-            <StarRating rating={Math.round(replyModal.overallRating / 2)} />
+            <StarRating rating={Math.round(Number(replyModal.overallRating) / 2)} />
             <p className={styles.modalComment}>
-              {replyModal.comment || <em>Không có bình luận</em>}
+              {String(replyModal.comment || 'Không có bình luận')}
             </p>
-            {replyModal.partnerReply && (
+            {replyModal.partnerReply ? (
               <div className={styles.modalPrevReply}>
-                <strong>Phản hồi hiện tại:</strong> {replyModal.partnerReply}
+                <strong>Phản hồi hiện tại:</strong> {String(replyModal.partnerReply)}
               </div>
-            )}
+            ) : null}
             <label className={styles.replyLabel}>
               Nội dung phản hồi:
               <textarea

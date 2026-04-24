@@ -12,7 +12,7 @@ import vn.tourista.repository.BookingHotelDetailRepository;
 import vn.tourista.repository.BookingRepository;
 import vn.tourista.repository.BookingTourDetailRepository;
 import vn.tourista.repository.SessionRecommendationStateRepository;
-import vn.tourista.service.ResendEmailService;
+import vn.tourista.service.BrevoEmailService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,7 +29,7 @@ public class CleanupScheduler {
     private final BookingRepository bookingRepository;
     private final BookingHotelDetailRepository bookingHotelDetailRepository;
     private final BookingTourDetailRepository bookingTourDetailRepository;
-    private final ResendEmailService emailService;
+    private final BrevoEmailService emailService;
 
     /**
      * Xoa expired recommendation states mỗi 5 phut.

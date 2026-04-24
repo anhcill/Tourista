@@ -164,7 +164,7 @@ export default function CreateArticlePage() {
                 required
               />
               <span className={styles.hint}>
-                Hỗ trợ HTML cơ bản: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;img src="..."&gt;
+                Hỗ trợ HTML cơ bản: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;img src=&quot;...&quot;&gt;
               </span>
             </div>
 

@@ -14,7 +14,7 @@ import {
 } from 'react-icons/fa';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts';
 import adminApi from '@/api/adminApi';
 import StatCard from '@/components/Admin/Common/StatCard/StatCard';
@@ -44,12 +44,12 @@ const STATUS_LABELS: Record<string, string> = {
 
 const PIE_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color?: string; fill?: string }[]; label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 14px', fontSize: 13, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
         <p style={{ margin: '0 0 6px', fontWeight: 700, color: '#0f172a' }}>{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <p key={index} style={{ margin: 0, color: entry.color || entry.fill, fontWeight: 600, fontSize: 12 }}>
             {entry.name}: {entry.name.includes('Doanh thu') || entry.name.includes('revenue')
               ? `${formatVnd(entry.value)} VND`

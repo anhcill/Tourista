@@ -287,6 +287,36 @@
   background: rgba(220, 38, 38, 0.85);
 }
 
+/* Cover preview */
+.coverPreview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+}
+
+.coverPreviewImg {
+  width: 80px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.coverMeta {
+  font-size: 13px;
+  color: #0369a1;
+}
+
+.coverMeta p {
+  margin: 0;
+  line-height: 1.5;
+}
+
 @media (max-width: 780px) {
   .formGrid {
     grid-template-columns: 1fr;

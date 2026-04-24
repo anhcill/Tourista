@@ -409,7 +409,7 @@ function TourSearchInner() {
                   {searchCity.trim().length > 0 && cityItems.length === 0 && !cityLoading && (
                     <div className={styles.cityNoResults}>
                       <button className={styles.citySearchAnyway} onMouseDown={() => handleBannerSearch()}>
-                        Tìm "{searchCity}"
+                        Tìm &ldquo;{searchCity}&rdquo;
                       </button>
                     </div>
                   )}

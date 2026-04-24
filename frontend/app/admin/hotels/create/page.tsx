@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaArrowLeft, FaSave, FaSyncAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaSave } from 'react-icons/fa';
 import adminApi from '@/api/adminApi';
+import ImageUpload from '@/components/Admin/ImageUpload/ImageUpload';
 import styles from './page.module.css';
 
 type HotelForm = {
@@ -23,7 +24,7 @@ type HotelForm = {
   isFeatured: boolean;
   isTrending: boolean;
   isActive: boolean;
-  imageUrls: string;
+  imageUrls: string[];
   reason: string;
 };
 
@@ -59,7 +60,7 @@ const EMPTY: HotelForm = {
   isFeatured: false,
   isTrending: false,
   isActive: true,
-  imageUrls: '',
+  imageUrls: [],
   reason: '',
 };
 
@@ -69,17 +70,6 @@ export default function AdminHotelCreatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // Image preview
-  const imageList = useMemo(() => {
-    return form.imageUrls.split('\n').map((u) => u.trim()).filter(Boolean);
-  }, [form.imageUrls]);
-
-  const removeImage = (index: number) => {
-    const lines = form.imageUrls.split('\n');
-    lines.splice(index, 1);
-    setForm((prev) => ({ ...prev, imageUrls: lines.join('\n') }));
-  };
 
   const set = (field: keyof HotelForm, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -105,10 +95,7 @@ export default function AdminHotelCreatePage() {
       return;
     }
 
-    const imageUrls = form.imageUrls
-      .split('\n')
-      .map((u) => u.trim())
-      .filter(Boolean);
+    const imageUrls = form.imageUrls || [];
 
     const payload = {
       name: form.name.trim(),
@@ -224,27 +211,13 @@ export default function AdminHotelCreatePage() {
             </label>
 
             <label className={styles.fullWidth}>
-              <span>Hinh anh (moi dong la 1 URL)</span>
-              <textarea
+              <span>Hình ảnh khách sạn</span>
+              <ImageUpload
                 value={form.imageUrls}
-                onChange={(e) => set('imageUrls', e.target.value)}
-                rows={4}
-                placeholder="https://images.unsplash.com/photo-xxxx&#10;https://images.unsplash.com/photo-xxxx"
+                onChange={(urls) => setForm(prev => ({ ...prev, imageUrls: urls }))}
+                maxImages={20}
               />
             </label>
-
-            {imageList.length > 0 && (
-              <div className={`${styles.imagePreview} ${styles.fullWidth}`}>
-                {imageList.map((url, i) => (
-                  <div key={i} className={styles.previewItem}>
-                    <img src={url} alt={`Preview ${i + 1}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <button type="button" className={styles.removeImageBtn} onClick={() => removeImage(i)} title="Xoa anh">
-                      &times;
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div className={`${styles.checkboxGroup} ${styles.fullWidth}`}>
               <label className={styles.checkboxLabel}>

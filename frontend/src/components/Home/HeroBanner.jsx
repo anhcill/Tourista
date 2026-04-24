@@ -110,15 +110,15 @@ const HeroBanner = ({ compact = false }) => {
     const [searchData, setSearchData] = useState(buildDefaultSearchData());
     const [isDestinationFocused, setIsDestinationFocused] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
-    const [recentSearches, setRecentSearches] = useState([]);
-    const destinationSuggestions = useHotelAutocomplete(searchData.destination);
-
-    useEffect(() => {
+    const [recentSearches, setRecentSearches] = useState(() => {
         try {
             const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
-            if (stored) setRecentSearches(JSON.parse(stored));
-        } catch {}
-    }, []);
+            return stored ? JSON.parse(stored) : [];
+        } catch {
+            return [];
+        }
+    });
+    const destinationSuggestions = useHotelAutocomplete(searchData.destination);
 
     const hasQuery = searchData.destination.trim().length > 0;
     const hasRecent = !hasQuery && recentSearches.length > 0;
@@ -339,7 +339,7 @@ const HeroBanner = ({ compact = false }) => {
 
                                     {isDestinationFocused && hasQuery && destinationSuggestions.length === 0 && !destinationSuggestions.loading && (
                                         <div className={styles.noSuggestions}>
-                                            Không có gợi ý cho "{searchData.destination}"
+                                            Không có gợi ý cho &ldquo;{searchData.destination}&rdquo;
                                         </div>
                                     )}
                                 </div>

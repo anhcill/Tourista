@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { FaArrowLeft, FaSave } from 'react-icons/fa';
 import adminApi from '@/api/adminApi';
+import ImageUpload from '@/components/Admin/ImageUpload/ImageUpload';
 import styles from './page.module.css';
 
 type HotelForm = {
@@ -24,7 +25,7 @@ type HotelForm = {
   isTrending: boolean;
   isActive: boolean;
   status: string;
-  imageUrls: string;
+  imageUrls: string[];
   coverImage: string;
   reason: string;
 };
@@ -67,7 +68,7 @@ export default function AdminHotelEditPage() {
     isTrending: false,
     isActive: true,
     status: '',
-    imageUrls: '',
+    imageUrls: [],
     coverImage: '',
     reason: '',
   });
@@ -77,17 +78,6 @@ export default function AdminHotelEditPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Image preview
-  const imageList = useMemo(() => {
-    return form.imageUrls.split('\n').map((u) => u.trim()).filter(Boolean);
-  }, [form.imageUrls]);
-
-  const removeImage = (index: number) => {
-    const lines = form.imageUrls.split('\n');
-    lines.splice(index, 1);
-    setForm((prev) => ({ ...prev, imageUrls: lines.join('\n') }));
-  };
-
   const loadHotel = useCallback(async () => {
     if (!hotelId) return;
     try {
@@ -95,8 +85,7 @@ export default function AdminHotelEditPage() {
       const data = await adminApi.getHotelById(hotelId);
       if (!data) return;
 
-      setForm((prev) => ({
-        ...prev,
+      setForm({
         name: data.name || '',
         cityId: data.cityId ? String(data.cityId) : '3',
         ownerId: data.ownerId ? String(data.ownerId) : '',
@@ -114,9 +103,10 @@ export default function AdminHotelEditPage() {
         isTrending: data.isTrending || false,
         isActive: data.isActive !== false,
         status: data.status || '',
-        imageUrls: Array.isArray(data.imageUrls) ? data.imageUrls.join('\n') : '',
+        imageUrls: Array.isArray(data.imageUrls) ? data.imageUrls : [],
         coverImage: data.coverImage || '',
-      }));
+        reason: '',
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Khong the tai chi tiet hotel.');
     } finally {
@@ -128,7 +118,10 @@ export default function AdminHotelEditPage() {
     void loadHotel();
   }, [loadHotel]);
 
-  const set = (field: keyof HotelForm, value: string | boolean) =>
+  const setString = (field: keyof HotelForm, value: string) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const setBool = (field: keyof HotelForm, value: boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const validate = () => {
@@ -152,11 +145,6 @@ export default function AdminHotelEditPage() {
       return;
     }
 
-    const imageUrls = form.imageUrls
-      .split('\n')
-      .map((u) => u.trim())
-      .filter(Boolean);
-
     const payload = {
       name: form.name.trim(),
       cityId: Number(form.cityId),
@@ -175,7 +163,7 @@ export default function AdminHotelEditPage() {
       isTrending: form.isTrending,
       isActive: form.isActive,
       status: form.status || null,
-      imageUrls,
+      imageUrls: form.imageUrls || [],
       coverImage: form.coverImage || null,
       reason: form.reason.trim(),
     };
@@ -222,12 +210,12 @@ export default function AdminHotelEditPage() {
           <div className={styles.formGrid}>
             <label className={styles.fullWidth}>
               <span>Ten khach san *</span>
-              <input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="VD: Sea Light Da Nang Hotel" />
+              <input value={form.name} onChange={(e) => setString('name', e.target.value)} placeholder="VD: Sea Light Da Nang Hotel" />
             </label>
 
             <label>
               <span>Thanh pho *</span>
-              <select value={form.cityId} onChange={(e) => set('cityId', e.target.value)}>
+              <select value={form.cityId} onChange={(e) => setString('cityId', e.target.value)}>
                 {CITIES.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -236,7 +224,7 @@ export default function AdminHotelEditPage() {
 
             <label>
               <span>So sao (1-5) *</span>
-              <select value={form.starRating} onChange={(e) => set('starRating', e.target.value)}>
+              <select value={form.starRating} onChange={(e) => setString('starRating', e.target.value)}>
                 {[1, 2, 3, 4, 5].map((s) => (
                   <option key={s} value={s}>{s} sao</option>
                 ))}
@@ -245,104 +233,95 @@ export default function AdminHotelEditPage() {
 
             <label className={styles.fullWidth}>
               <span>Dia chi *</span>
-              <input value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="VD: 12 Vo Nguyen Giap, Son Tra, Da Nang" />
+              <input value={form.address} onChange={(e) => setString('address', e.target.value)} placeholder="VD: 12 Vo Nguyen Giap, Son Tra, Da Nang" />
             </label>
 
             <label>
               <span>So dien thoai</span>
-              <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="0901234567" />
+              <input value={form.phone} onChange={(e) => setString('phone', e.target.value)} placeholder="0901234567" />
             </label>
 
             <label>
               <span>Email</span>
-              <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="contact@hotel.vn" />
+              <input type="email" value={form.email} onChange={(e) => setString('email', e.target.value)} placeholder="contact@hotel.vn" />
             </label>
 
             <label>
               <span>Gio check-in</span>
-              <input type="time" value={form.checkInTime} onChange={(e) => set('checkInTime', e.target.value)} />
+              <input type="time" value={form.checkInTime} onChange={(e) => setString('checkInTime', e.target.value)} />
             </label>
 
             <label>
               <span>Gio check-out</span>
-              <input type="time" value={form.checkOutTime} onChange={(e) => set('checkOutTime', e.target.value)} />
+              <input type="time" value={form.checkOutTime} onChange={(e) => setString('checkOutTime', e.target.value)} />
             </label>
 
             <label>
               <span>Website</span>
-              <input value={form.website} onChange={(e) => set('website', e.target.value)} placeholder="https://hotel.vn" />
+              <input value={form.website} onChange={(e) => setString('website', e.target.value)} placeholder="https://hotel.vn" />
             </label>
 
             <label>
               <span>Owner ID (optional)</span>
-              <input type="number" value={form.ownerId} onChange={(e) => set('ownerId', e.target.value)} placeholder="1" />
+              <input type="number" value={form.ownerId} onChange={(e) => setString('ownerId', e.target.value)} placeholder="1" />
             </label>
 
             <label className={styles.fullWidth}>
               <span>Mo ta</span>
-              <textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={4} placeholder="Mo ta khach san..." />
+              <textarea value={form.description} onChange={(e) => setString('description', e.target.value)} rows={4} placeholder="Mo ta khach san..." />
             </label>
 
             <label className={styles.fullWidth}>
-              <span>Hinh anh (moi dong la 1 URL)</span>
-              <textarea
+              <span>Hinh anh khach san</span>
+              <ImageUpload
                 value={form.imageUrls}
-                onChange={(e) => set('imageUrls', e.target.value)}
-                rows={4}
-                placeholder="https://images.unsplash.com/photo-xxxx&#10;https://images.unsplash.com/photo-xxxx"
+                onChange={(urls) => {
+                  setForm((prev) => ({ ...prev, imageUrls: urls }));
+                  if (!form.coverImage && urls.length > 0) {
+                    setForm((prev) => ({ ...prev, coverImage: urls[0] }));
+                  }
+                }}
+                maxImages={20}
               />
             </label>
 
-            {imageList.length > 0 && (
+            {form.imageUrls.length > 0 && form.coverImage && (
               <div className={`${styles.imagePreview} ${styles.fullWidth}`}>
                 <div className={styles.imagePreviewHeader}>
-                  <span>Chon anh lam cover (hien thi chinh)</span>
+                  <span>Anh cover hien tai:</span>
                 </div>
-                <div className={styles.imageGrid}>
-                  {imageList.map((url, i) => (
-                    <div
-                      key={i}
-                      className={`${styles.previewItem} ${form.coverImage === url ? styles.previewItemCover : ''}`}
-                      onClick={() => set('coverImage', form.coverImage === url ? '' : url)}
-                      title={form.coverImage === url ? 'Anh cover - click de bo chon' : 'Click de chon lam anh cover'}
-                    >
-                      <img src={url} alt={`Preview ${i + 1}`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                      {form.coverImage === url && (
-                        <div className={styles.coverBadge}>Cover</div>
-                      )}
-                      <button type="button" className={styles.removeImageBtn} onClick={(e) => { e.stopPropagation(); removeImage(i); }} title="Xoa anh">
-                        &times;
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                {form.coverImage && (
-                  <div className={styles.coverInfo}>
-                    <span className={styles.coverInfoLabel}>Cover hien tai:</span>
-                    <img src={form.coverImage} alt="Cover" className={styles.coverInfoImg} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <div className={styles.coverPreview}>
+                  <img
+                    src={form.coverImage}
+                    alt="Cover"
+                    className={styles.coverPreviewImg}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <div className={styles.coverMeta}>
+                    <p>Anh dau tien trong danh sach duoc dung lam anh cover.</p>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
             <div className={`${styles.checkboxGroup} ${styles.fullWidth}`}>
               <label className={styles.checkboxLabel}>
-                <input type="checkbox" checked={form.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />
+                <input type="checkbox" checked={form.isFeatured} onChange={(e) => setBool('isFeatured', e.target.checked)} />
                 <span>Khach san noi bat</span>
               </label>
               <label className={styles.checkboxLabel}>
-                <input type="checkbox" checked={form.isTrending} onChange={(e) => set('isTrending', e.target.checked)} />
+                <input type="checkbox" checked={form.isTrending} onChange={(e) => setBool('isTrending', e.target.checked)} />
                 <span>Khach san xu huong</span>
               </label>
               <label className={styles.checkboxLabel}>
-                <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} />
+                <input type="checkbox" checked={form.isActive} onChange={(e) => setBool('isActive', e.target.checked)} />
                 <span>Dang hoat dong</span>
               </label>
             </div>
 
             <label className={styles.fullWidth}>
               <span>Ly do cap nhat *</span>
-              <input value={form.reason} onChange={(e) => set('reason', e.target.value)} placeholder="Ly do thay doi thong tin" />
+              <input value={form.reason} onChange={(e) => setString('reason', e.target.value)} placeholder="Ly do thay doi thong tin" />
             </label>
           </div>
 
