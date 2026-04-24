@@ -45,18 +45,19 @@ const isTokenExpired = (token, skewSeconds = 20) => {
 };
 
 const resolveWsUrl = () => {
-  // 1. Nếu có env var chỉ định rõ WS URL, dùng luôn ( Railway / Vercel )
+  // 1. Nếu có env var chỉ định rõ WS URL, dùng luôn
   const envWsUrl = process.env.NEXT_PUBLIC_WS_URL;
   if (envWsUrl) return envWsUrl;
 
   // 2. Build từ API_BASE_URL origin + /ws
   //    VD: http://localhost:8080/api  →  http://localhost:8080/ws
-  //        https://tourista-backend.up.railway.app/api  →  https://tourista-backend.up.railway.app/ws
+  //        https://tourista-production.up.railway.app/api  →  https://tourista-production.up.railway.app/ws
   try {
     const apiUrl = new URL(API_BASE_URL, window.location.origin);
     return `${apiUrl.origin}/ws`;
   } catch {
-    return "http://localhost:8080/ws";
+    // 3. Fallback: dùng Railway backend trực tiếp
+    return "https://tourista-production.up.railway.app/ws";
   }
 };
 
