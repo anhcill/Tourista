@@ -194,6 +194,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
                 fullName: registerData.fullName.trim(),
                 email: registerData.email,
                 password: registerData.password,
+                confirmPassword: registerData.confirmPassword,
             });
 
             setRegisterSuccess(true);

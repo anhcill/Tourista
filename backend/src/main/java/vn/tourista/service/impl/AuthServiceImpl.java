@@ -121,6 +121,9 @@ public class AuthServiceImpl implements AuthService {
         // 5. Đánh dấu token đã dùng
         verifyToken.setUsed(true);
         emailTokenRepository.save(verifyToken);
+
+        // 6. Gửi email chào mừng
+        emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
     }
 
     // ================================================================

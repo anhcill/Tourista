@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.tourista.dto.request.CreateConversationRequest;
 import vn.tourista.dto.response.ChatMessageResponse;
 import vn.tourista.dto.response.ConversationResponse;
-import vn.tourista.dto.response.ConversationResponse.ConversationResponseBuilder;
 import vn.tourista.entity.*;
 import vn.tourista.repository.*;
 
@@ -89,6 +88,18 @@ public class ChatService {
                 // Trường hợp P2P: find-or-create theo client + partner + referenceId
                 User partner = userRepository.findById(req.getPartnerId())
                                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đối tác"));
+
+                // Validate: không chat với chính mình
+                if (client.getId().equals(partner.getId())) {
+                        throw new RuntimeException("Không thể nhắn tin với chính mình");
+                }
+
+                // Validate: partner phải là đối tác (role PARTNER hoặc HOTEL_OWNER)
+                String roleName = partner.getRole() != null ? partner.getRole().getName() : "";
+                boolean isPartnerRole = roleName.equals("PARTNER") || roleName.equals("HOTEL_OWNER");
+                if (!isPartnerRole) {
+                        throw new RuntimeException("Người nhận không phải là đối tác hợp lệ");
+                }
 
                 Conversation existing = conversationRepository
                                 .findExisting(client, partner, req.getReferenceId(), req.getType())

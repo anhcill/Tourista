@@ -11,6 +11,7 @@ import vn.tourista.entity.Booking;
 import vn.tourista.entity.User;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,4 +130,60 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
             ORDER BY FUNCTION('DATE', b.createdAt) ASC
             """)
     List<Object[]> sumDailyRevenueByTourOperator(@Param("operatorId") Long operatorId, @Param("fromDate") LocalDateTime fromDate);
+
+    // ==================== EMAIL REMINDER SCHEDULER QUERIES ====================
+
+    /** Hotel bookings sắp nhận phòng ngày target (CONFIRMED, chưa COMPLETED) */
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN BookingHotelDetail hd ON hd.booking = b
+            WHERE b.status = 'CONFIRMED'
+              AND hd.checkInDate = :targetDate
+            """)
+    List<Booking> findConfirmedHotelBookingsForDate(@Param("targetDate") LocalDate targetDate);
+
+    /** Tour bookings sắp khởi hành ngày target (CONFIRMED, chưa COMPLETED) */
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN BookingTourDetail td ON td.booking = b
+            WHERE b.status = 'CONFIRMED'
+              AND td.departureDate = :targetDate
+            """)
+    List<Booking> findConfirmedTourBookingsForDate(@Param("targetDate") LocalDate targetDate);
+
+    /** Hotel bookings đã trả phòng ngày target (CONFIRMED, checkout = target) */
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN BookingHotelDetail hd ON hd.booking = b
+            WHERE b.status = 'CONFIRMED'
+              AND hd.checkOutDate = :targetDate
+            """)
+    List<Booking> findCompletedHotelBookingsForDate(@Param("targetDate") LocalDate targetDate);
+
+    /** Tour bookings đã kết thúc ngày target (CONFIRMED, departure = target) */
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN BookingTourDetail td ON td.booking = b
+            WHERE b.status = 'CONFIRMED'
+              AND td.departureDate = :targetDate
+            """)
+    List<Booking> findCompletedTourBookingsForDate(@Param("targetDate") LocalDate targetDate);
+
+    /** Hotel: checkout date < targetDate, status CONFIRMED — dùng cho auto-complete */
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN BookingHotelDetail hd ON hd.booking = b
+            WHERE b.status = 'CONFIRMED'
+              AND hd.checkOutDate < :targetDate
+            """)
+    List<Booking> findConfirmedHotelBookingsBeforeDate(@Param("targetDate") LocalDate targetDate);
+
+    /** Tour: departure date < targetDate, status CONFIRMED — dùng cho auto-complete */
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN BookingTourDetail td ON td.booking = b
+            WHERE b.status = 'CONFIRMED'
+              AND td.departureDate < :targetDate
+            """)
+    List<Booking> findConfirmedTourBookingsBeforeDate(@Param("targetDate") LocalDate targetDate);
 }

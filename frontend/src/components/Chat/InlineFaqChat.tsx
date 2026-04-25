@@ -16,6 +16,16 @@ interface InlineFaqItem {
 interface InlineFaqChatProps {
     context: 'HOTEL' | 'TOUR';
     className?: string;
+    /** Truyen tu hotel/tour detail page de mo P2P modal */
+    onChatWithOwner?: (seed: {
+        type: 'P2P_HOTEL' | 'P2P_TOUR';
+        partnerId: number;
+        referenceId: number;
+        title?: string;
+    }) => void;
+    /** Owner info tu hotel/tour detail page */
+    ownerId?: number | null;
+    ownerName?: string;
 }
 
 interface Offer {
@@ -48,7 +58,7 @@ const TOUR_OFFERS: Offer[] = [
     { id: 'tour_contact', emoji: '📞', label: 'Liên hệ chủ tour', hint: 'Chat trực tiếp với chủ tour' },
 ];
 
-const InlineFaqChat = ({ context, className }: InlineFaqChatProps) => {
+const InlineFaqChat = ({ context, className, onChatWithOwner, ownerId, ownerName }: InlineFaqChatProps) => {
     const dispatch = useDispatch();
     const { isAuthenticated } = useSelector(
         (state: { auth: { isAuthenticated: boolean } }) => state.auth
@@ -85,7 +95,18 @@ const InlineFaqChat = ({ context, className }: InlineFaqChatProps) => {
 
     const handleOfferClick = (offerId: string) => {
         if (offerId === 'hotel_contact' || offerId === 'tour_contact') {
-            dispatch(openBot());
+            // Mở P2P modal với chủ khách sạn/tour
+            if (onChatWithOwner && ownerId) {
+                onChatWithOwner({
+                    type: context === 'HOTEL' ? 'P2P_HOTEL' : 'P2P_TOUR',
+                    partnerId: ownerId,
+                    referenceId: 0, // sẽ được ghi đè bởi hotel/tour id từ trang detail
+                    title: ownerName || undefined,
+                });
+            } else {
+                // Fallback: mở BOT chat
+                dispatch(openBot());
+            }
             return;
         }
 
@@ -154,7 +175,17 @@ const InlineFaqChat = ({ context, className }: InlineFaqChatProps) => {
     };
 
     const handleOpenBot = () => {
-        dispatch(openBot());
+        // Nếu có owner info, mở P2P modal; không thì mở BOT
+        if (onChatWithOwner && ownerId) {
+            onChatWithOwner({
+                type: context === 'HOTEL' ? 'P2P_HOTEL' : 'P2P_TOUR',
+                partnerId: ownerId,
+                referenceId: 0,
+                title: ownerName || undefined,
+            });
+        } else {
+            dispatch(openBot());
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -9,346 +9,177 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 
+/**
+ * Email service using SMTP (fallback khi không dùng Brevo).
+ * Chủ yếu dùng BrevoEmailService — class này giữ nguyên để tương thích.
+ */
 @Service
 @Slf4j
 public class EmailService {
 
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    @Autowired private JavaMailSender mailSender;
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${app.frontend-url}") private String frontendUrl;
+    @Value("${spring.mail.username:}") private String fromEmail;
 
-    @Value("${app.frontend-url}")
-    private String frontendUrl;
-
-    @Value("${spring.mail.username:}")
-    private String fromEmail;
-
-    // ===================== EMAIL XÁC THỰC =====================
-
+    // ==================== 1. XÁC THỰC ====================
     @Async("emailExecutor")
     public void sendVerificationEmail(String toEmail, String token) {
-        String verifyLink = frontendUrl + "/verify-email?token=" + token;
-
-        System.out.println("==================================================");
-        System.out.println("TESTING: Verification Link: " + verifyLink);
-        System.out.println("==================================================");
-
+        String link = frontendUrl + "/verify-email?token=" + token;
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Tourista Studio - Xác thực tài khoản của bạn");
-            message.setText(buildVerificationEmailBody(verifyLink));
-            mailSender.send(message);
-            log.info("Verification email sent to {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
-        }
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Tourista Studio - Xác thực tài khoản của bạn");
+            m.setText("Xin chào!\n\nVui lòng nhấn link để xác thực email:\n" + link +
+                    "\n\nLink có hiệu lực 24h.\nNếu không đăng ký, hãy bỏ qua.\n\nTrân trọng,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send verification email: {}", e.getMessage()); }
     }
 
-    // ===================== EMAIL QUÊN MẬT KHẨU =====================
+    // ==================== 2. CHÀO MỪNG ====================
+    @Async("emailExecutor")
+    public void sendWelcomeEmail(String toEmail, String userName) {
+        try {
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Chào mừng bạn đến với Tourista Studio!");
+            m.setText("Xin chào" + (userName != null && !userName.isBlank() ? ", " + userName : "") + "!\n\n" +
+                    "Chúc mừng bạn đã xác thực thành công! Tài khoản Tourista Studio đã sẵn sàng.\n\n" +
+                    "Bạn được giảm 10%% cho đặt phòng đầu tiên. Mã: WELCOME10\n\n" +
+                    "Khám phá ngay: " + frontendUrl + "/hotels\n\nTrân trọng,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send welcome email: {}", e.getMessage()); }
+    }
 
+    // ==================== 3. ĐẶT LẠI MẬT KHẨU ====================
     @Async("emailExecutor")
     public void sendPasswordResetEmail(String toEmail, String token) {
-        String resetLink = frontendUrl + "/reset-password?token=" + token;
-
+        String link = frontendUrl + "/reset-password?token=" + token;
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Tourista Studio - Đặt lại mật khẩu");
-            message.setText(buildPasswordResetEmailBody(resetLink));
-            mailSender.send(message);
-            log.info("Password reset email sent to {}", toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
-        }
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Tourista Studio - Đặt lại mật khẩu");
+            m.setText("Bạn đã yêu cầu đặt lại mật khẩu.\n\nNhấn link để tạo mật khẩu mới:\n" + link +
+                    "\n\nLink có hiệu lực 1 giờ.\nNếu không yêu cầu, hãy bỏ qua.\n\nTrân trọng,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send password reset email: {}", e.getMessage()); }
     }
 
-    // ===================== EMAIL XÁC NHẬN BOOKING TẠO THÀNH CÔNG =====================
-
-    /**
-     * Gửi email xác nhận booking mới (trạng thái PENDING).
-     * Booking chưa thanh toán, user cần thanh toán trong 30 phút.
-     */
+    // ==================== 4. BOOKING TẠO ====================
     @Async("emailExecutor")
-    public void sendBookingCreatedEmail(
-            String toEmail,
-            String bookingCode,
-            String bookingType,
-            String serviceName,
-            String serviceSubtitle,
-            String checkIn,
-            String checkOut,
-            int adults,
-            int children,
-            int roomsOrSlots,
-            BigDecimal totalAmount,
-            String currency) {
-
-        String subject = String.format("Tourista Studio - Xác nhận yêu cầu đặt %s #%s",
-                bookingType.equals("HOTEL") ? "khách sạn" : "tour", bookingCode);
-
+    public void sendBookingCreatedEmail(String toEmail, String bookingCode, String bookingType,
+            String serviceName, String serviceSubtitle, String checkIn, String checkOut,
+            int adults, int children, int roomsOrSlots, BigDecimal totalAmount, String currency) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject(subject);
-            message.setText(buildBookingCreatedEmailBody(
-                    bookingCode, bookingType, serviceName, serviceSubtitle,
-                    checkIn, checkOut, adults, children, roomsOrSlots,
-                    totalAmount, currency));
-            mailSender.send(message);
-            log.info("Booking created email sent for {} to {}", bookingCode, toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send booking created email for {} to {}: {}", bookingCode, toEmail, e.getMessage());
-        }
+            String guest = adults + " nguoi lon" + (children > 0 ? ", " + children + " tre em" : "");
+            String date = "HOTEL".equals(bookingType) ? "Nhan phong: " + checkIn + "\nTra phong: " + checkOut : "Khoi hanh: " + checkIn;
+            String room = "HOTEL".equals(bookingType) ? "So phong: " + roomsOrSlots : "So cho: " + roomsOrSlots;
+            String type = "HOTEL".equals(bookingType) ? "khach san" : "tour";
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Tourista Studio - Xac nhan yeu cau dat " + type + " #" + bookingCode);
+            m.setText("Xin chao,\n\nChung toi da nhan yeu cau dat " + type + " cua ban!\n\n" +
+                    "MA BOOKING: " + bookingCode + "\n" +
+                    ("HOTEL".equals(bookingType) ? "Khach san" : "Tour") + ": " + serviceName + "\n" + serviceSubtitle + "\n" +
+                    "Khach: " + guest + "\n" + room + "\n" + date + "\n\n" +
+                    "TONG CONG: " + totalAmount.toPlainString() + " " + currency + "\n\n" +
+                    "LUU Y: Vui long thanh toan trong 30 phut de xac nhan.\n\n" +
+                    "Theo doi: " + frontendUrl + "/profile/bookings\n\nCam on,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send booking created email: {}", e.getMessage()); }
     }
 
-    // ===================== EMAIL THANH TOÁN THÀNH CÔNG =====================
-
-    /**
-     * Gửi email thông báo thanh toán thành công (VNPAY/MoMo/ZaloPay).
-     * Booking chuyển sang CONFIRMED.
-     */
+    // ==================== 5. THANH TOÁN THÀNH CÔNG ====================
     @Async("emailExecutor")
-    public void sendBookingConfirmedEmail(
-            String toEmail,
-            String bookingCode,
-            String bookingType,
-            String serviceName,
-            String serviceSubtitle,
-            String checkIn,
-            String checkOut,
-            int adults,
-            int children,
-            int roomsOrSlots,
-            BigDecimal totalAmount,
-            String currency,
-            String paymentMethod,
-            String transactionNo) {
-
-        String subject = String.format("Tourista Studio - Thanh toán thành công cho %s #%s",
-                bookingType.equals("HOTEL") ? "khách sạn" : "tour", bookingCode);
-
+    public void sendBookingConfirmedEmail(String toEmail, String bookingCode, String bookingType,
+            String serviceName, String serviceSubtitle, String checkIn, String checkOut,
+            int adults, int children, int roomsOrSlots, BigDecimal totalAmount, String currency,
+            String paymentMethod, String transactionNo) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject(subject);
-            message.setText(buildBookingConfirmedEmailBody(
-                    bookingCode, bookingType, serviceName, serviceSubtitle,
-                    checkIn, checkOut, adults, children, roomsOrSlots,
-                    totalAmount, currency, paymentMethod, transactionNo));
-            mailSender.send(message);
-            log.info("Booking confirmed email sent for {} to {}", bookingCode, toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send booking confirmed email for {} to {}: {}", bookingCode, toEmail, e.getMessage());
-        }
+            String guest = adults + " nguoi lon" + (children > 0 ? ", " + children + " tre em" : "");
+            String date = "HOTEL".equals(bookingType) ? "Nhan phong: " + checkIn + "\nTra phong: " + checkOut : "Khoi hanh: " + checkIn;
+            String type = "HOTEL".equals(bookingType) ? "khach san" : "tour";
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Tourista Studio - Thanh toan thanh cong cho " + type + " #" + bookingCode);
+            m.setText("Xin chao,\n\nThanh toan da xac nhan thanh cong!\n\n" +
+                    "MA BOOKING: " + bookingCode + "\n" +
+                    ("HOTEL".equals(bookingType) ? "Khach san" : "Tour") + ": " + serviceName + "\n" + serviceSubtitle + "\n" +
+                    "Khach: " + guest + "\n" + date + "\n\n" +
+                    "TONG CONG: " + totalAmount.toPlainString() + " " + currency + "\n" +
+                    "PHUONG THUC: " + paymentMethod + "\n" +
+                    "MA GIAO DICH: " + transactionNo + "\n\n" +
+                    "Vui long giu ma booking de doi chieu.\n\n" +
+                    "Theo doi: " + frontendUrl + "/profile/bookings\n\nCam on,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send booking confirmed email: {}", e.getMessage()); }
     }
 
-    // ===================== EMAIL BOOKING BỊ HỦY =====================
-
-    /**
-     * Gửi email thông báo booking bị hủy (auto-cancel hoặc user cancel).
-     */
+    // ==================== 6. HỦY BOOKING ====================
     @Async("emailExecutor")
-    public void sendBookingCancelledEmail(
-            String toEmail,
-            String bookingCode,
-            String bookingType,
-            String serviceName,
-            String cancelReason) {
-
-        String subject = String.format("Tourista Studio - Booking #%s đã bị hủy", bookingCode);
-
+    public void sendBookingCancelledEmail(String toEmail, String bookingCode,
+            String bookingType, String serviceName, String cancelReason) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject(subject);
-            message.setText(buildBookingCancelledEmailBody(
-                    bookingCode, bookingType, serviceName, cancelReason));
-            mailSender.send(message);
-            log.info("Booking cancelled email sent for {} to {}", bookingCode, toEmail);
-        } catch (Exception e) {
-            log.error("Failed to send booking cancelled email for {} to {}: {}", bookingCode, toEmail, e.getMessage());
-        }
+            String type = "HOTEL".equals(bookingType) ? "khach san" : "tour";
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Tourista Studio - Booking #" + bookingCode + " da bi huy");
+            m.setText("Xin chao,\n\nBooking #" + bookingCode + " (" + type + ": " + serviceName + ") da bi huy.\n\n" +
+                    "Ly do: " + (cancelReason != null ? cancelReason : "Khong xac dinh") + "\n\n" +
+                    "Neu da thanh toan, lien he hotro@tourista.vn de duoc hoan tien.\n\n" +
+                    "Dat lai: " + frontendUrl + "/hotels\n\nTran trong,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send booking cancelled email: {}", e.getMessage()); }
     }
 
-    // ===================== BODY TEMPLATES =====================
-
-    private String buildVerificationEmailBody(String verifyLink) {
-        return """
-                Xin chào!
-
-                Cảm ơn bạn đã đăng ký tài khoản Tourista.
-
-                Vui lòng click vào link bên dưới để xác thực email:
-                %s
-
-                Link có hiệu lực trong 24 giờ.
-
-                Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.
-
-                Trân trọng,
-                Đội ngũ Tourista
-                """.formatted(verifyLink);
+    // ==================== 7. NHẮC TRƯỚC CHECK-IN ====================
+    @Async("emailExecutor")
+    public void sendReminderEmail(String toEmail, String bookingCode, String bookingType,
+            String serviceName, String serviceSubtitle, String checkIn, String checkOut,
+            int adults, int children, int roomsOrSlots, BigDecimal totalAmount, String currency) {
+        try {
+            String guest = adults + " nguoi lon" + (children > 0 ? ", " + children + " tre em" : "");
+            String date = "HOTEL".equals(bookingType) ? "Nhan phong: " + checkIn + "\nTra phong: " + checkOut : "Khoi hanh: " + checkIn;
+            String action = "HOTEL".equals(bookingType) ? "Nhan phong" : "Khoi hanh";
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Tourista Studio - Nhac nho: " + action + " vao ngay mai!");
+            m.setText("Xin chao,\n\nChuyen di cua ban se bat dau vao ngay mai!\n\n" +
+                    "MA BOOKING: " + bookingCode + "\n" +
+                    ("HOTEL".equals(bookingType) ? "Khach san" : "Tour") + ": " + serviceName + "\n" + serviceSubtitle + "\n" +
+                    guest + "\n" + date + "\n\n" +
+                    "Vui long mang theo CMND/CCCD va ma booking #" + bookingCode + ".\n\n" +
+                    "Hotline: 028 1234 5678\n\nTran trong,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send reminder email: {}", e.getMessage()); }
     }
 
-    private String buildPasswordResetEmailBody(String resetLink) {
-        return """
-                Bạn đã yêu cầu đặt lại mật khẩu.
-
-                Click vào link bên dưới để tạo mật khẩu mới:
-                %s
-
-                Link có hiệu lực trong 1 giờ.
-
-                Nếu bạn không yêu cầu, vui lòng bỏ qua email này.
-
-                Trân trọng,
-                Đội ngũ Tourista
-                """.formatted(resetLink);
+    // ==================== 8. CẢM ƠN SAU CHUYẾN ĐI ====================
+    @Async("emailExecutor")
+    public void sendThankYouEmail(String toEmail, String bookingCode, String bookingType,
+            String serviceName, String checkIn, String checkOut,
+            int adults, int children, BigDecimal totalAmount, String currency) {
+        try {
+            SimpleMailMessage m = new SimpleMailMessage();
+            m.setFrom(fromEmail); m.setTo(toEmail);
+            m.setSubject("Tourista Studio - Cam on ban da dong hanh cung chung toi!");
+            m.setText("Xin chao,\n\nCam on ban da su dung Tourista Studio!\n\n" +
+                    "MA BOOKING: " + bookingCode + "\n" +
+                    ("HOTEL".equals(bookingType) ? "Khach san" : "Tour") + ": " + serviceName + "\n" +
+                    ("HOTEL".equals(bookingType) ? "Nhan phong: " + checkIn + "\nTra phong: " + checkOut : "Khoi hanh: " + checkIn) + "\n\n" +
+                    "Chung toi mong muon duoc dong hanh cung ban trong chuyen di tiep theo!\n\n" +
+                    "Uu dai 8%% cho dat tiep theo. Ma: BACK5\n\n" +
+                    "Dat lai: " + frontendUrl + "/hotels\n\nTran trong,\nTourista Studio");
+            mailSender.send(m);
+        } catch (Exception e) { log.error("Failed to send thank you email: {}", e.getMessage()); }
     }
 
-    private String buildBookingCreatedEmailBody(
-            String bookingCode, String bookingType, String serviceName, String serviceSubtitle,
-            String checkIn, String checkOut, int adults, int children, int roomsOrSlots,
-            BigDecimal totalAmount, String currency) {
-
-        StringBuilder guests = new StringBuilder();
-        guests.append(adults).append(" người lớn");
-        if (children > 0) {
-            guests.append(", ").append(children).append(" trẻ em");
-        }
-
-        String checkInfo = bookingType.equals("HOTEL")
-                ? "Nhận phòng: " + checkIn + "\nTrả phòng: " + checkOut
-                : "Ngày khởi hành: " + checkIn;
-
-        String extraInfo = bookingType.equals("HOTEL")
-                ? "Số phòng: " + roomsOrSlots
-                : "Số chỗ: " + roomsOrSlots;
-
-        return """
-                Xin chào,
-
-                Chúng tôi đã nhận được yêu cầu đặt %s của bạn!
-
-                ╔════════════════════════════════════════╗
-                ║  MÃ BOOKING: %s
-                ╚════════════════════════════════════════╝
-
-                %s: %s
-                %s
-                Khách: %s
-                %s
-
-                TỔNG CỘNG: %s %s
-
-                ⚠️  LƯU Ý QUAN TRỌNG:
-                Đơn đặt của bạn hiện đang ở trạng thái CHỜ THANH TOÁN.
-                Vui lòng thanh toán trong vòng 30 phút để xác nhận đặt phòng.
-                Nếu không thanh toán kịp thời, hệ thống sẽ tự động hủy đơn.
-
-                Theo dõi trạng thái booking tại: %s/profile/bookings
-
-                Cảm ơn bạn đã sử dụng dịch vụ Tourista!
-
-                Trân trọng,
-                Đội ngũ Tourista
-                """.formatted(
-                bookingType.equals("HOTEL") ? "khách sạn" : "tour",
-                bookingCode,
-                bookingType.equals("HOTEL") ? "Khách sạn" : "Tour", serviceName,
-                serviceSubtitle,
-                guests,
-                extraInfo,
-                checkInfo,
-                totalAmount.toPlainString(), currency,
-                frontendUrl);
-    }
-
-    private String buildBookingConfirmedEmailBody(
-            String bookingCode, String bookingType, String serviceName, String serviceSubtitle,
-            String checkIn, String checkOut, int adults, int children, int roomsOrSlots,
-            BigDecimal totalAmount, String currency, String paymentMethod, String transactionNo) {
-
-        String checkInfo = bookingType.equals("HOTEL")
-                ? "Nhận phòng: " + checkIn + "\nTrả phòng: " + checkOut
-                : "Ngày khởi hành: " + checkIn;
-
-        String extraInfo = bookingType.equals("HOTEL")
-                ? "Số phòng: " + roomsOrSlots
-                : "Số chỗ: " + roomsOrSlots;
-
-        String guestInfo = adults + " người lớn" + (children > 0 ? ", " + children + " trẻ em" : "");
-
-        return """
-                Xin chào,
-
-                🎉 Thanh toán của bạn đã được xác nhận thành công!
-
-                ╔════════════════════════════════════════╗
-                ║  MÃ BOOKING: %s
-                ║  TRẠNG THÁI: ✅ ĐÃ XÁC NHẬN
-                ╚════════════════════════════════════════╝
-
-                %s: %s
-                %s
-                Khách: %s
-                %s
-
-                TỔNG CỘNG: %s %s
-                PHƯƠNG THỨC: %s
-                MÃ GIAO DỊCH: %s
-
-                Vui lòng giữ mã booking này để đối chiếu khi nhận phòng / khởi hành.
-
-                Theo dõi booking: %s/profile/bookings
-
-                Cảm ơn bạn đã đặt %s qua Tourista!
-
-                Trân trọng,
-                Đội ngũ Tourista
-                """.formatted(
-                bookingCode,
-                bookingType.equals("HOTEL") ? "Khách sạn" : "Tour", serviceName,
-                serviceSubtitle,
-                guestInfo,
-                extraInfo,
-                checkInfo,
-                totalAmount.toPlainString(), currency,
-                paymentMethod, transactionNo,
-                frontendUrl,
-                bookingType.equals("HOTEL") ? "khách sạn" : "tour");
-    }
-
-    private String buildBookingCancelledEmailBody(
-            String bookingCode, String bookingType, String serviceName, String cancelReason) {
-
-        return """
-                Xin chào,
-
-                Booking #%s (%s: %s) đã bị HỦY.
-
-                Lý do: %s
-
-                Nếu bạn đã thanh toán, vui lòng liên hệ bộ phận hỗ trợ để được hoàn tiền.
-
-                Đặt lại booking mới: %s/hotels (khách sạn) hoặc %s/tours (tour)
-
-                Trân trọng,
-                Đội ngũ Tourista
-                """.formatted(bookingCode,
-                bookingType.equals("HOTEL") ? "Khách sạn" : "Tour", serviceName,
-                cancelReason != null && !cancelReason.isBlank() ? cancelReason : "Không xác định",
-                frontendUrl, frontendUrl);
+    // ==================== 9. KHUYẾN MÃI ====================
+    @Async("emailExecutor")
+    public void sendPromotionEmail(List<String> recipients, String subject,
+            String title, String subtitle, String body, String ctaLink, String ctaText) {
+        log.info("SMTP promotion email not implemented (use BrevoEmailService)");
     }
 }

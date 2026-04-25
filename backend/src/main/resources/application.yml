@@ -50,7 +50,7 @@ spring:
       schema-locations: classpath:schema-chat.sql,classpath:schema-articles.sql
 
   # ===== EMAIL (SMTP Gmail - local only) =====
-  # Railway uses Resend API instead (see app.email.* below)
+  # Railway uses Brevo API instead (see app.email.* below)
   mail:
     host: smtp.gmail.com
     port: 587
@@ -62,12 +62,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
-  # ===== BREVO EMAIL (Sendinblue - no domain verification needed) =====
-  email:
-    brevo-api-key: ${BREVO_API_KEY:}
-    from: ${BREVO_FROM_EMAIL:noreply@tourista.vn}
-    from-name: ${BREVO_FROM_NAME:Tourista Studio}
 
   # ===== GOOGLE OAUTH2 =====
   security:
@@ -109,6 +103,12 @@ app:
     return-url: ${VNPAY_RETURN_URL:https://tourista-nine.vercel.app/payments/vnpay/return}
     order-type: other
     locale: vn
+
+  # ===== BREVO EMAIL (Sendinblue - no domain verification needed) =====
+  email:
+    brevo-api-key: ${BREVO_API_KEY:}
+    from: ${BREVO_FROM_EMAIL:ducanhle28072003@gmail.com}
+    from-name: ${BREVO_FROM_NAME:Tourista Studio}
 
 # ===== GEMINI AI =====
 gemini:

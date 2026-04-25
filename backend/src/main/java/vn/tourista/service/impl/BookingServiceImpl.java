@@ -514,6 +514,59 @@ public class BookingServiceImpl implements BookingService {
         return ApiResponse.ok("Hủy booking thành công", null);
     }
 
+    // ================================================================
+    // HOÀN THÀNH BOOKING + GỬI EMAIL CẢM ƠN
+    // ================================================================
+    @Override
+    public void completeBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy booking"));
+
+        if (booking.getStatus() == Booking.BookingStatus.COMPLETED) {
+            // Already completed, skip
+            return;
+        }
+
+        booking.setStatus(Booking.BookingStatus.COMPLETED);
+        bookingRepository.save(booking);
+
+        String bookingType = booking.getBookingType() != null ? booking.getBookingType().name() : "HOTEL";
+        String serviceName = getServiceNameForBooking(booking);
+        String checkIn = "";
+        String checkOut = "";
+        int adults = 0;
+        int children = 0;
+
+        if ("HOTEL".equals(bookingType)) {
+            BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking(booking).orElse(null);
+            if (detail != null) {
+                checkIn = detail.getCheckInDate() != null ? detail.getCheckInDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
+                checkOut = detail.getCheckOutDate() != null ? detail.getCheckOutDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
+                adults = detail.getAdults() != null ? detail.getAdults() : 0;
+                children = detail.getChildren() != null ? detail.getChildren() : 0;
+            }
+        } else {
+            BookingTourDetail detail = bookingTourDetailRepository.findByBooking(booking).orElse(null);
+            if (detail != null) {
+                checkIn = detail.getDepartureDate() != null ? detail.getDepartureDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
+                adults = detail.getNumAdults() != null ? detail.getNumAdults() : 0;
+                children = detail.getNumChildren() != null ? detail.getNumChildren() : 0;
+            }
+        }
+
+        emailService.sendThankYouEmail(
+                booking.getGuestEmail(),
+                booking.getBookingCode(),
+                bookingType,
+                serviceName,
+                checkIn,
+                checkOut,
+                adults,
+                children,
+                booking.getTotalAmount(),
+                booking.getCurrency());
+    }
+
     private String getServiceNameForBooking(Booking booking) {
         if (booking.getBookingType() == Booking.BookingType.HOTEL) {
             return bookingHotelDetailRepository.findByBooking(booking)

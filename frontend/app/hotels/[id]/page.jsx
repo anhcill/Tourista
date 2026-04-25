@@ -266,6 +266,7 @@ function HotelDetailInner() {
     const [recommendedHotels, setRecommendedHotels] = useState([]);
     const [recommendedHotelsLoading, setRecommendedHotelsLoading] = useState(false);
     const [chatModalOpen, setChatModalOpen] = useState(false);
+    const [chatSeed, setChatSeed] = useState(null);
     const [isFavorite, setIsFavorite] = useState(false);
     const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [helpfulMap, setHelpfulMap] = useState({});
@@ -1266,7 +1267,20 @@ function HotelDetailInner() {
                     {/* FAQ + AI Chat */}
                     <div className={styles.faqSection}>
                         <h3 className={styles.faqTitle}>Cau hoi thuong gap truoc khi dat phong</h3>
-                        <InlineFaqChat context="HOTEL" />
+                        <InlineFaqChat
+                            context="HOTEL"
+                            ownerId={hotelPartnerId}
+                            ownerName={hotel?.ownerName || hotel?.partnerName || hotel?.name}
+                            onChatWithOwner={(seed) => {
+                                setChatSeed({
+                                    type: 'P2P_HOTEL',
+                                    partnerId: hotelPartnerId,
+                                    referenceId: hotel?.id,
+                                    title: hotel?.ownerName || hotel?.partnerName || hotel?.name,
+                                });
+                                setChatModalOpen(true);
+                            }}
+                        />
                     </div>
                 </div>
 
@@ -1324,12 +1338,6 @@ function HotelDetailInner() {
                                     Đặt phòng ngay
                                 </button>
                                 <button
-                                    className={styles.chatOwnerBtn}
-                                    onClick={() => setChatModalOpen(true)}
-                                >
-                                    Chat với Chủ
-                                </button>
-                                <button
                                     className={`${styles.tab} ${styles.switchRoomBtn}`}
                                     onClick={() => setActiveTab(2)}
                                 >
@@ -1340,6 +1348,24 @@ function HotelDetailInner() {
                             <p className={styles.noRoom}>
                                 Vui lòng qua tab <strong>Rooms & Beds</strong> để chọn phòng
                             </p>
+                        )}
+
+                        {/* Chat với Chủ — luôn hiển thị khi có owner */}
+                        {hotelPartnerId && (
+                            <button
+                                className={styles.chatOwnerBtn}
+                                onClick={() => {
+                                    setChatSeed({
+                                        type: 'P2P_HOTEL',
+                                        partnerId: hotelPartnerId,
+                                        referenceId: hotel?.id,
+                                        title: hotel?.ownerName || hotel?.partnerName || hotel?.name,
+                                    });
+                                    setChatModalOpen(true);
+                                }}
+                            >
+                                Chat với Chủ
+                            </button>
                         )}
 
                         <button
@@ -1364,13 +1390,8 @@ function HotelDetailInner() {
 
             <ClientChatModal
                 isOpen={chatModalOpen}
-                onClose={() => setChatModalOpen(false)}
-                conversationSeed={{
-                    type: 'P2P_HOTEL',
-                    partnerId: hotelPartnerId,
-                    referenceId: hotel?.id,
-                    title: hotel?.name,
-                }}
+                onClose={() => { setChatModalOpen(false); setChatSeed(null); }}
+                conversationSeed={chatSeed}
             />
         </div>
     );

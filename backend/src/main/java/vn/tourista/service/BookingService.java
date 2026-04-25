@@ -31,4 +31,10 @@ public interface BookingService {
      * Chỉ cho phép cập nhật booking ở trạng thái PENDING.
      */
     ApiResponse<?> updateBooking(String userEmail, Long bookingId, UpdateBookingRequest request);
+
+    /**
+     * Đánh dấu booking là COMPLETED và gửi email cảm ơn.
+     * Thường gọi tự động qua scheduler khi checkout xong.
+     */
+    void completeBooking(Long bookingId);
 }

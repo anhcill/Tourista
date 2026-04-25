@@ -163,6 +163,7 @@ function TourDetailInner() {
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [helpfulMap, setHelpfulMap] = useState({});
   const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [chatSeed, setChatSeed] = useState(null);
   const [reviewDraft, setReviewDraft] = useState({ rating: 5, comment: '' });
   const [reviewFiles, setReviewFiles] = useState([]);
   const [reviewFilePreviews, setReviewFilePreviews] = useState([]);
@@ -604,7 +605,20 @@ function TourDetailInner() {
             {activeTab === 3 && (
               <div className={styles.tabPanel}>
                 <h3 className={styles.sectionTitle}>Cau hoi thuong gap</h3>
-                <InlineFaqChat context="TOUR" />
+                <InlineFaqChat
+                    context="TOUR"
+                    ownerId={tourPartnerId}
+                    ownerName={tour?.operatorName || tour?.partnerName || tour?.title}
+                    onChatWithOwner={() => {
+                        setChatSeed({
+                            type: 'P2P_TOUR',
+                            partnerId: tourPartnerId,
+                            referenceId: tour?.id,
+                            title: tour?.title,
+                        });
+                        setChatModalOpen(true);
+                    }}
+                />
               </div>
             )}
           </div>
@@ -924,12 +938,23 @@ function TourDetailInner() {
                 🎒 Đặt tour ngay
               </button>
 
-              <button
-                className={styles.chatOwnerBtn}
-                onClick={() => setChatModalOpen(true)}
-              >
-                Chat với Chủ
-              </button>
+              {/* Chat với Chủ — luôn hiển thị khi có partner */}
+              {tourPartnerId && (
+                <button
+                  className={styles.chatOwnerBtn}
+                  onClick={() => {
+                    setChatSeed({
+                      type: 'P2P_TOUR',
+                      partnerId: tourPartnerId,
+                      referenceId: tour?.id,
+                      title: tour?.title,
+                    });
+                    setChatModalOpen(true);
+                  }}
+                >
+                  Chat với Chủ
+                </button>
+              )}
 
               <p className={styles.safeNote}>
                 <FaShieldAlt /> Thanh toán an toàn · Xác nhận tức thì
@@ -956,13 +981,8 @@ function TourDetailInner() {
 
       <ClientChatModal
         isOpen={chatModalOpen}
-        onClose={() => setChatModalOpen(false)}
-        conversationSeed={chatModalOpen ? {
-          type: 'P2P_TOUR',
-          partnerId: tourPartnerId,
-          referenceId: tour?.id,
-          title: tour?.title,
-        } : null}
+        onClose={() => { setChatModalOpen(false); setChatSeed(null); }}
+        conversationSeed={chatSeed}
       />
     </div>
   );
