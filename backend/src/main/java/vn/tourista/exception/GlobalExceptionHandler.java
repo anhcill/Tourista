@@ -137,9 +137,10 @@ public class GlobalExceptionHandler {
         }
 
         log.error("Unhandled exception", ex);
+        String detail = ex.getClass().getName() + ": " + ex.getMessage();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail("Lỗi hệ thống, vui lòng thử lại sau"));
+                .body(ApiResponse.fail("Lỗi hệ thống, vui lòng thử lại sau [DEBUG: " + detail + "]"));
     }
 
     private boolean isClientDisconnect(Throwable ex) {

@@ -1,0 +1,5 @@
+fix: login/register flow - add confirmPassword and relax password validation
+
+- Frontend: send confirmPassword field on registration
+- Backend: remove strict @Pattern password rule (only keep @Size min=8)
+- Fix InlineFaqChat props destructuring (onChatWithOwner, ownerId, ownerName)
