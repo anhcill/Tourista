@@ -1909,9 +1909,7 @@ const adminApi = {
     const formData = new FormData();
     formData.append('file', file);
     return safeRequest(
-      () => axiosClient.post('/admin/hotels/import/parse', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }),
+      () => axiosClient.post('/admin/hotels/import/parse', formData),
       "Parse CSV that bai.",
     );
   },
