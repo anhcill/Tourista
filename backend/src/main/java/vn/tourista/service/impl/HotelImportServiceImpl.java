@@ -62,22 +62,32 @@ public class HotelImportServiceImpl implements HotelImportService {
     @Override
     public List<CsvHotelRow> parseCsv(String csvContent) {
         List<CsvHotelRow> rows = new ArrayList<>();
+        log.info("parseCsv: content length = {}, null? {}, blank? {}",
+                csvContent == null ? "null" : csvContent.length(),
+                csvContent == null, csvContent == null ? false : csvContent.isBlank());
+
         if (csvContent == null || csvContent.isBlank()) {
+            log.warn("parseCsv: empty content");
             return rows;
         }
 
         // Strip UTF-8 BOM if present (common in files saved from Excel, Google Sheets)
         if (csvContent.length() > 0 && csvContent.charAt(0) == '\uFEFF') {
+            log.info("parseCsv: removed BOM");
             csvContent = csvContent.substring(1);
         }
 
         String[] lines = splitCsvContent(csvContent);
+        log.info("parseCsv: {} lines after split", lines.length);
         if (lines.length < 2) {
+            log.warn("parseCsv: less than 2 lines, returning empty");
             return rows;
         }
 
         String[] headers = splitCsvLine(lines[0]);
+        log.info("parseCsv: headers = {}", Arrays.toString(headers));
         if (headers == null || headers.length == 0) {
+            log.warn("parseCsv: no headers found");
             return rows;
         }
 

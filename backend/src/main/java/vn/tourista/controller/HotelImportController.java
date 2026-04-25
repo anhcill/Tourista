@@ -1,5 +1,6 @@
 package vn.tourista.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/hotels/import")
 @PreAuthorize("hasRole('ADMIN')")
+@Slf4j
 public class HotelImportController {
 
     @Autowired
@@ -33,7 +35,10 @@ public class HotelImportController {
             @RequestParam("file") MultipartFile file) {
         try {
             byte[] rawBytes = file.getBytes();
+            log.info("parseCsv controller: filename={}, size={} bytes, contentType={}",
+                    file.getOriginalFilename(), rawBytes.length, file.getContentType());
             String csvContent = new String(rawBytes, StandardCharsets.UTF_8);
+            log.info("parseCsv controller: csvContent length={}", csvContent.length());
 
             // Strip UTF-8 BOM if present (common in files saved from Excel/Google Sheets)
             if (csvContent.length() > 0 && csvContent.charAt(0) == '\uFEFF') {

@@ -71,11 +71,11 @@ export default function AdminHotelImportPage() {
 
     try {
       const response = await adminApi.importHotelsParse(file);
-      const rows = response?.data?.data || response?.result || [];
+      const rows = Array.isArray(response?.data) ? response.data : Array.isArray(response?.result) ? response.result : [];
       setParsedRows(rows);
 
       if (rows.length === 0) {
-        setError('Không tìm thấy dữ liệu trong file CSV.');
+        setError('Không tìm thấy dữ liệu trong file CSV. Chi tiết: ' + (response?.message || 'không có headers/data'));
       } else {
         setStep(2);
       }
@@ -104,7 +104,8 @@ export default function AdminHotelImportPage() {
         defaultCityId,
       };
       const response = await adminApi.importHotelsPreview(request);
-      setPreview(response?.data?.data || response?.result || null);
+      const previewData = response?.data || response?.result || null;
+      setPreview(previewData);
       setStep(3);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : (typeof err === 'object' && err !== null && 'response' in err ? ((err as { response?: { data?: { message?: string } } }).response?.data?.message || String(err)) : String(err));
