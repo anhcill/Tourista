@@ -66,6 +66,11 @@ public class HotelImportServiceImpl implements HotelImportService {
             return rows;
         }
 
+        // Strip UTF-8 BOM if present (common in files saved from Excel, Google Sheets)
+        if (csvContent.length() > 0 && csvContent.charAt(0) == '\uFEFF') {
+            csvContent = csvContent.substring(1);
+        }
+
         String[] lines = splitCsvContent(csvContent);
         if (lines.length < 2) {
             return rows;
