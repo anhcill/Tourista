@@ -13,7 +13,7 @@ const axiosClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   headers: {
-    "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
@@ -26,6 +26,13 @@ axiosClient.interceptors.request.use(
     // Add token to headers if exists
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Only set Content-Type for non-FormData requests.
+    // FormData (file uploads) must NOT have a manual Content-Type — axios
+    // auto-sets "multipart/form-data" with the correct boundary.
+    if (!(config.data instanceof FormData)) {
+      config.headers["Content-Type"] = "application/json";
     }
 
     return config;
