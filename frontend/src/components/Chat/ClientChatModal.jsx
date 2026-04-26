@@ -16,10 +16,9 @@ import {
 import { p2pModalBus } from '@/utils/p2pModalBus';
 import styles from './ClientChatModal.module.css';
 
-// axiosClient interceptor already returns response.data (ApiResponse body).
-// ApiResponse = { success, message, data: <actual_conversation>, timestamp }
-// So unwrapPayload should return response.data (the nested data), not response.data.data.
-const unwrapPayload = (response) => response?.data ?? response ?? null;
+// axiosClient interceptor returns response.data (parsed ApiResponse body = { success, data, timestamp })
+// So unwrapPayload receives the ApiResponse object directly — extract the nested data field.
+const unwrapPayload = (response) => response?.data ?? null;
 const unwrapPageContent = (response) => response?.content ?? response ?? [];
 const extractErrorMessage = (error) => {
   if (!error) return 'Khong the ket noi chat luc nay.';
