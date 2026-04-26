@@ -49,6 +49,37 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
             @Param("adults") Integer adults,
             @Param("rooms") Integer rooms);
 
+    @Query(value = "SELECT h.id FROM hotels h " +
+            "LEFT JOIN cities c ON c.id = h.city_id " +
+            "WHERE h.is_active = true " +
+            "AND (:city IS NULL OR " +
+            "  LOWER(h.name) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(c.name_vi) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(c.name_en) LIKE CONCAT('%', LOWER(:city), '%'))",
+            nativeQuery = true)
+    List<Long> searchAvailableHotelIdsPaged(
+            @Param("city") String city,
+            @Param("checkIn") LocalDate checkIn,
+            @Param("checkOut") LocalDate checkOut,
+            @Param("adults") Integer adults,
+            @Param("rooms") Integer rooms,
+            PageRequest pageRequest);
+
+    @Query(value = "SELECT COUNT(h.id) FROM hotels h " +
+            "LEFT JOIN cities c ON c.id = h.city_id " +
+            "WHERE h.is_active = true " +
+            "AND (:city IS NULL OR " +
+            "  LOWER(h.name) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(c.name_vi) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(c.name_en) LIKE CONCAT('%', LOWER(:city), '%'))",
+            nativeQuery = true)
+    long countSearchAvailableHotels(
+            @Param("city") String city,
+            @Param("checkIn") LocalDate checkIn,
+            @Param("checkOut") LocalDate checkOut,
+            @Param("adults") Integer adults,
+            @Param("rooms") Integer rooms);
+
     @Query(value = "SELECT h.id, " +
             "(SELECT url FROM hotel_images WHERE hotel_id = h.id AND is_cover = TRUE LIMIT 1) AS url " +
             "FROM hotels h WHERE h.id IN :hotelIds",

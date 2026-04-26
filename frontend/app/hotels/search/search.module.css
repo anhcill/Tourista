@@ -237,6 +237,52 @@
   color: #fff;
 }
 
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+  padding: 16px 0;
+}
+
+.pageBtn {
+  background: #fff;
+  border: 2px solid #0d47a1;
+  color: #0d47a1;
+  font-size: 1.4rem;
+  font-weight: 700;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  line-height: 1;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: #0d47a1;
+  color: #fff;
+}
+
+.pageBtn:disabled {
+  border-color: #ccc;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 1rem;
+  color: #444;
+  font-weight: 500;
+  min-width: 180px;
+  text-align: center;
+}
+
 /* VIP Gifts badge */
 .vipGiftsBadge {
   position: fixed;

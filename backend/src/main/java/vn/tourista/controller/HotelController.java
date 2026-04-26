@@ -13,6 +13,7 @@ import vn.tourista.dto.request.HotelSearchRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.HotelDetailResponse;
 import vn.tourista.dto.response.HotelReviewResponse;
+import vn.tourista.dto.response.HotelSearchResponse;
 import vn.tourista.dto.response.HotelSummaryResponse;
 import vn.tourista.service.HotelService;
 
@@ -34,11 +35,11 @@ public class HotelController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<HotelSummaryResponse>>> searchHotels(
+    public ResponseEntity<ApiResponse<HotelSearchResponse>> searchHotels(
             @Valid @ModelAttribute HotelSearchRequest request) {
 
-        List<HotelSummaryResponse> data = hotelService.searchHotels(request);
-        return ResponseEntity.ok(ApiResponse.ok("Lấy danh sách khách sạn thành công", data));
+        HotelSearchResponse data = hotelService.searchHotels(request);
+        return ResponseEntity.ok(ApiResponse.ok("Tim kiem khach san thanh cong", data));
     }
 
     @GetMapping("/featured")

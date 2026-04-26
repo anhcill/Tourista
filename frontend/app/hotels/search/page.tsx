@@ -128,6 +128,10 @@ function HotelSearchResultInner() {
   const [hotels, setHotels] = useState<SearchHotelCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchPage, setSearchPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalResults, setTotalResults] = useState(0);
+  const [hasSearched, setHasSearched] = useState(false);
   const [targetPrice, setTargetPrice] = useState('');
   const [activePriceAlert, setActivePriceAlert] = useState<HotelPriceAlert | null>(null);
   const [triggeredPrice, setTriggeredPrice] = useState<number | null>(null);
@@ -182,6 +186,11 @@ function HotelSearchResultInner() {
   );
 
   useEffect(() => {
+    setSearchPage(0);
+    setHasSearched(false);
+  }, [query]);
+
+  useEffect(() => {
     const matchedAlert = findPriceAlertForQuery(normalizedQuery);
     if (!matchedAlert) {
       setActivePriceAlert(null);
@@ -218,9 +227,14 @@ function HotelSearchResultInner() {
           checkOut: query.checkOut,
           adults: query.adults,
           rooms: query.rooms,
+          page: searchPage,
+          pageSize: 8,
         });
 
-        const rawHotels: ApiHotelSummary[] = Array.isArray(response?.data) ? response.data : [];
+        const payload = response?.data;
+        const rawHotels: ApiHotelSummary[] = Array.isArray(payload?.hotels) ? payload.hotels : [];
+        setTotalResults(payload?.total ?? 0);
+        setTotalPages(payload?.totalPages ?? 0);
         const mappedHotels = rawHotels.map((item) => {
           const price = Number(item.minPricePerNight || 0);
           const originalPrice = price > 0 ? Math.round(price * 1.12) : 0;
@@ -274,6 +288,7 @@ function HotelSearchResultInner() {
         });
 
         setHotels(mappedHotels);
+        setHasSearched(true);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Không thể tải danh sách khách sạn. Vui lòng thử lại.';
         setError(errorMessage);
@@ -284,7 +299,7 @@ function HotelSearchResultInner() {
     };
 
     fetchHotels();
-  }, [query]);
+  }, [query, searchPage]);
 
   const displayedHotels = useMemo(() => {
     return hotels.filter((hotel) => {
@@ -483,8 +498,28 @@ function HotelSearchResultInner() {
             )}
 
             {!loading && !error && displayedHotels.length > 0 && (
-              <div className={styles.loadMore}>
-                <button className={styles.loadMoreBtn}>Xem thêm kết quả tìm kiếm</button>
+              <div className={styles.pagination}>
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setSearchPage(p => Math.max(0, p - 1))}
+                  disabled={searchPage === 0}
+                  aria-label="Trang trước"
+                >
+                  ‹
+                </button>
+
+                <span className={styles.pageInfo}>
+                  Trang {searchPage + 1} / {totalPages || 1} · {totalResults} khách sạn
+                </span>
+
+                <button
+                  className={styles.pageBtn}
+                  onClick={() => setSearchPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={searchPage >= totalPages - 1}
+                  aria-label="Trang sau"
+                >
+                  ›
+                </button>
               </div>
             )}
           </div>

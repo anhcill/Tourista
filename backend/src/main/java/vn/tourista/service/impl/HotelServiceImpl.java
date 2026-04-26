@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import vn.tourista.dto.request.HotelSearchRequest;
 import vn.tourista.dto.response.HotelDetailResponse;
 import vn.tourista.dto.response.HotelReviewResponse;
+import vn.tourista.dto.response.HotelSearchResponse;
 import vn.tourista.dto.response.HotelSummaryResponse;
 import vn.tourista.entity.City;
 import vn.tourista.entity.Hotel;
@@ -48,61 +49,83 @@ public class HotelServiceImpl implements HotelService {
         }
 
         @Override
-        public List<HotelSummaryResponse> searchHotels(HotelSearchRequest request) {
+        public HotelSearchResponse searchHotels(HotelSearchRequest request) {
                 validateSearchRequest(request);
 
-                List<Long> hotelIds = hotelRepository.searchAvailableHotelIds(
+                int page = request.getPage() != null && request.getPage() >= 0 ? request.getPage() : 0;
+                int pageSize = request.getPageSize() != null && request.getPageSize() > 0 ? Math.min(request.getPageSize(), 50) : 8;
+
+                long total = hotelRepository.countSearchAvailableHotels(
                                 request.getCity(),
                                 request.getCheckIn(),
                                 request.getCheckOut(),
                                 request.getAdults(),
                                 request.getRooms());
 
+                List<Long> hotelIds = hotelRepository.searchAvailableHotelIdsPaged(
+                                request.getCity(),
+                                request.getCheckIn(),
+                                request.getCheckOut(),
+                                request.getAdults(),
+                                request.getRooms(),
+                                PageRequest.of(page, pageSize));
+
                 if (hotelIds.isEmpty()) {
-                        return Collections.emptyList();
+                        return HotelSearchResponse.builder()
+                                        .hotels(Collections.emptyList())
+                                        .total(0)
+                                        .page(page)
+                                        .pageSize(pageSize)
+                                        .totalPages(0)
+                                        .build();
                 }
 
                 Map<Long, Hotel> hotelsById = hotelRepository.findAllById(hotelIds)
                                 .stream()
-                                .collect(Collectors.toMap(Hotel::getId, Function.identity()));
+                                .collect(Collectors.toMap(Hotel::getId, Function.identity(), (a, b) -> a));
 
                 Map<Long, String> coverImageMap = hotelRepository.findCoverImagesByHotelIds(hotelIds).stream()
                                 .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
-                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (String) r[1],
-                                                (a, b) -> a));
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (String) r[1], (a, b) -> a));
                 Map<Long, BigDecimal> minPriceMap = roomTypeRepository.findMinBasePricesByHotelIds(hotelIds).stream()
                                 .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
-                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (BigDecimal) r[1],
-                                                (a, b) -> a));
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> (BigDecimal) r[1], (a, b) -> a));
                 Map<Long, Integer> roomCountMap = roomTypeRepository.countActiveRoomTypesByHotelIds(hotelIds).stream()
                                 .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
-                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(),
-                                                r -> ((Number) r[1]).intValue(), (a, b) -> a));
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> ((Number) r[1]).intValue(), (a, b) -> a));
 
-                return hotelIds.stream()
+                // Batch queries for availability (avoids N+1 - one query per hotel)
+                Map<Long, Integer> availableRoomTypesMap = roomTypeRepository
+                                .countAvailableRoomTypesByHotelIds(hotelIds, request.getCheckIn(), request.getCheckOut(),
+                                                request.getAdults(), request.getRooms()).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> ((Number) r[1]).intValue(), (a, b) -> a));
+                Map<Long, Integer> availableRoomsMap = roomTypeRepository
+                                .countAvailableRoomsByHotelIds(hotelIds, request.getCheckIn(), request.getCheckOut(),
+                                                request.getAdults()).stream()
+                                .filter(r -> r != null && r.length > 1 && r[0] != null && r[1] != null)
+                                .collect(Collectors.toMap(r -> ((Number) r[0]).longValue(), r -> ((Number) r[1]).intValue(), (a, b) -> a));
+
+                List<HotelSummaryResponse> hotels = hotelIds.stream()
                                 .map(hotelsById::get)
                                 .filter(Objects::nonNull)
                                 .map(hotel -> {
                                         HotelSummaryResponse base = mapHotelSummaryWithPreFetchedData(hotel,
                                                         coverImageMap, minPriceMap, roomCountMap);
-                                        Integer availableRoomTypes = roomTypeRepository
-                                                        .countAvailableRoomTypesByHotelId(
-                                                                        hotel.getId(),
-                                                                        request.getCheckIn(),
-                                                                        request.getCheckOut(),
-                                                                        request.getAdults(),
-                                                                        request.getRooms());
-                                        Integer availableRooms = roomTypeRepository.countAvailableRoomsByHotelId(
-                                                        hotel.getId(),
-                                                        request.getCheckIn(),
-                                                        request.getCheckOut(),
-                                                        request.getAdults());
-
-                                        base.setAvailableRoomTypes(availableRoomTypes);
-                                        base.setAvailableRooms(availableRooms);
+                                        base.setAvailableRoomTypes(availableRoomTypesMap.getOrDefault(hotel.getId(), 0));
+                                        base.setAvailableRooms(availableRoomsMap.getOrDefault(hotel.getId(), 0));
                                         return base;
                                 })
                                 .toList();
+
+                int totalPages = (int) Math.ceil((double) total / pageSize);
+                return HotelSearchResponse.builder()
+                                .hotels(hotels)
+                                .total(total)
+                                .page(page)
+                                .pageSize(pageSize)
+                                .totalPages(totalPages)
+                                .build();
         }
 
         @Override

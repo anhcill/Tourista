@@ -139,4 +139,59 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
             WHERE rt.id = :roomTypeId
             """, nativeQuery = true)
         void incrementRoomsAvailable(@Param("roomTypeId") Long roomTypeId, @Param("rooms") int rooms);
+
+        // Batch version: count available room types for ALL hotels at once (avoids N+1)
+        @Query(value = """
+            SELECT rt.hotel_id, COUNT(*)
+            FROM room_types rt
+            WHERE rt.hotel_id IN :hotelIds
+              AND rt.is_active = TRUE
+              AND rt.max_adults >= :adults
+              AND (
+                rt.total_rooms - COALESCE((
+                  SELECT SUM(bhd.num_rooms)
+                  FROM booking_hotel_details bhd
+                  JOIN bookings b ON b.id = bhd.booking_id
+                  WHERE bhd.room_type_id = rt.id
+                    AND bhd.check_in_date < :checkOut
+                    AND bhd.check_out_date > :checkIn
+                    AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
+                ), 0)
+              ) >= :rooms
+            GROUP BY rt.hotel_id
+            """, nativeQuery = true)
+        List<Object[]> countAvailableRoomTypesByHotelIds(
+                @Param("hotelIds") List<Long> hotelIds,
+                @Param("checkIn") LocalDate checkIn,
+                @Param("checkOut") LocalDate checkOut,
+                @Param("adults") Integer adults,
+                @Param("rooms") Integer rooms);
+
+        // Batch version: count total available rooms for ALL hotels at once (avoids N+1)
+        @Query(value = """
+            SELECT rt.hotel_id, COALESCE(SUM(
+              GREATEST(
+                rt.total_rooms - COALESCE((
+                  SELECT SUM(bhd.num_rooms)
+                  FROM booking_hotel_details bhd
+                  JOIN bookings b ON b.id = bhd.booking_id
+                  WHERE bhd.room_type_id = rt.id
+                    AND bhd.check_in_date < :checkOut
+                    AND bhd.check_out_date > :checkIn
+                    AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
+                ), 0),
+                0
+              )
+            ), 0)
+            FROM room_types rt
+            WHERE rt.hotel_id IN :hotelIds
+              AND rt.is_active = TRUE
+              AND rt.max_adults >= :adults
+            GROUP BY rt.hotel_id
+            """, nativeQuery = true)
+        List<Object[]> countAvailableRoomsByHotelIds(
+                @Param("hotelIds") List<Long> hotelIds,
+                @Param("checkIn") LocalDate checkIn,
+                @Param("checkOut") LocalDate checkOut,
+                @Param("adults") Integer adults);
 }

@@ -37,4 +37,10 @@ public class HotelSearchRequest {
     @Min(value = 1, message = "Số phòng phải lớn hơn hoặc bằng 1")
     @Builder.Default
     private Integer rooms = 1;
+
+    @Builder.Default
+    private Integer page = 0;
+
+    @Builder.Default
+    private Integer pageSize = 8;
 }
