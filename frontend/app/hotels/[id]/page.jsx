@@ -22,25 +22,25 @@ import reviewApi from '@/api/reviewApi';
 import favoriteApi from '@/api/favoriteApi';
 import styles from './page.module.css';
 
-const TABS = ['Place Details', 'Info & Prices', 'Rooms & Beds', 'Place Rules'];
+const TABS = ['Chi tiết', 'Thông tin & Giá', 'Phòng & Giường', 'Nội quy'];
 const DEFAULT_TAB_INDEX = 2;
 const REVIEW_PAGE_SIZE = 4;
 
 const AMENITIES = [
-    { icon: <FaWifi />, label: 'Free Wifi' },
-    { icon: <FaParking />, label: 'Parking Available' },
-    { icon: <FaUtensils />, label: 'Restaurant' },
-    { icon: <FaDumbbell />, label: 'Fitness Center' },
-    { icon: <FaBath />, label: 'Bathroom' },
-    { icon: <FaConciergeBell />, label: 'Room Service' },
-    { icon: <MdOutlinePool />, label: 'Swimming Pool' },
-    { icon: <FaCoffee />, label: 'Tea/Coffee Machine' },
+    { icon: <FaWifi />, label: 'Wifi miễn phí' },
+    { icon: <FaParking />, label: 'Bãi đỗ xe' },
+    { icon: <FaUtensils />, label: 'Nhà hàng' },
+    { icon: <FaDumbbell />, label: 'Phòng gym' },
+    { icon: <FaBath />, label: 'Phòng tắm' },
+    { icon: <FaConciergeBell />, label: 'Dịch vụ phòng' },
+    { icon: <MdOutlinePool />, label: 'Hồ bơi' },
+    { icon: <FaCoffee />, label: 'Máy pha trà/cà phê' },
 ];
 
 const FAQS = [
-    { q: 'How And When Do I Pay?', a: 'Bạn có thể thanh toán tại khách sạn hoặc qua cổng thanh toán trực tuyến an toàn của chúng tôi khi đặt phòng.' },
-    { q: 'Is This Option Is A Non-smoking Property?', a: 'Đây là khu vực cấm hút thuốc 100%. Khu vực hút thuốc ngoài trời được bố trí theo quy định.' },
-    { q: 'Is Breakfast Included?', a: 'Bữa sáng được bao gồm cho một số loại phòng. Vui lòng kiểm tra chi tiết phòng trước khi đặt.' },
+    { q: 'Tôi thanh toán như thế nào và khi nào?', a: 'Bạn có thể thanh toán tại khách sạn hoặc qua cổng thanh toán trực tuyến an toàn của chúng tôi khi đặt phòng.' },
+    { q: 'Đây có phải là khu vực không hút thuốc không?', a: 'Đây là khu vực cấm hút thuốc 100%. Khu vực hút thuốc ngoài trời được bố trí theo quy định.' },
+    { q: 'Bữa sáng có được bao gồm không?', a: 'Bữa sáng được bao gồm cho một số loại phòng. Vui lòng kiểm tra chi tiết phòng trước khi đặt.' },
 ];
 
 const GALLERY_FALLBACKS = [
@@ -70,9 +70,9 @@ const normalizeText = (value) =>
         .trim();
 
 const formatDateVi = (dateString) => {
-    if (!dateString) return 'Lich khoi hanh cap nhat sau';
+    if (!dateString) return 'Lịch khởi hành cập nhật sau';
     const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return 'Lich khoi hanh cap nhat sau';
+    if (Number.isNaN(date.getTime())) return 'Lịch khởi hành cập nhật sau';
     return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(date);
 };
 
@@ -103,18 +103,18 @@ const isDirectVideoUrl = (url) => DIRECT_VIDEO_EXT_RE.test(String(url || ''));
 const isLikelyVideoUrl = (url) => isDirectVideoUrl(url) || YOUTUBE_URL_RE.test(String(url || ''));
 
 const formatRelativeWeeks = (dateString) => {
-    if (!dateString) return 'Danh gia gan day';
+    if (!dateString) return 'Đánh giá gần đây';
     const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return 'Danh gia gan day';
+    if (Number.isNaN(date.getTime())) return 'Đánh giá gần đây';
 
     const now = new Date();
     const diffDays = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 86400000));
     const weeks = Math.max(1, Math.round(diffDays / 7));
-    return `Danh gia cach day ${weeks} tuan`;
+    return `Đánh giá cách đây ${weeks} tuần`;
 };
 
 const mapReviewItem = (item, index) => {
-    const userName = item?.userName || item?.authorName || `Du khach ${index + 1}`;
+    const userName = item?.userName || item?.authorName || `Du khách ${index + 1}`;
     const rawRating = Number(item?.overallRating ?? item?.rating ?? 0);
     const safeRating = Number.isFinite(rawRating) ? Math.max(0, Math.min(10, rawRating > 10 ? rawRating / 2 : rawRating)) : 0;
     const mediaUrls = Array.isArray(item?.mediaUrls)
@@ -135,7 +135,7 @@ const mapReviewItem = (item, index) => {
             .map((part) => part.charAt(0).toUpperCase())
             .join('') || 'U',
         rating: safeRating,
-        comment: item?.comment || item?.content || 'Khach hang chua de lai noi dung chi tiet cho danh gia nay.',
+        comment: item?.comment || item?.content || 'Khách hàng chưa để lại nội dung chi tiết cho đánh giá này.',
         createdAt: item?.createdAt || null,
         helpfulCount: Number(item?.helpfulCount || 0),
         verified: Boolean(item?.verified),
@@ -160,39 +160,39 @@ const getNearbyData = (hotel) => {
 
     const byCity = {
         'da nang': [
-            { name: 'Cau Rong', type: 'Dia diem bieu tuong', distanceKm: 1.6, walkMin: 18, driveMin: 6 },
-            { name: 'Bao tang Dieu khac Cham', type: 'Van hoa', distanceKm: 1.2, walkMin: 14, driveMin: 5 },
-            { name: 'Cho Han', type: 'Mua sam', distanceKm: 1.9, walkMin: 22, driveMin: 8 },
-            { name: 'Cong vien APEC', type: 'Giai tri', distanceKm: 1.7, walkMin: 20, driveMin: 7 },
+            { name: 'Cầu Rồng', type: 'Địa điểm biểu tượng', distanceKm: 1.6, walkMin: 18, driveMin: 6 },
+            { name: 'Bảo tàng Điêu Khắc Chăm', type: 'Văn hóa', distanceKm: 1.2, walkMin: 14, driveMin: 5 },
+            { name: 'Chợ Hàn', type: 'Mua sắm', distanceKm: 1.9, walkMin: 22, driveMin: 8 },
+            { name: 'Công viên APEC', type: 'Giải trí', distanceKm: 1.7, walkMin: 20, driveMin: 7 },
         ],
         'ha noi': [
-            { name: 'Ho Guom', type: 'Tham quan', distanceKm: 2.1, walkMin: 25, driveMin: 10 },
-            { name: 'Pho co Ha Noi', type: 'Van hoa', distanceKm: 2.6, walkMin: 31, driveMin: 12 },
-            { name: 'Nha hat Lon', type: 'Kien truc', distanceKm: 2.3, walkMin: 27, driveMin: 11 },
-            { name: 'Trang Tien Plaza', type: 'Mua sam', distanceKm: 2.4, walkMin: 29, driveMin: 10 },
+            { name: 'Hồ Gươm', type: 'Tham quan', distanceKm: 2.1, walkMin: 25, driveMin: 10 },
+            { name: 'Phố cổ Hà Nội', type: 'Văn hóa', distanceKm: 2.6, walkMin: 31, driveMin: 12 },
+            { name: 'Nhà hát Lớn', type: 'Kiến trúc', distanceKm: 2.3, walkMin: 27, driveMin: 11 },
+            { name: 'Tràng Tiền Plaza', type: 'Mua sắm', distanceKm: 2.4, walkMin: 29, driveMin: 10 },
         ],
         'ho chi minh': [
-            { name: 'Cho Ben Thanh', type: 'Mua sam', distanceKm: 1.8, walkMin: 21, driveMin: 8 },
-            { name: 'Pho di bo Nguyen Hue', type: 'Giai tri', distanceKm: 2.2, walkMin: 26, driveMin: 10 },
-            { name: 'Nha tho Duc Ba', type: 'Kien truc', distanceKm: 2.5, walkMin: 30, driveMin: 11 },
-            { name: 'Bao tang My thuat', type: 'Van hoa', distanceKm: 1.9, walkMin: 22, driveMin: 9 },
+            { name: 'Chợ Bến Thành', type: 'Mua sắm', distanceKm: 1.8, walkMin: 21, driveMin: 8 },
+            { name: 'Phố đi bộ Nguyễn Huệ', type: 'Giải trí', distanceKm: 2.2, walkMin: 26, driveMin: 10 },
+            { name: 'Nhà thờ Đức Bà', type: 'Kiến trúc', distanceKm: 2.5, walkMin: 30, driveMin: 11 },
+            { name: 'Bảo tàng Mỹ thuật', type: 'Văn hóa', distanceKm: 1.9, walkMin: 22, driveMin: 9 },
         ],
     };
 
     const defaultPois = [
-        { name: 'Trung tam thanh pho', type: 'Trung tam giao thong', distanceKm: 2.0, walkMin: 24, driveMin: 9 },
-        { name: 'Khu am thuc dia phuong', type: 'An uong', distanceKm: 1.3, walkMin: 15, driveMin: 6 },
-        { name: 'Diem check-in noi bat', type: 'Giai tri', distanceKm: 2.7, walkMin: 33, driveMin: 12 },
-        { name: 'Khu mua sam', type: 'Mua sam', distanceKm: 2.2, walkMin: 26, driveMin: 10 },
+        { name: 'Trung tâm thành phố', type: 'Trung tâm giao thông', distanceKm: 2.0, walkMin: 24, driveMin: 9 },
+        { name: 'Khu ẩm thực địa phương', type: 'Ẩm thực', distanceKm: 1.3, walkMin: 15, driveMin: 6 },
+        { name: 'Điểm check-in nổi bật', type: 'Giải trí', distanceKm: 2.7, walkMin: 33, driveMin: 12 },
+        { name: 'Khu mua sắm', type: 'Mua sắm', distanceKm: 2.2, walkMin: 26, driveMin: 10 },
     ];
 
     const pois = Object.entries(byCity).find(([key]) => city.includes(key))?.[1] || defaultPois;
 
     const highlightTags = [
-        'Gan trung tam giao thong',
-        'Thuan tien vui choi giai tri',
-        'Nhieu nha hang dac san quanh khu vuc',
-        'De dang di chuyen den diem check-in',
+        'Gần trung tâm giao thông',
+        'Thuận tiện vui chơi giải trí',
+        'Nhiều nhà hàng đặc sản quanh khu vực',
+        'Dễ dàng di chuyển đến điểm check-in',
     ];
 
     return { pois, highlightTags };
@@ -209,27 +209,27 @@ const getRoomOffers = (room, nights, roomCount) => {
     return [
         {
             code: `FLEX-${room.id}`,
-            title: 'Huy mien phi truoc check-in 48h',
-            detail: `Ap dung cho ${room.name}. Hoan tien 100% neu huy dung han.`,
-            badge: 'Linh hoat',
+            title: 'Hủy miễn phí trước check-in 48h',
+            detail: `Áp dụng cho ${room.name}. Hoàn tiền 100% nếu hủy đúng hạn.`,
+            badge: 'Linh hoạt',
         },
         {
             code: `BKFAST-${room.id}`,
-            title: `Bao gom bua sang cho toi da ${Math.max(1, Number(room.capacity || 1))} khach`,
-            detail: 'Buffet sang tai nha hang khach san tu 06:30 - 10:00.',
-            badge: 'An sang',
+            title: `Bao gồm bữa sáng cho tối đa ${Math.max(1, Number(room.capacity || 1))} khách`,
+            detail: 'Buffet sáng tại nhà hàng khách sạn từ 06:30 - 10:00.',
+            badge: 'Ăn sáng',
         },
         {
             code: `SAVE-${room.id}`,
-            title: `Tiet kiem ${promoPercent}% khi dat ${Math.max(1, Number(nights || 1))} dem`,
-            detail: `Tong uu dai uoc tinh: ${formatVND(promoValue)} (chua tinh khuyen mai ngan hang).`,
-            badge: 'Uu dai',
+            title: `Tiết kiệm ${promoPercent}% khi đặt ${Math.max(1, Number(nights || 1))} đêm`,
+            detail: `Tổng ưu đãi ước tính: ${formatVND(promoValue)} (chưa tính khuyến mãi ngân hàng).`,
+            badge: 'Ưu đãi',
         },
         {
             code: `PAYLATER-${room.id}`,
-            title: 'Dat truoc, thanh toan sau tai khach san',
-            detail: 'Khong can thanh toan toan bo ngay luc dat, giu cho den gio check-in.',
-            badge: 'Thanh toan linh hoat',
+            title: 'Đặt trước, thanh toán sau tại khách sạn',
+            detail: 'Không cần thanh toán toàn bộ ngày lúc đặt, giữ chỗ đến giờ check-in.',
+            badge: 'Thanh toán linh hoạt',
         },
     ];
 };
@@ -538,7 +538,7 @@ function HotelDetailInner() {
         if (tooLarge) {
             setReviewSubmitState((prev) => ({
                 ...prev,
-                error: `File ${tooLarge.name} vuot qua gioi han 25MB.`,
+                error: `File ${tooLarge.name} vượt quá giới hạn 25MB.`,
                 success: '',
             }));
             return;
@@ -574,7 +574,7 @@ function HotelDetailInner() {
 
         const normalizedComment = String(reviewDraft.comment || '').trim();
         if (!normalizedComment && reviewFiles.length === 0) {
-            setReviewSubmitState({ loading: false, error: 'Ban can nhap noi dung hoac dinh kem media.', success: '' });
+            setReviewSubmitState({ loading: false, error: 'Bạn cần nhập nội dung hoặc đính kèm media.', success: '' });
             return;
         }
 
@@ -595,11 +595,11 @@ function HotelDetailInner() {
             setReviewDraft({ rating: 5, comment: '' });
             setReviewFiles([]);
             setReviewFileInputKey((prev) => prev + 1);
-            setReviewSubmitState({ loading: false, error: '', success: 'Da gui danh gia thanh cong.' });
+            setReviewSubmitState({ loading: false, error: '', success: 'Đã gửi đánh giá thành công.' });
         } catch (err) {
             setReviewSubmitState({
                 loading: false,
-                error: err?.message || 'Khong the gui danh gia luc nay.',
+                error: err?.message || 'Không thể gửi đánh giá lúc này.',
                 success: '',
             });
         }
@@ -635,11 +635,11 @@ function HotelDetailInner() {
     const mapQuery = encodeURIComponent(`${hotel.name}, ${hotel.address}`);
     const reviewScore = Number(hotel.avgRating || 0);
     const reviewBreakdown = [
-        { label: 'Ve sinh', score: Math.max(0, Math.min(10, reviewScore + 0.2)) },
-        { label: 'Tien nghi phong', score: Math.max(0, Math.min(10, reviewScore + 0.1)) },
-        { label: 'Do an', score: Math.max(0, Math.min(10, reviewScore - 0.3)) },
-        { label: 'Vi tri', score: Math.max(0, Math.min(10, reviewScore + 0.4)) },
-        { label: 'Dich vu', score: Math.max(0, Math.min(10, reviewScore)) },
+        { label: 'Vệ sinh', score: Math.max(0, Math.min(10, reviewScore + 0.2)) },
+        { label: 'Tiện nghi phòng', score: Math.max(0, Math.min(10, reviewScore + 0.1)) },
+        { label: 'Đồ ăn', score: Math.max(0, Math.min(10, reviewScore - 0.3)) },
+        { label: 'Vị trí', score: Math.max(0, Math.min(10, reviewScore + 0.4)) },
+        { label: 'Dịch vụ', score: Math.max(0, Math.min(10, reviewScore)) },
     ];
     const hotelPartnerId =
         hotel?.partnerId ||
@@ -681,7 +681,7 @@ function HotelDetailInner() {
                         <div key={i} className={`${styles.galleryThumb} ${i === 3 ? styles.galleryThumbLast : ''}`}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={img} alt={`${hotel.name} ${i + 2}`} />
-                            {i === 3 && <div className={styles.seeMore}>📷 See More Photos</div>}
+                            {i === 3 && <div className={styles.seeMore}>📷 Xem thêm ảnh</div>}
                         </div>
                     ))}
                 </div>
@@ -741,7 +741,7 @@ function HotelDetailInner() {
                                 <p>{hotel.description || 'Khách sạn sang trọng tọa lạc tại vị trí đắc địa, mang đến trải nghiệm lưu trú hoàn hảo với đội ngũ nhân viên tận tâm và cơ sở vật chất hiện đại.'}</p>
                                 <p>Tận hưởng không gian nghỉ dưỡng đẳng cấp với đầy đủ tiện nghi từ hồ bơi vô cực, trung tâm thể hình, đến nhà hàng phục vụ ẩm thực đa dạng.</p>
                             </div>
-                            <h4 className={styles.sectionTitle}>Amenities</h4>
+                            <h4 className={styles.sectionTitle}>Tiện nghi</h4>
                             <div className={styles.amenitiesGrid}>
                                 {AMENITIES.map((a, i) => (
                                     <div key={i} className={styles.amenityItem}>
@@ -817,8 +817,8 @@ function HotelDetailInner() {
                             {selectedRoom && (
                                 <section className={styles.offersSection}>
                                     <div className={styles.offersHeaderRow}>
-                                        <h4 className={styles.offersTitle}>Uu dai cho phong {selectedRoom.name}</h4>
-                                        <span className={styles.offersMeta}>Co {selectedRoomOffers.length} uu dai dang ap dung</span>
+                                        <h4 className={styles.offersTitle}>Ưu đãi cho phòng {selectedRoom.name}</h4>
+                                        <span className={styles.offersMeta}>Có {selectedRoomOffers.length} ưu đãi đang áp dụng</span>
                                     </div>
 
                                     <div className={styles.offerGrid}>
@@ -827,7 +827,7 @@ function HotelDetailInner() {
                                                 <span className={styles.offerBadge}>{offer.badge}</span>
                                                 <h5 className={styles.offerName}>{offer.title}</h5>
                                                 <p className={styles.offerDetail}>{offer.detail}</p>
-                                                <span className={styles.offerCode}>Ma uu dai: {offer.code}</span>
+                                                <span className={styles.offerCode}>Mã ưu đãi: {offer.code}</span>
                                             </article>
                                         ))}
                                     </div>
@@ -847,24 +847,24 @@ function HotelDetailInner() {
 
                     <section className={styles.roomAlternativesSection}>
                         <div className={styles.roomAlternativesHeader}>
-                            <h3 className={styles.roomAlternativesTitle}>Cac loai phong khac trong cung khach san</h3>
-                            <p className={styles.roomAlternativesSub}>Neu phong hien tai chua phu hop, ban co the doi nhanh sang lua chon ben duoi.</p>
+                            <h3 className={styles.roomAlternativesTitle}>Các loại phòng khác trong cùng khách sạn</h3>
+                            <p className={styles.roomAlternativesSub}>Nếu phòng hiện tại chưa phù hợp, bạn có thể đổi nhanh sang lựa chọn bên dưới.</p>
                         </div>
 
                         {roomAlternatives.length === 0 ? (
-                            <div className={styles.altStatusBox}>Hien chua co them loai phong khac de goi y.</div>
+                            <div className={styles.altStatusBox}>Hiện chưa có thêm loại phòng khác để gợi ý.</div>
                         ) : (
                             <div className={styles.altRoomGrid}>
                                 {roomAlternatives.map((room) => (
                                     <article key={room.id} className={styles.altRoomCard}>
                                         <h4 className={styles.altRoomName}>{room.name}</h4>
-                                        <p className={styles.altRoomMeta}>Toi da {room.capacity} nguoi lon · {room.totalRooms} phong</p>
+                                        <p className={styles.altRoomMeta}>Tối đa {room.capacity} người lớn · {room.totalRooms} phòng</p>
                                         {room.description && <p className={styles.altRoomDesc}>{room.description}</p>}
 
                                         <div className={styles.altRoomBottom}>
                                             <div>
                                                 <p className={styles.altRoomPrice}>{formatVND(room.basePricePerNight)}</p>
-                                                <p className={styles.altRoomUnit}>/dem</p>
+                                                <p className={styles.altRoomUnit}>/đêm</p>
                                             </div>
                                             <button
                                                 className={styles.altRoomBtn}
@@ -887,14 +887,14 @@ function HotelDetailInner() {
 
                     <section className={styles.hotelsRecommendSection}>
                         <div className={styles.hotelsRecommendHeader}>
-                            <h3 className={styles.hotelsRecommendTitle}>Khach san khac cung khu vuc</h3>
-                            <p className={styles.hotelsRecommendSub}>Chi hien thi khach san trong cung khu vuc {hotel.city}, sap xep theo danh gia cao.</p>
+                            <h3 className={styles.hotelsRecommendTitle}>Khách sạn khác cùng khu vực</h3>
+                            <p className={styles.hotelsRecommendSub}>Chỉ hiển thị khách sạn trong cùng khu vực {hotel.city}, sắp xếp theo đánh giá cao.</p>
                         </div>
 
-                        {recommendedHotelsLoading && <div className={styles.altStatusBox}>Dang tai goi y khach san...</div>}
+                        {recommendedHotelsLoading && <div className={styles.altStatusBox}>Đang tải gợi ý khách sạn...</div>}
 
                         {!recommendedHotelsLoading && recommendedHotels.length === 0 && (
-                            <div className={styles.altStatusBox}>Hien chua co khach san goi y phu hop.</div>
+                            <div className={styles.altStatusBox}>Hiện chưa có khách sạn gợi ý phù hợp.</div>
                         )}
 
                         {!recommendedHotelsLoading && recommendedHotels.length > 0 && (
@@ -912,14 +912,14 @@ function HotelDetailInner() {
 
                                         <div className={styles.recommendedHotelBody}>
                                             <h4 className={styles.recommendedHotelName}>{item.name}</h4>
-                                            <p className={styles.recommendedHotelMeta}>{item.city} · ★ {Number(item.avgRating || 0).toFixed(1)} · {(item.reviewCount || 0).toLocaleString('vi-VN')} danh gia</p>
-                                            <p className={styles.recommendedHotelPrice}>Tu {formatVND(item.minPricePerNight)} /dem</p>
+                                            <p className={styles.recommendedHotelMeta}>{item.city} · ★ {Number(item.avgRating || 0).toFixed(1)} · {(item.reviewCount || 0).toLocaleString('vi-VN')} đánh giá</p>
+                                            <p className={styles.recommendedHotelPrice}>Từ {formatVND(item.minPricePerNight)} /đêm</p>
 
                                             <button
                                                 className={styles.recommendedHotelBtn}
                                                 onClick={() => goToHotelDetail(item.id)}
                                             >
-                                                Xem khach san
+                                                Xem khách sạn
                                             </button>
                                         </div>
                                     </article>
@@ -929,7 +929,7 @@ function HotelDetailInner() {
                     </section>
 
                     <section className={styles.nearbySection}>
-                        <h3 className={styles.nearbyTitle}>Co gi noi bat quanh {hotel.name}?</h3>
+                        <h3 className={styles.nearbyTitle}>Có gì nổi bật quanh {hotel.name}?</h3>
 
                         <div className={styles.highlightChips}>
                             {nearbyData.highlightTags.map((tag) => (
@@ -956,8 +956,8 @@ function HotelDetailInner() {
                                         </div>
                                         <div className={styles.poiMetaRow}>
                                             <span>{poi.distanceKm.toFixed(1)} km</span>
-                                            <span><FaWalking /> {poi.walkMin} phut di bo</span>
-                                            <span><FaBus /> {poi.driveMin} phut di xe</span>
+                                            <span><FaWalking /> {poi.walkMin} phút đi bộ</span>
+                                            <span><FaBus /> {poi.driveMin} phút đi xe</span>
                                         </div>
                                     </article>
                                 ))}
@@ -967,14 +967,14 @@ function HotelDetailInner() {
 
                     <section className={styles.nearbyToursSection}>
                         <div className={styles.nearbyToursHeader}>
-                            <h3 className={styles.nearbyToursTitle}>Tour bat dau tu khu vuc nay</h3>
-                            <p className={styles.nearbyToursSub}>Goi y tour du lich gan {hotel.city}, uu tien lich khoi hanh som va con cho.</p>
+                            <h3 className={styles.nearbyToursTitle}>Tour bắt đầu từ khu vực này</h3>
+                            <p className={styles.nearbyToursSub}>Gợi ý tour du lịch gần {hotel.city}, ưu tiên lịch khởi hành sớm và còn chỗ.</p>
                         </div>
 
-                        {tourLoading && <div className={styles.tourStatusBox}>Dang tai goi y tour...</div>}
+                        {tourLoading && <div className={styles.tourStatusBox}>Đang tải gợi ý tour...</div>}
 
                         {!tourLoading && nearbyTours.length === 0 && (
-                            <div className={styles.tourStatusBox}>Chua co tour phu hop khu vuc nay. Ban thu doi diem den khac nhe.</div>
+                            <div className={styles.tourStatusBox}>Chưa có tour phù hợp khu vực này. Bạn thử đổi điểm đến khác nhé.</div>
                         )}
 
                         {!tourLoading && nearbyTours.length > 0 && (
@@ -997,15 +997,15 @@ function HotelDetailInner() {
                                             <div className={styles.tourMeta}>
                                                 <span>{tour.durationDays || 1}N{tour.durationNights || 0}D</span>
                                                 <span>★ {Number(tour.avgRating || 0).toFixed(1)}</span>
-                                                <span>{Number(tour.reviewCount || 0).toLocaleString('vi-VN')} danh gia</span>
+                                                <span>{Number(tour.reviewCount || 0).toLocaleString('vi-VN')} đánh giá</span>
                                             </div>
 
-                                            <p className={styles.tourDeparture}><FaRegCalendarAlt /> Khoi hanh gan nhat: {formatDateVi(tour.nearestDepartureDate)}</p>
+                                            <p className={styles.tourDeparture}><FaRegCalendarAlt /> Khởi hành gần nhất: {formatDateVi(tour.nearestDepartureDate)}</p>
 
                                             <div className={styles.tourBottom}>
                                                 <div>
                                                     <p className={styles.tourPrice}>{formatVND(tour.pricePerAdult)}</p>
-                                                    <p className={styles.tourSeats}>Con {Math.max(0, Number(tour.availableSlots || 0))} cho</p>
+                                                    <p className={styles.tourSeats}>Còn {Math.max(0, Number(tour.availableSlots || 0))} chỗ</p>
                                                 </div>
 
                                                 <button
@@ -1023,13 +1023,13 @@ function HotelDetailInner() {
                     </section>
 
                     <section className={styles.reviewsSection}>
-                        <h3 className={styles.reviewsTitle}>Danh gia tu khach da luu tru tai {hotel.name}</h3>
+                        <h3 className={styles.reviewsTitle}>Đánh giá từ khách đã lưu trú tại {hotel.name}</h3>
 
                         <div className={styles.reviewsOverview}>
                             <div className={styles.reviewScoreBox}>
                                 <p className={styles.reviewScoreValue}>{reviewScore.toFixed(1)}</p>
                                 <p className={styles.reviewScoreLabel}>{getRatingLabel(reviewScore)}</p>
-                                <p className={styles.reviewScoreCount}>Tu {(hotel.reviewCount || 0).toLocaleString('vi-VN')} danh gia</p>
+                                <p className={styles.reviewScoreCount}>Từ {(hotel.reviewCount || 0).toLocaleString('vi-VN')} đánh giá</p>
                             </div>
 
                             <div className={styles.reviewBreakdown}>
@@ -1046,7 +1046,7 @@ function HotelDetailInner() {
                         </div>
 
                         <div className={styles.reviewComposeCard}>
-                            <p className={styles.reviewComposeTitle}>Chia se trai nghiem luu tru cua ban</p>
+                            <p className={styles.reviewComposeTitle}>Chia sẻ trải nghiệm lưu trú của bạn</p>
                             {!isAuthenticated ? (
                                 <div className={styles.reviewAuthPrompt}>
                                     <p>Vui lòng <a href="/login" className={styles.reviewAuthLink}>đăng nhập</a> để gửi đánh giá.</p>
@@ -1058,7 +1058,7 @@ function HotelDetailInner() {
                             ) : (
                                 <>
                             <div className={styles.reviewComposeRow}>
-                                <label className={styles.reviewComposeLabel} htmlFor="hotel-review-rating">Diem danh gia</label>
+                                <label className={styles.reviewComposeLabel} htmlFor="hotel-review-rating">Điểm đánh giá</label>
                                 <select
                                     id="hotel-review-rating"
                                     className={styles.reviewComposeSelect}
@@ -1072,12 +1072,12 @@ function HotelDetailInner() {
                             </div>
                             <textarea
                                 className={styles.reviewComposeTextarea}
-                                placeholder="Viet danh gia ve phong, vi tri, dich vu..."
+                                placeholder="Viết đánh giá về phòng, vị trí, dịch vụ..."
                                 value={reviewDraft.comment}
                                 onChange={(event) => setReviewDraft((prev) => ({ ...prev, comment: event.target.value }))}
                             />
                             <div className={styles.reviewComposeRow}>
-                                <label className={styles.reviewComposeLabel} htmlFor="hotel-review-media">Anh/Video dinh kem</label>
+                                <label className={styles.reviewComposeLabel} htmlFor="hotel-review-media">Ảnh/Video đính kèm</label>
                                 <input
                                     key={reviewFileInputKey}
                                     id="hotel-review-media"
@@ -1109,7 +1109,7 @@ function HotelDetailInner() {
                                                     className={styles.reviewComposeRemoveBtn}
                                                     onClick={() => handleRemoveReviewFile(preview.key)}
                                                 >
-                                                    Xoa file
+                                                    Xóa file
                                                 </button>
                                             </div>
                                         </article>
@@ -1125,16 +1125,16 @@ function HotelDetailInner() {
                                 onClick={handleSubmitReview}
                                 disabled={reviewSubmitState.loading}
                             >
-                                {reviewSubmitState.loading ? 'Dang gui...' : 'Gui danh gia'}
+                                {reviewSubmitState.loading ? 'Đang gửi...' : 'Gửi đánh giá'}
                             </button>
                                 </>
                             )}
                         </div>
 
-                        {reviewLoading && <div className={styles.reviewStatusBox}>Dang tai danh gia...</div>}
+                        {reviewLoading && <div className={styles.reviewStatusBox}>Đang tải đánh giá...</div>}
 
                         {!reviewLoading && reviews.length === 0 && (
-                            <div className={styles.reviewStatusBox}>Chua co danh gia chi tiet cho khach san nay.</div>
+                            <div className={styles.reviewStatusBox}>Chưa có đánh giá chi tiết cho khách sạn này.</div>
                         )}
 
                         {!reviewLoading && reviews.length > 0 && (
@@ -1152,7 +1152,7 @@ function HotelDetailInner() {
                                                 <span className={styles.reviewDate}>{formatRelativeWeeks(review.createdAt)}</span>
                                                 {review.verified && (
                                                     <span className={styles.reviewVerifiedBadge}>
-                                                        <FaCheckCircle size={12} /> Da xac thuc da di
+                                                        <FaCheckCircle size={12} /> Đã xác thực đã đi
                                                     </span>
                                                 )}
                                             </div>
@@ -1191,7 +1191,7 @@ function HotelDetailInner() {
                                                                         className={styles.reviewVideoPlayer}
                                                                     >
                                                                         <source src={url} />
-                                                                        Trinh duyet khong ho tro video.
+                                                                        Trình duyệt không hỗ trợ video.
                                                                     </video>
                                                                 ) : (
                                                                     <a
@@ -1201,7 +1201,7 @@ function HotelDetailInner() {
                                                                         rel="noreferrer"
                                                                         className={styles.reviewVideoLink}
                                                                     >
-                                                                        Xem video dinh kem
+                                                                        Xem video đính kèm
                                                                     </a>
                                                                 )
                                                             ))}
@@ -1259,14 +1259,14 @@ function HotelDetailInner() {
                                 onClick={handleLoadMoreReviews}
                                 disabled={reviewLoadingMore}
                             >
-                                {reviewLoadingMore ? 'Dang tai...' : 'Xem them danh gia'}
+                                {reviewLoadingMore ? 'Đang tải...' : 'Xem thêm đánh giá'}
                             </button>
                         )}
                     </section>
 
                     {/* FAQ + AI Chat */}
                     <div className={styles.faqSection}>
-                        <h3 className={styles.faqTitle}>Cau hoi thuong gap truoc khi dat phong</h3>
+                        <h3 className={styles.faqTitle}>Câu hỏi thường gặp trước khi đặt phòng</h3>
                         <InlineFaqChat
                             context="HOTEL"
                             ownerId={hotelPartnerId}
@@ -1346,7 +1346,7 @@ function HotelDetailInner() {
                             </>
                         ) : (
                             <p className={styles.noRoom}>
-                                Vui lòng qua tab <strong>Rooms & Beds</strong> để chọn phòng
+                                Vui lòng qua tab <strong>Phòng & Giường</strong> để chọn phòng
                             </p>
                         )}
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaComments, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { IoEllipsisVertical } from 'react-icons/io5';
 import chatApi from '@/api/chatApi';
 import { useChatWebSocket } from '@/hooks/useChatWebSocket';
 import {
@@ -17,7 +18,6 @@ import { p2pModalBus } from '@/utils/p2pModalBus';
 import styles from './ClientChatModal.module.css';
 
 // axiosClient interceptor returns response.data (parsed ApiResponse body = { success, data, timestamp })
-// Use triple fallbacks like InlineFaqChat to handle both interceptor and raw response scenarios.
 const unwrapPayload = (response) =>
     response?.data?.data ??
     response?.data ??
@@ -30,49 +30,66 @@ const unwrapPageContent = (response) =>
 const extractErrorMessage = (error) => {
   if (!error) return 'Khong the ket noi chat luc nay.';
   if (typeof error === 'string') return error;
-
-  // Log chi tiết lỗi để debug
-  console.warn('[ChatModal] Error details:', error);
-
-  // 401 - Unauthorized
-  if (error?.response?.status === 401) {
-    return 'Vui long dang nhap de su dung chat voi chu dich vu.';
-  }
-  // 403 - Forbidden
-  if (error?.response?.status === 403) {
-    return 'Ban khong co quyen chat voi dich vu nay.';
-  }
-  // 404 - Not found
-  if (error?.response?.status === 404) {
-    return 'Khong tim thay cuoc tro chuyen. Vui long thu lai.';
-  }
-  // 500 - Server error
-  if (error?.response?.status === 500) {
-    return 'Loi server khi mo cuoc tro chuyen. Vui long thu lai sau giay lat.';
-  }
-
+  if (error?.response?.status === 401) return 'Vui long dang nhap de su dung chat voi chu dich vu.';
+  if (error?.response?.status === 403) return 'Ban khong co quyen chat voi dich vu nay.';
+  if (error?.response?.status === 404) return 'Khong tim thay cuoc tro chuyen. Vui long thu lai.';
+  if (error?.response?.status === 500) return 'Loi server khi mo cuoc tro chuyen. Vui long thu lai sau giay lat.';
   return error?.message || error?.data?.message || 'Khong the ket noi chat luc nay.';
 };
 
-const MessageItem = ({ message, isOwn }) => {
-  if (message?.contentType === 'SYSTEM_LOG') {
-    return <div className={styles.systemMessage}>{message.content}</div>;
-  }
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function formatDateLabel(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (isToday) return 'Hôm nay';
+  if (d.toDateString() === yesterday.toDateString()) return 'Hôm qua';
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const MessageItem = ({ message, isOwn, showDate }) => {
+  const timeStr = message?.createdAt
+    ? new Date(message.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+    : '';
 
   return (
-    <div className={`${styles.messageRow} ${isOwn ? styles.messageOwn : styles.messageIncoming}`}>
-      <div className={`${styles.messageBubble} ${isOwn ? styles.messageBubbleOwn : styles.messageBubbleIncoming}`}>
-        <p>{message?.content || ''}</p>
-        <span className={styles.messageTime}>
-          {message?.createdAt
-            ? new Date(message.createdAt).toLocaleTimeString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-            : ''}
-        </span>
+    <>
+      {showDate && (
+        <div className={styles.dateSeparator}>
+          <span className={styles.dateSeparatorLine} />
+          <span>{formatDateLabel(message.createdAt)}</span>
+          <span className={styles.dateSeparatorLine} />
+        </div>
+      )}
+      <div className={`${styles.messageRow} ${isOwn ? styles.messageOwn : styles.messageIncoming}`}>
+        <div className={`${styles.messageBubble} ${isOwn ? styles.messageBubbleOwn : styles.messageBubbleIncoming}`}>
+          {message?.contentType === 'SYSTEM_LOG' ? (
+            <span style={{ fontSize: '11px', fontStyle: 'italic', opacity: 0.7 }}>{message.content}</span>
+          ) : (
+            <>
+              <p>{message?.content || ''}</p>
+              <div className={styles.messageFooter}>
+                <span className={styles.messageTime}>{timeStr}</span>
+                {isOwn && (
+                  <span className={styles.readReceipt}>
+                    {/* simple double-check icon via unicode */}
+                    ✓
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -106,11 +123,7 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
 
   useEffect(() => {
     if (!isOpen) return;
-
-    const handleEsc = (event) => {
-      if (event.key === 'Escape') closeModal();
-    };
-
+    const handleEsc = (event) => { if (event.key === 'Escape') closeModal(); };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, closeModal]);
@@ -129,15 +142,11 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     if (!isOpen || !isAuthenticated) return;
 
     const initConversation = async () => {
-      console.log('[ChatModal] initConversation called with seed:', conversationSeed);
-
       if (!conversationSeed?.type || !conversationSeed?.referenceId) {
         setError('Thong tin cuoc tro chuyen khong hop le.');
         return;
       }
-
       if (!conversationSeed?.partnerId) {
-        console.warn('[ChatModal] Missing partnerId - hotel may not have owner:', conversationSeed);
         setError('Dich vu nay chua co thong tin chu so huu de mo chat truc tiep. Vui long lien he ho tro 24/7.');
         return;
       }
@@ -153,25 +162,15 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
           bookingId: conversationSeed.bookingId ? Number(conversationSeed.bookingId) : undefined,
         };
 
-        console.log('[ChatModal] Creating conversation with payload:', payload);
-
         let response;
         try {
           response = await chatApi.createConversation(payload);
         } catch (apiErr) {
-          console.error('[ChatModal] createConversation API ERROR:', apiErr);
-          console.error('[ChatModal] Error response:', apiErr?.response?.data);
-          console.error('[ChatModal] Error status:', apiErr?.response?.status);
           throw apiErr;
         }
 
         const conversation = unwrapPayload(response);
-        console.log('[ChatModal] createConversation RAW response:', JSON.stringify(response, null, 2));
-        console.log('[ChatModal] Unwrapped conversation:', conversation);
-
-        if (!conversation?.id) {
-          throw new Error('Khong mo duoc cuoc tro chuyen.');
-        }
+        if (!conversation?.id) throw new Error('Khong mo duoc cuoc tro chuyen.');
 
         dispatch(setActiveP2PConversation(conversation.id));
         setHeaderTitle(conversation.partnerName || conversationSeed.title || 'Chat voi Chu');
@@ -184,7 +183,6 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
 
         setTimeout(() => inputRef.current?.focus(), 80);
       } catch (initError) {
-        console.error('[ChatModal] initConversation error:', initError);
         setError(extractErrorMessage(initError));
       } finally {
         setLoading(false);
@@ -225,69 +223,116 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
   return (
     <div className={styles.overlay} onClick={closeModal}>
       <section className={styles.modal} onClick={(event) => event.stopPropagation()}>
+
+        {/* ── Header ── */}
         <header className={styles.header}>
           <div className={styles.headerTitleWrap}>
-            <span className={styles.headerIcon}><FaComments /></span>
-            <div>
+            <div className={styles.avatar}>
+              <div className={styles.avatarCircle}>{getInitials(headerTitle)}</div>
+              <span className={styles.statusDot} />
+            </div>
+            <div className={styles.headerText}>
               <h3>{headerTitle}</h3>
-              <p>Nhan tin truc tiep voi chu dich vu</p>
+              <div className={styles.headerMeta}>
+                <span>Online</span>
+                <span className={styles.headerMetaDot} />
+                <span>Phản hồi nhanh</span>
+              </div>
             </div>
           </div>
-          <button type="button" className={styles.closeBtn} onClick={closeModal} aria-label="Dong chat">
-            <FaTimes />
-          </button>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button type="button" className={styles.closeBtn} onClick={closeModal} aria-label="Dong chat">
+              <IoEllipsisVertical size={15} />
+            </button>
+            <button type="button" className={styles.closeBtn} onClick={closeModal} aria-label="Dong chat">
+              <FaTimes size={15} />
+            </button>
+          </div>
         </header>
 
+        {/* ── Body ── */}
         {!isAuthenticated ? (
           <div className={styles.emptyState}>
-            <p>Ban can dang nhap de su dung chat truc tiep voi chu dich vu.</p>
-            <Link href="/login" className={styles.ctaLink}>Dang nhap ngay</Link>
+            <div className={styles.emptyIcon}><FaComments /></div>
+            <h4>Chat với Chủ dịch vụ</h4>
+            <p>Đăng nhập để nhắn tin trực tiếp với chủ dịch vụ du lịch và đặt phòng ngay hôm nay.</p>
+            <Link href="/login" className={styles.ctaLink}>Đăng nhập ngay</Link>
           </div>
         ) : loading ? (
           <div className={styles.emptyState}>
-            <p>Dang ket noi cuoc tro chuyen...</p>
+            <div className={styles.emptyIcon}><FaComments /></div>
+            <h4>Đang kết nối...</h4>
+            <p>Đang thiết lập cuộc trò chuyện với chủ dịch vụ.</p>
           </div>
         ) : error ? (
           <div className={styles.emptyState}>
+            <div className={styles.emptyIcon} style={{ background: 'linear-gradient(135deg, #fee2e2, #fecaca)', color: '#dc2626' }}>
+              <FaTimes />
+            </div>
+            <h4>Không thể kết nối</h4>
             <p>{error}</p>
           </div>
         ) : (
           <>
             <div className={styles.messages} ref={listRef}>
               {chatMessages.length === 0 ? (
-                <div className={styles.systemMessage}>Bat dau tro chuyen voi chu dich vu ngay bay gio.</div>
+                <div className={styles.systemMessage}>
+                  Bắt đầu cuộc trò chuyện với chủ dịch vụ ngay bây giờ
+                </div>
               ) : (
-                chatMessages.map((message) => {
+                chatMessages.map((message, idx) => {
                   const isOwn =
                     message?.senderId != null && user?.id != null
                       ? Number(message.senderId) === Number(user.id)
                       : false;
 
-                  return <MessageItem key={message.id || `${message.createdAt}-${message.content}`} message={message} isOwn={isOwn} />;
+                  const prev = chatMessages[idx - 1];
+                  const showDate = !prev || formatDateLabel(message.createdAt) !== formatDateLabel(prev.createdAt);
+
+                  return (
+                    <MessageItem
+                      key={message.id || `${message.createdAt}-${message.content}`}
+                      message={message}
+                      isOwn={isOwn}
+                      showDate={showDate}
+                    />
+                  );
                 })
               )}
 
-              {sendingIndicator ? (
-                <div className={styles.typingRow}>
-                  <span className={styles.dot} />
-                  <span className={styles.dot} />
-                  <span className={styles.dot} />
-                  <small>Dang gui...</small>
+              {sendingIndicator && (
+                <div className={`${styles.messageRow} ${styles.messageIncoming}`}>
+                  <div className={`${styles.messageBubble} ${styles.messageBubbleIncoming}`} style={{ gap: 0 }}>
+                    <div className={styles.typingRow}>
+                      <span className={styles.dot} />
+                      <span className={styles.dot} />
+                      <span className={styles.dot} />
+                      <small>Đang gửi...</small>
+                    </div>
+                  </div>
                 </div>
-              ) : null}
+              )}
             </div>
 
+            {/* ── Composer ── */}
             <form className={styles.composer} onSubmit={handleSubmit}>
-              <textarea
-                ref={inputRef}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                placeholder="Nhap tin nhan cho chu dich vu..."
-                rows={1}
-                className={styles.input}
-              />
-              <button type="submit" className={styles.sendBtn} disabled={!draft.trim() || submitting}>
-                <FaPaperPlane />
+              <div className={styles.inputWrap}>
+                <textarea
+                  ref={inputRef}
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  placeholder="Nhắn tin cho chủ dịch vụ..."
+                  className={styles.input}
+                  rows={1}
+                />
+              </div>
+              <button
+                type="submit"
+                className={styles.sendBtn}
+                disabled={!draft.trim() || submitting}
+                aria-label="Gui tin nhan"
+              >
+                <FaPaperPlane size={15} />
               </button>
             </form>
           </>
