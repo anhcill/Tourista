@@ -154,7 +154,9 @@ const BotChatBox = () => {
         const init = async () => {
             try {
                 const res = await chatApi.createConversation({ type: 'BOT' });
+                console.log('[Bot] createConversation raw response:', JSON.stringify(res, null, 2));
                 const conv = res?.data?.data ?? res?.data;
+                console.log('[Bot] Unwrapped conversation:', conv);
                 if (conv?.id) {
                     setConversationId(conv.id);
                     dispatch(setActiveBotConversation(conv.id));

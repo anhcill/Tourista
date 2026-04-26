@@ -146,10 +146,19 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
 
         console.log('[ChatModal] Creating conversation with payload:', payload);
 
-        const response = await chatApi.createConversation(payload);
-        const conversation = unwrapPayload(response);
+        let response;
+        try {
+          response = await chatApi.createConversation(payload);
+        } catch (apiErr) {
+          console.error('[ChatModal] createConversation API ERROR:', apiErr);
+          console.error('[ChatModal] Error response:', apiErr?.response?.data);
+          console.error('[ChatModal] Error status:', apiErr?.response?.status);
+          throw apiErr;
+        }
 
-        console.log('[ChatModal] createConversation response:', response, 'conversation:', conversation);
+        const conversation = unwrapPayload(response);
+        console.log('[ChatModal] createConversation RAW response:', JSON.stringify(response, null, 2));
+        console.log('[ChatModal] Unwrapped conversation:', conversation);
 
         if (!conversation?.id) {
           throw new Error('Khong mo duoc cuoc tro chuyen.');
