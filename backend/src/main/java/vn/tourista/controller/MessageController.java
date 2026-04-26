@@ -13,6 +13,7 @@ import vn.tourista.entity.Conversation;
 import vn.tourista.repository.ConversationRepository;
 import vn.tourista.service.BotService;
 import vn.tourista.service.ChatService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 
@@ -38,6 +39,7 @@ public class MessageController {
      * - type = P2P → lưu DB, push đến người nhận qua /user/{email}/queue/messages
      */
     @MessageMapping("/chat.send")
+    @Transactional(readOnly = true)
     public void handleChatMessage(@Payload SendMessagePayload payload, Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             log.warn("Blocked /chat.send because principal is missing. payloadConversationId={}",
@@ -65,8 +67,8 @@ public class MessageController {
 
             ChatMessageResponse response = ChatMessageResponse.from(saved);
 
-            // 2. Lấy thông tin conversation để biết dest
-            Conversation conv = conversationRepository.findById(payload.getConversationId())
+            // 2. Lấy thông tin conversation để biết dest (eager fetch để tránh LazyInitializationException)
+            Conversation conv = conversationRepository.findByIdWithUsers(payload.getConversationId())
                     .orElseThrow(() -> new RuntimeException("Conversation không tồn tại"));
 
             // 3. Push tin ngay về cho NGƯỜI GỬI (UI update tức thì, không cần chờ Bot)

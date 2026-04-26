@@ -51,4 +51,8 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     // Admin: dem tin chua doc cua 1 hoi thoai (bat cu ai gui)
     @Query("SELECT COUNT(m) FROM ChatMessage m WHERE m.conversation = :conv AND m.isRead = false AND m.sender IS NOT NULL")
     long countUnreadForAdmin(@Param("conv") Conversation conv);
+
+    // Eager fetch client + partner to avoid LazyInitializationException in WebSocket handlers
+    @Query("SELECT c FROM Conversation c LEFT JOIN FETCH c.client LEFT JOIN FETCH c.partner WHERE c.id = :id")
+    Optional<Conversation> findByIdWithUsers(@Param("id") Long id);
 }
