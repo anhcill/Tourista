@@ -19,10 +19,12 @@ import vn.tourista.entity.City;
 import vn.tourista.entity.Hotel;
 import vn.tourista.entity.HotelImage;
 import vn.tourista.entity.RoomType;
+import vn.tourista.entity.User;
 import vn.tourista.repository.CityRepository;
 import vn.tourista.repository.HotelImageRepository;
 import vn.tourista.repository.HotelRepository;
 import vn.tourista.repository.RoomTypeRepository;
+import vn.tourista.repository.UserRepository;
 import vn.tourista.service.HotelImportService;
 
 import java.io.IOException;
@@ -40,7 +42,10 @@ public class HotelImportServiceImpl implements HotelImportService {
     private final HotelImageRepository hotelImageRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final CityRepository cityRepository;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+
+    private static final String DEFAULT_OWNER_EMAIL = "ducanhle28072003@gmail.com";
 
     private static final Pattern NON_PRINTABLE = Pattern.compile("[\\x00-\\x1F\\x7F]");
     private static final Pattern MULTI_SPACE = Pattern.compile("\\s+");
@@ -51,11 +56,13 @@ public class HotelImportServiceImpl implements HotelImportService {
     public HotelImportServiceImpl(HotelRepository hotelRepository,
                                    HotelImageRepository hotelImageRepository,
                                    RoomTypeRepository roomTypeRepository,
-                                   CityRepository cityRepository) {
+                                   CityRepository cityRepository,
+                                   UserRepository userRepository) {
         this.hotelRepository = hotelRepository;
         this.hotelImageRepository = hotelImageRepository;
         this.roomTypeRepository = roomTypeRepository;
         this.cityRepository = cityRepository;
+        this.userRepository = userRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -258,8 +265,16 @@ public class HotelImportServiceImpl implements HotelImportService {
 
                 int starRating = estimateStarRating(row.getReviewRating(), cleanDescription);
 
+                // Load default owner so customers can chat with the partner
+                User owner = userRepository.findByEmail(DEFAULT_OWNER_EMAIL).orElse(null);
+                if (owner == null) {
+                    log.warn("Default owner email '{}' not found in DB — hotel {} will have no owner",
+                            DEFAULT_OWNER_EMAIL, cleanName);
+                }
+
                 Hotel hotel = Hotel.builder()
                         .city(city)
+                        .owner(owner)
                         .name(cleanName)
                         .slug(slug)
                         .description(cleanDescription)
