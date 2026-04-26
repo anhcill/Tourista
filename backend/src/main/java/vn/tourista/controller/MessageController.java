@@ -39,7 +39,7 @@ public class MessageController {
      * - type = P2P → lưu DB, push đến người nhận qua /user/{email}/queue/messages
      */
     @MessageMapping("/chat.send")
-    @Transactional(readOnly = true)
+    @Transactional
     public void handleChatMessage(@Payload SendMessagePayload payload, Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             log.warn("Blocked /chat.send because principal is missing. payloadConversationId={}",
