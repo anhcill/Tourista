@@ -17,16 +17,15 @@ import { p2pModalBus } from '@/utils/p2pModalBus';
 import styles from './ClientChatModal.module.css';
 
 // axiosClient interceptor returns response.data (parsed ApiResponse body = { success, data, timestamp })
-// BUT, this file may have been using the full axios response in some scenarios, so we use triple fallbacks
-// like InlineFaqChat: check axios response.data.data (deep), then response.data (api body), then response itself.
+// Use triple fallbacks like InlineFaqChat to handle both interceptor and raw response scenarios.
 const unwrapPayload = (response) =>
-    (response as { data?: { data?: unknown } })?.data?.data ??
-    (response as { data?: unknown })?.data ??
+    response?.data?.data ??
+    response?.data ??
     response ??
     null;
 const unwrapPageContent = (response) =>
-    (response as { data?: { content?: unknown } })?.data?.content ??
-    (response as { content?: unknown })?.content ??
+    response?.data?.content ??
+    response?.content ??
     response ?? [];
 const extractErrorMessage = (error) => {
   if (!error) return 'Khong the ket noi chat luc nay.';
