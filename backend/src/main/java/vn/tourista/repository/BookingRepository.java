@@ -85,15 +85,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
     @Query(value = """
         SELECT
           CASE
-            WHEN hd.hotelName IS NOT NULL THEN hd.hotelName
-            WHEN td.tourTitle IS NOT NULL THEN td.tourTitle
+            WHEN hd.hotel_name IS NOT NULL THEN hd.hotel_name
+            WHEN td.tour_title IS NOT NULL THEN td.tour_title
             ELSE NULL
           END,
           CASE
-            WHEN hd.checkInDate IS NOT NULL AND hd.checkOutDate IS NOT NULL
-              THEN CONCAT(hd.checkInDate, ' → ', hd.checkOutDate)
-            WHEN td.departureDate IS NOT NULL
-              THEN CONCAT('Khởi hành: ', td.departureDate)
+            WHEN hd.check_in_date IS NOT NULL AND hd.check_out_date IS NOT NULL
+              THEN CONCAT(hd.check_in_date, ' → ', hd.check_out_date)
+            WHEN td.departure_date IS NOT NULL
+              THEN CONCAT('Khởi hành: ', td.departure_date)
             ELSE NULL
           END
         FROM bookings b
