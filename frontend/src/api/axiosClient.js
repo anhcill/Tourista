@@ -42,12 +42,9 @@ axiosClient.interceptors.request.use(
   },
 );
 
-// Response interceptor
+// Response interceptor — return full axios response so callers can inspect status
 axiosClient.interceptors.response.use(
-  (response) => {
-    // Return data directly
-    return response.data;
-  },
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
