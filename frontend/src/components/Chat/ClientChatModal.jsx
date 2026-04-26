@@ -17,9 +17,17 @@ import { p2pModalBus } from '@/utils/p2pModalBus';
 import styles from './ClientChatModal.module.css';
 
 // axiosClient interceptor returns response.data (parsed ApiResponse body = { success, data, timestamp })
-// So unwrapPayload receives the ApiResponse object directly — extract the nested data field.
-const unwrapPayload = (response) => response?.data ?? null;
-const unwrapPageContent = (response) => response?.content ?? response ?? [];
+// BUT, this file may have been using the full axios response in some scenarios, so we use triple fallbacks
+// like InlineFaqChat: check axios response.data.data (deep), then response.data (api body), then response itself.
+const unwrapPayload = (response) =>
+    (response as { data?: { data?: unknown } })?.data?.data ??
+    (response as { data?: unknown })?.data ??
+    response ??
+    null;
+const unwrapPageContent = (response) =>
+    (response as { data?: { content?: unknown } })?.data?.content ??
+    (response as { content?: unknown })?.content ??
+    response ?? [];
 const extractErrorMessage = (error) => {
   if (!error) return 'Khong the ket noi chat luc nay.';
   if (typeof error === 'string') return error;
