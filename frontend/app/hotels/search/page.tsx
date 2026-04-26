@@ -412,7 +412,7 @@ function HotelSearchResultInner() {
           <FilterSidebar filters={filters} setFilters={setFilters} />
 
           <div className={styles.resultsList}>
-            <SearchResultsHeader city={query.city || 'Điểm đến'} count={displayedHotels.length} />
+            <SearchResultsHeader city={query.city || 'Điểm đến'} count={totalResults} />
 
             <section className={styles.priceAlertCard}>
               <div className={styles.priceAlertHeader}>

@@ -5,6 +5,10 @@ import { useSelector } from 'react-redux';
 import { FaComments, FaPaperPlane, FaSearch, FaHotel, FaPlaneDeparture, FaRobot } from 'react-icons/fa';
 import adminChatApi from '@/api/adminChatApi';
 import styles from './page.module.css';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { getAccessToken } from '@/utils/authStorage';
+import { API_BASE_URL } from '@/utils/constants';
 
 /* ─── Helpers ─── */
 const fmtTime = (v) => {
@@ -120,6 +124,70 @@ export default function AdminMessagesPage() {
   const [loadingMsgs, setLoadingMsgs] = useState(false);
 
   const msgListRef = useRef(null);
+  const lastMsgCountRef = useRef(0);
+  const activeIdRef = useRef(null);
+
+  /* Keep ref in sync with state */
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
+
+  /* Reload conversation list */
+  const reloadConvs = useCallback(async () => {
+    try {
+      const res = await adminChatApi.getConversations();
+      const list = Array.isArray(res?.data?.data) ? res.data.data : [];
+      setConvs(list);
+    } catch { /* silent fail */ }
+  }, []);
+
+  /* Reload active messages (for fallback polling) */
+  const reloadActiveMsgs = useCallback(async () => {
+    const currentId = activeIdRef.current;
+    if (!currentId) return;
+    try {
+      const res = await adminChatApi.getMessages(currentId);
+      const items = res?.data?.data?.content || [];
+      if (items.length !== lastMsgCountRef.current) {
+        lastMsgCountRef.current = items.length;
+        setActiveMsgs(items);
+      }
+    } catch { /* silent fail */ }
+  }, []);
+
+  /* WebSocket subscription for admin — receives all new messages */
+  useEffect(() => {
+    const token = getAccessToken();
+    if (!token) return;
+
+    const wsUrl = `${new URL(API_BASE_URL, window.location.origin).origin}/ws`;
+    const client = new Client({
+      webSocketFactory: () => new SockJS(wsUrl),
+      connectHeaders: { Authorization: `Bearer ${token}` },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      onConnect: () => {
+        client.subscribe('/user/queue/messages', (frame) => {
+          try {
+            const msg = JSON.parse(frame.body);
+            const currentId = activeIdRef.current;
+            if (msg.conversationId === currentId) {
+              setActiveMsgs(prev => {
+                if (prev.some(m => m.id === msg.id)) return prev;
+                return [...prev, msg];
+              });
+              setTimeout(() => {
+                msgListRef.current?.scrollTo({ top: msgListRef.current.scrollHeight, behavior: 'smooth' });
+              }, 50);
+            }
+            void reloadConvs();
+          } catch { /* ignore */ }
+        });
+      },
+    });
+
+    client.activate();
+    return () => { client.deactivate(); };
+  }, [reloadConvs]);
 
   /* Load conversations */
   const loadConvs = useCallback(async () => {
@@ -148,6 +216,7 @@ export default function AdminMessagesPage() {
     setDraft('');
     setActiveMsgs([]);
     setLoadingMsgs(true);
+    lastMsgCountRef.current = 0;
 
     try {
       const res = await adminChatApi.getMessages(conv.id);

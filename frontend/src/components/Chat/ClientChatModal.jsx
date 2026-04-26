@@ -8,6 +8,7 @@ import { IoEllipsisVertical } from 'react-icons/io5';
 import chatApi from '@/api/chatApi';
 import { useChatWebSocket } from '@/hooks/useChatWebSocket';
 import {
+  addMessage,
   closeP2P,
   markConversationRead,
   setActiveP2PConversation,
@@ -201,6 +202,23 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     event.preventDefault();
     const trimmed = draft.trim();
     if (!trimmed || !activeP2PConversationId || submitting) return;
+
+    const optimisticMessage = {
+      id: `temp-${Date.now()}`,
+      conversationId: activeP2PConversationId,
+      senderId: user?.id,
+      senderName: user?.name || user?.fullName || 'Bạn',
+      contentType: 'TEXT',
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+    };
+
+    dispatch(addMessage(optimisticMessage));
+    dispatch(setMessages({
+      conversationId: activeP2PConversationId,
+      messages: [...(messages[activeP2PConversationId] || []), optimisticMessage],
+    }));
 
     try {
       setSubmitting(true);
