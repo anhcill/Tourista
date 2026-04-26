@@ -16,7 +16,7 @@ import {
 import { p2pModalBus } from '@/utils/p2pModalBus';
 import styles from './ClientChatModal.module.css';
 
-const unwrapPayload = (response) => response ?? null;
+const unwrapPayload = (response) => response?.data ?? null;
 const unwrapPageContent = (response) => response?.content ?? response ?? [];
 const extractErrorMessage = (error) => {
   if (!error) return 'Khong the ket noi chat luc nay.';
