@@ -94,9 +94,13 @@ public class ChatService {
                         throw new RuntimeException("Không thể nhắn tin với chính mình");
                 }
 
-                // Validate: partner phải là đối tác (role PARTNER hoặc HOTEL_OWNER)
+                // Validate: partner phải là đối tác (role PARTNER, HOTEL_OWNER, hoặc HOST)
+                // ADMIN vẫn cho phép để support có thể chat với khách hàng
                 String roleName = partner.getRole() != null ? partner.getRole().getName() : "";
-                boolean isPartnerRole = roleName.equals("PARTNER") || roleName.equals("HOTEL_OWNER");
+                boolean isPartnerRole = roleName.equals("PARTNER")
+                        || roleName.equals("HOTEL_OWNER")
+                        || roleName.equals("HOST")
+                        || roleName.equals("ADMIN");
                 if (!isPartnerRole) {
                         throw new RuntimeException("Người nhận không phải là đối tác hợp lệ");
                 }
