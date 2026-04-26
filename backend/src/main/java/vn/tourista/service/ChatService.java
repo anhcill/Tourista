@@ -114,11 +114,16 @@ public class ChatService {
                                                         .partner(partner)
                                                         .referenceId(req.getReferenceId());
 
-                                        // Gắn booking nếu có
-                                        if (req.getBookingId() != null) {
-                                                bookingRepository.findById(req.getBookingId())
-                                                                .ifPresent(builder::booking);
-                                        }
+                // Gắn booking nếu có (table Booking có thể chưa tồn tại trong DB — wrap trong try)
+                if (req.getBookingId() != null) {
+                    try {
+                        bookingRepository.findById(req.getBookingId())
+                                .ifPresent(builder::booking);
+                    } catch (Exception ex) {
+                        log.warn("Cannot attach booking {} to conversation (table may not exist): {}",
+                                req.getBookingId(), ex.getMessage());
+                    }
+                }
 
                                         Conversation c = conversationRepository.save(builder.build());
                                         // Tin nhắn hệ thống khi bắt đầu chat

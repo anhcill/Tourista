@@ -96,9 +96,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
               THEN CONCAT('Khởi hành: ', td.departureDate)
             ELSE NULL
           END
-        FROM Booking b
-        LEFT JOIN BookingHotelDetail hd ON hd.booking = b
-        LEFT JOIN BookingTourDetail td ON td.booking = b
+        FROM bookings b
+        LEFT JOIN booking_hotel_details hd ON hd.booking_id = b.id
+        LEFT JOIN booking_tour_details td ON td.booking_id = b.id
         WHERE b.id = :bookingId
         """, nativeQuery = true)
     Object[] findServiceInfoByBookingId(@Param("bookingId") Long bookingId);
