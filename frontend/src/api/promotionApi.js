@@ -1,14 +1,11 @@
 import axiosClient from './axiosClient';
-import { API_ENDPOINTS } from '../utils/constants';
 
 const promotionApi = {
-    getActivePromotions: () => {
-        return axiosClient.get(API_ENDPOINTS.PROMOTIONS.LIST);
-    },
+  // Lấy danh sách khuyến mãi đang active
+  getActivePromotions: () => axiosClient.get('/promotions'),
 
-    validatePromo: (data) => {
-        return axiosClient.post('/promotions/validate', data);
-    },
+  // Validate mã khuyến mãi
+  validatePromo: (data) => axiosClient.post('/promotions/validate', data),
 };
 
 export default promotionApi;

@@ -99,11 +99,12 @@ export default function PromotionSelector({
                 reason: `Đơn tối thiểu ${formatVnd(promo.minOrderAmount)}`,
             };
         }
-        const appliesTo = promo.appliesTo;
-        if (appliesTo && appliesTo !== 'ALL') {
-            if (appliesTo !== appliesTo.toUpperCase()) {
-                // only matches if same type
-                if (appliesTo.toUpperCase() !== appliesTo) return { usable: false, reason: 'Không áp dụng' };
+        // Kiểm tra promo có áp dụng cho loại dịch vụ này không
+        const promoAppliesTo = promo.appliesTo?.toUpperCase();
+        if (promoAppliesTo && promoAppliesTo !== 'ALL') {
+            const currentType = (appliesTo || '').toUpperCase();
+            if (promoAppliesTo !== currentType) {
+                return { usable: false, reason: `Chỉ áp dụng cho ${promoAppliesTo === 'HOTEL' ? 'Khách sạn' : 'Tour'}` };
             }
         }
         return { usable: true, reason: null };

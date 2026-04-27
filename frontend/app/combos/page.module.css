@@ -1,0 +1,818 @@
+/* ============================================================
+   Combos Landing Page — Premium Split-Card Design
+   ============================================================ */
+
+.page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: #071626;
+}
+
+.heroSlideshow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.heroSlide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  animation: heroFade 18s infinite;
+}
+
+.heroSlide:nth-child(1) { animation-delay: 0s; }
+.heroSlide:nth-child(2) { animation-delay: 6s; }
+.heroSlide:nth-child(3) { animation-delay: 12s; }
+
+@keyframes heroFade {
+  0%   { opacity: 0; transform: scale(1.08); }
+  5%   { opacity: 1; }
+  30%  { opacity: 1; transform: scale(1.14); }
+  36%  { opacity: 0; }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(135deg,
+      rgba(5, 20, 40, 0.82) 0%,
+      rgba(0, 60, 100, 0.65) 60%,
+      rgba(0, 120, 80, 0.35) 100%
+    );
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 24px 90px;
+  width: 100%;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 212, 140, 0.15);
+  border: 1px solid rgba(0, 212, 140, 0.3);
+  border-radius: 999px;
+  padding: 6px 18px;
+  color: #6ee7b7;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00d48c;
+  animation: pulseDot 2s ease infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.6); }
+}
+
+.heroH1 {
+  margin: 0 0 18px;
+  color: #fff;
+  font-size: clamp(2rem, 5vw, 3.3rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  max-width: 680px;
+}
+
+.heroH1 span {
+  background: linear-gradient(90deg, #00d48c, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.heroSub {
+  margin: 0 0 28px;
+  color: rgba(255,255,255,0.72);
+  font-size: 1.05rem;
+  max-width: 540px;
+  line-height: 1.65;
+}
+
+.heroPills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.heroPill {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  padding: 6px 14px;
+  color: rgba(255,255,255,0.88);
+  font-size: 0.82rem;
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+}
+
+.heroStats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.heroStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroStatNum {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #6ee7b7;
+  line-height: 1;
+}
+
+.heroStatLabel {
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+}
+
+.heroDivider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,0.18);
+}
+
+/* ── HOW COMBO WORKS BANNER ── */
+.howComboWrap {
+  background: linear-gradient(135deg, #0077b6 0%, #00a8a8 100%);
+  padding: 20px 0;
+}
+
+.howComboRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.howComboItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+}
+
+.howComboItem strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.howComboItem p {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.75);
+  margin: 0;
+}
+
+.howComboIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.howComboPlusBig {
+  font-size: 2rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.5);
+  flex-shrink: 0;
+}
+
+.howComboSaving .howComboIcon {
+  filter: drop-shadow(0 0 8px rgba(255,200,0,0.6));
+}
+
+.howComboSaving strong {
+  font-size: 1.1rem;
+  color: #fde68a;
+}
+
+/* ── FILTER BAR ── */
+.filterWrap {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.filterInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.filterTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filterTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.filterTab:hover {
+  border-color: #0077b6;
+  color: #0077b6;
+}
+
+.filterTabActive {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0,119,182,0.35);
+}
+
+.filterCount {
+  background: rgba(255,255,255,0.25);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+/* ── COMBO SECTION ── */
+.comboSection { padding: 56px 0 64px; }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── COMBO GRID ── */
+.comboGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+}
+
+/* ── COMBO CARD ── */
+.comboCard {
+  background: #fff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  border: 1.5px solid #f1f5f9;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.comboCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 56px rgba(0,0,0,0.13);
+}
+
+/* Badge */
+.comboBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(239,68,68,0.4);
+}
+
+/* Savings strip */
+.comboSavingsStrip {
+  background: linear-gradient(135deg, #059669, #10b981);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 18px;
+}
+
+.savingsPct {
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.savingsAmt {
+  color: #d1fae5;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* Split images */
+.comboImages {
+  display: flex;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+}
+
+.comboImageHalf {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.comboImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.comboImgHovered {
+  transform: scale(1.08);
+}
+
+.comboImageLabel {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+/* Divider between images */
+.comboImageDivider {
+  width: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  background: #fff;
+  flex-shrink: 0;
+  gap: 0;
+}
+
+.comboImageDividerLine {
+  flex: 1;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.comboPlusBadge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(0,119,182,0.4);
+}
+
+/* Card body */
+.comboBody { padding: 20px 22px 24px; }
+
+.comboDestination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0077b6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.comboDestPin { font-size: 0.9rem; }
+
+.comboName {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+  line-height: 1.25;
+}
+
+.comboTagline {
+  font-size: 0.86rem;
+  color: #64748b;
+  margin: 0 0 16px;
+}
+
+/* Services */
+.comboServices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.comboServiceItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comboServiceEmoji { font-size: 1.2rem; flex-shrink: 0; }
+
+.comboServiceName {
+  font-size: 0.87rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.comboServiceStars {
+  font-size: 0.72rem;
+  color: #f59e0b;
+  letter-spacing: 1px;
+}
+
+.comboServiceDuration {
+  font-size: 0.73rem;
+  color: #64748b;
+}
+
+/* Includes chips */
+.includesWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.includeChip {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.includeChipMore {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* Pricing */
+.comboPricing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  gap: 12px;
+}
+
+.comboPricingLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.originalPrice {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.comboPrice {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0077b6;
+  line-height: 1;
+}
+
+.perPerson {
+  font-size: 0.73rem;
+  color: #94a3b8;
+}
+
+.comboBookBtn {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 13px 22px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0,119,182,0.35);
+  transition: transform 0.16s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.comboBookBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0,119,182,0.45);
+}
+
+/* ── EMPTY STATE ── */
+.emptyState {
+  text-align: center;
+  padding: 80px 24px;
+}
+
+.emptyIcon { font-size: 4rem; margin-bottom: 16px; }
+
+.emptyState h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 16px;
+}
+
+.emptyBtn {
+  background: linear-gradient(135deg, #0077b6, #00a8a8);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+/* ── BENEFITS ── */
+.benefitsSection {
+  background: linear-gradient(135deg, #0f172a 0%, #0a3d5e 100%);
+  padding: 72px 24px;
+}
+
+.sectionHead {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.sectionEyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #00d48c;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.sectionTitle {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.accent { color: #00d48c; }
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.benefitCard {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 28px 22px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  transition: background 0.22s ease, transform 0.22s ease;
+}
+
+.benefitCard:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-4px);
+}
+
+.benefitIcon {
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 16px;
+}
+
+.benefitTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.benefitDesc {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── CTA ── */
+.ctaSection {
+  padding: 64px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ctaBanner {
+  background: linear-gradient(135deg, #0077b6 0%, #00a8a8 100%);
+  border-radius: 24px;
+  padding: 52px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ctaFloatCircle1 {
+  position: absolute;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  right: -60px; top: -60px;
+  pointer-events: none;
+}
+
+.ctaFloatCircle2 {
+  position: absolute;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  right: 80px; bottom: -80px;
+  pointer-events: none;
+}
+
+.ctaText { position: relative; z-index: 1; }
+
+.ctaH2 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.ctaSub { margin: 0; color: rgba(255,255,255,0.8); font-size: 0.96rem; }
+
+.ctaBtns {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.ctaBtnPrimary {
+  background: #fff;
+  color: #0077b6;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transition: transform 0.16s ease;
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctaBtnPrimary:hover { transform: translateY(-2px); }
+
+.ctaBtnOutline {
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.6);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ctaBtnOutline:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.9);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .comboGrid { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
+  .benefitsGrid { grid-template-columns: repeat(2, 1fr); }
+  .ctaBanner { flex-direction: column; text-align: center; padding: 40px 32px; }
+  .ctaBtns { justify-content: center; }
+}
+
+@media (max-width: 768px) {
+  .heroH1 { font-size: 1.9rem; }
+  .heroInner { padding: 56px 20px 64px; }
+  .heroPills { gap: 6px; }
+  .heroPill { font-size: 0.75rem; padding: 5px 10px; }
+  .heroStats { gap: 16px; }
+  .howComboRow { flex-direction: column; gap: 12px; text-align: center; }
+  .howComboPlusBig { transform: rotate(90deg); }
+  .comboImages { height: 160px; }
+  .filterInner { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .benefitsGrid { grid-template-columns: 1fr 1fr; gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  .benefitsGrid { grid-template-columns: 1fr; }
+  .ctaBanner { padding: 32px 20px; }
+  .comboImages { height: 140px; }
+  .comboBookBtn { padding: 11px 16px; font-size: 0.83rem; }
+}
