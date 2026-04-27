@@ -172,7 +172,11 @@ const Header = () => {
         }
     }, [hasMounted]);
 
-    const isPartner = user?.role === 'PARTNER' || user?.role === 'HOTEL_OWNER' || user?.role === 'HOST';
+    // Normalize role: trim whitespace và uppercase để tránh lỗi do khác case
+    const normalizedRole = String(user?.role || '').trim().toUpperCase();
+    // ADMIN cũng có quyền truy cập /partner/** (theo SecurityConfig backend)
+    const PARTNER_ROLES = new Set(['PARTNER', 'HOTEL_OWNER', 'HOST', 'ADMIN']);
+    const isPartner = PARTNER_ROLES.has(normalizedRole);
     const showAuthenticatedMenu = hasMounted && isAuthenticated;
     const showPartnerIcon = showAuthenticatedMenu && isPartner;
 

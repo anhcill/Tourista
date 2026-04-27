@@ -65,6 +65,7 @@ import vn.tourista.repository.TourDepartureRepository;
 import vn.tourista.repository.TourImageRepository;
 import vn.tourista.repository.TourItineraryRepository;
 import vn.tourista.repository.TourRepository;
+import vn.tourista.repository.RefreshTokenRepository;
 import vn.tourista.repository.UserRepository;
 import vn.tourista.service.AdminService;
 import vn.tourista.util.SlugUtil;
@@ -92,6 +93,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private HotelRepository hotelRepository;
@@ -630,6 +634,11 @@ public class AdminServiceImpl implements AdminService {
 
         user.setRole(role);
         User saved = userRepository.save(user);
+
+        // Revoke tất cả refresh token của user để buộc họ login lại với role mới
+        // (JWT cũ vẫn có role cũ cho đến khi hết hạn)
+        refreshTokenRepository.revokeAllByUser(saved);
+
         AdminUserItemResponse after = toUserItem(saved);
 
         saveAudit(actorEmail, "UPDATE_USER_ROLE", "USERS", saved.getId(), before, after, reason);

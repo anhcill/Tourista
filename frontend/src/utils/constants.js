@@ -234,8 +234,8 @@ export const SOCIAL_LINKS = {
 
 // Contact Info
 export const CONTACT_INFO = {
-  EMAIL: "contact@tourista.vn",
-  PHONE: "1900-xxxx",
-  ZALO: "https://zalo.me/tourista",
+  EMAIL: "ducanhle28072003@gmail.com",
+  PHONE: "0815 913 408",
+  ZALO: "https://zalo.me/0815913408",
   ADDRESS: "Hà Nội, Việt Nam",
 };

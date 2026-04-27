@@ -17,8 +17,8 @@ const Footer = () => {
                     <div className={styles.footerSection}>
                         <h3 className={styles.sectionTitle}>Về Tourista Studio</h3>
                         <p className={styles.description}>
-                            Nền tảng đặt phòng khách sạn và tour du lịch hàng đầu,
-                            mang đến trải nghiệm du lịch tuyệt vời cho bạn.
+                            Nền tảng đặt phòng khách sạn và tour du lịch hàng đầu tại Việt Nam.
+                            Hỗ trợ 24/7 qua hotline <a href="tel:0815913408" style={{ color: '#60a5fa' }}>0815 913 408</a>.
                         </p>
                         <div className={styles.socialLinks}>
                             <a href={SOCIAL_LINKS.FACEBOOK} className={styles.socialLink} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
@@ -35,25 +35,24 @@ const Footer = () => {
 
                     {/* Quick Links */}
                     <div className={styles.footerSection}>
-                        <h3 className={styles.sectionTitle}>Liên kết nhanh</h3>
+                        <h3 className={styles.sectionTitle}>Dịch vụ</h3>
                         <ul className={styles.linkList}>
-                            <li><Link href="/" className={styles.link}>Trang chủ</Link></li>
                             <li><Link href="/hotels" className={styles.link}>Khách sạn</Link></li>
-                            <li><Link href="/tours" className={styles.link}>Tours</Link></li>
-                            <li><Link href="/about" className={styles.link}>Về chúng tôi</Link></li>
-                            <li><Link href="/contact" className={styles.link}>Liên hệ</Link></li>
+                            <li><Link href="/tours" className={styles.link}>Tours du lịch</Link></li>
+                            <li><Link href="/ai-travel-planner" className={styles.link}>Lập kế hoạch AI</Link></li>
+                            <li><Link href="/articles" className={styles.link}>Bài viết du lịch</Link></li>
+                            <li><Link href="/partner" className={styles.link}>Partner Dashboard</Link></li>
                         </ul>
                     </div>
 
                     {/* Support */}
                     <div className={styles.footerSection}>
-                        <h3 className={styles.sectionTitle}>Hỗ trợ</h3>
+                        <h3 className={styles.sectionTitle}>Hỗ trợ &amp; Pháp lý</h3>
                         <ul className={styles.linkList}>
+                            <li><Link href="/support" className={styles.link}>Liên hệ hỗ trợ</Link></li>
                             <li><Link href="/faq" className={styles.link}>Câu hỏi thường gặp</Link></li>
                             <li><Link href="/terms" className={styles.link}>Điều khoản sử dụng</Link></li>
                             <li><Link href="/privacy" className={styles.link}>Chính sách bảo mật</Link></li>
-                            <li><Link href="/refund" className={styles.link}>Chính sách hoàn tiền</Link></li>
-                            <li><Link href="/help" className={styles.link}>Trung tâm trợ giúp</Link></li>
                         </ul>
                     </div>
 

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import Link from 'next/link';
 import {
     FaUser, FaEnvelope, FaLock, FaGoogle,
     FaPlane, FaMapMarkerAlt, FaPassport, FaUmbrellaBeach,
@@ -83,6 +84,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
         confirmPassword: '',
     });
     const [registerErrors, setRegisterErrors] = useState({});
+    const [acceptTerms, setAcceptTerms] = useState(false);
 
     // Redirect nếu đã login
     useEffect(() => {
@@ -106,6 +108,7 @@ const AuthPage = ({ initialMode = 'login' }) => {
         setLoginErrors({});
         setRegisterErrors({});
         setRegisterSuccess(false);
+        setAcceptTerms(false);
     };
 
     // ─── Validate login ───────────────────────────────────────────────
@@ -128,6 +131,8 @@ const AuthPage = ({ initialMode = 'login' }) => {
             errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
         if (registerData.password !== registerData.confirmPassword)
             errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+        if (!acceptTerms)
+            errors.terms = 'Bạn cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật';
         return errors;
     };
 
@@ -328,6 +333,10 @@ const AuthPage = ({ initialMode = 'login' }) => {
 
                         <div className={styles.trustBadge}>
                             <span>🔒 An toàn &amp; Bảo mật</span>
+                            <span style={{ color: '#aaa', fontSize: '11px', margin: '0 4px' }}>|</span>
+                            <Link href="/terms" target="_blank" style={{ color: '#aaa', fontSize: '11px', textDecoration: 'none' }}>Điều khoản</Link>
+                            <span style={{ color: '#aaa', fontSize: '11px', margin: '0 4px' }}>|</span>
+                            <Link href="/privacy" target="_blank" style={{ color: '#aaa', fontSize: '11px', textDecoration: 'none' }}>Chính sách bảo mật</Link>
                         </div>
                     </div>
 
@@ -349,12 +358,17 @@ const AuthPage = ({ initialMode = 'login' }) => {
                                     Chúng tôi đã gửi email xác thực đến <strong>{registerData.email}</strong>.
                                     Vui lòng kiểm tra hộp thư và click vào link xác thực trước khi đăng nhập.
                                 </p>
+                                <p style={{ fontSize: '13px', color: '#718096', marginTop: '8px' }}>
+                                    Không nhận được email?{' '}
+                                    <Link href="/support" style={{ color: '#667eea', fontWeight: 600 }}>Liên hệ hỗ trợ</Link>
+                                </p>
                                 <Button
                                     variant="primary"
                                     fullWidth
                                     onClick={() => {
                                         setRegisterSuccess(false);
                                         setRegisterData({ fullName: '', email: '', password: '', confirmPassword: '' });
+                                        setAcceptTerms(false);
                                         setIsFlipped(false);
                                     }}
                                     className={styles.submitBtn}
@@ -446,6 +460,27 @@ const AuthPage = ({ initialMode = 'login' }) => {
                                             </button>
                                         </div>
                                         {registerErrors.confirmPassword && <span className={styles.fieldError}>{registerErrors.confirmPassword}</span>}
+                                    </div>
+
+                                    <div className={styles.termsRow}>
+                                        <label className={styles.termsLabel}>
+                                            <input
+                                                type="checkbox"
+                                                checked={acceptTerms}
+                                                onChange={(e) => {
+                                                    setAcceptTerms(e.target.checked);
+                                                    if (registerErrors.terms) setRegisterErrors({ ...registerErrors, terms: '' });
+                                                }}
+                                                className={styles.termsCheckbox}
+                                            />
+                                            <span>
+                                                Tôi đã đọc và đồng ý với{' '}
+                                                <Link href="/terms" target="_blank" className={styles.termsLink}>Điều khoản sử dụng</Link>
+                                                {' '}và{' '}
+                                                <Link href="/privacy" target="_blank" className={styles.termsLink}>Chính sách bảo mật</Link>
+                                            </span>
+                                        </label>
+                                        {registerErrors.terms && <span className={styles.fieldError}>{registerErrors.terms}</span>}
                                     </div>
 
                                     <Button

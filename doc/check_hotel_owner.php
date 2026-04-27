@@ -6,19 +6,43 @@ $pdo = new PDO(
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
 );
 
-$stmt = $pdo->prepare("SELECT h.id, h.name, h.owner_id, u.email as owner_email, r.name as owner_role
-    FROM hotels h LEFT JOIN users u ON u.id = h.owner_id LEFT JOIN roles r ON r.id = u.role_id
-    WHERE h.id = ?");
-$stmt->execute([2054]);
-$hotel = $stmt->fetch(PDO::FETCH_ASSOC);
+echo "=== TUYET DOI PHAI LAM ===\n\n";
 
-echo "Hotel 2054:\n";
-print_r($hotel);
+echo "1. DEBUG TOKEN:\n";
+echo "   Mo Chrome > F12 > Application > Session Storage > tim 'tourista_token'\n";
+echo "   Copy token, decode base64 phan giua (payload) tai https://jwt.io\n";
+echo "   Kiem tra truong 'role' co gia tri gi?\n\n";
 
-if (!$hotel['owner_id']) {
-    // Update owner to ducanhle28072003@gmail.com
-    $pdo->exec("UPDATE hotels SET owner_id = (SELECT id FROM users WHERE email = 'ducanhle28072003@gmail.com' LIMIT 1) WHERE id = 2054");
-    echo "\n✅ Đã gán owner cho hotel 2054\n";
+echo "2. RESET TOKEN:\n";
+echo "   - Dang xuat\n";
+echo "   - Xoa Session Storage (F12 > Application > Session Storage > clear)\n";
+echo "   - Xoa Local Storage (F12 > Application > Local Storage > clear)\n";
+echo "   - Xoa cookies\n";
+echo "   - Dang nhap lai\n\n";
+
+echo "3. NEU VAN LOI, CHECK NETWORK TAB:\n";
+echo "   - Vao /partner\n";
+echo "   - F12 > Network tab\n";
+echo "   - Tim /api/partner/hotels\n";
+echo "   - Xem response: 200? 403? 401?\n";
+echo "   - Neu 403: token role khong co quyen\n";
+echo "   - Neu 200: frontend van chua fix\n\n";
+
+$email = 'ducanhle28072003@gmail.com';
+
+echo "4. TOKEN TRONG DB (neu co refresh token):\n";
+$stmt = $pdo->prepare("SELECT * FROM refresh_tokens WHERE user_id = (SELECT id FROM users WHERE email = ?) LIMIT 1");
+$stmt->execute([$email]);
+$token = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($token) {
+    echo "Co refresh token, chua het han\n";
+    echo "Expires: {$token['expires_at']}\n";
 } else {
-    echo "\nHotel đã có owner: {$hotel['owner_email']}\n";
+    echo "Khong co refresh token hoac da het han\n";
 }
+
+echo "\n5. CHECK ROLES TABLE:\n";
+$stmt2 = $pdo->query("SELECT * FROM roles");
+$roles = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+print_r($roles);
+?>
