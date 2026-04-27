@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import tourApi from '@/api/tourApi';
 import bookingApi from '@/api/bookingApi';
+import PromotionSelector from '@/components/Common/PromotionSelector/PromotionSelector';
 import {
   clearTourBookingDraft,
   loadTourBookingDraft,
@@ -53,6 +54,7 @@ function TourBookingInner() {
   const [recoveredDraftAt, setRecoveredDraftAt] = useState(null);
 
   const [form, setForm] = useState(DEFAULT_FORM);
+  const [appliedPromo, setAppliedPromo] = useState(null);
 
   const query = useMemo(() => ({
     departureId: Number(searchParams.get('departureId') || 0),
@@ -152,7 +154,9 @@ function TourBookingInner() {
   }, [tour, selectedDeparture]);
 
   const childPrice = Number(tour?.pricePerChild || 0);
-  const totalAmount = adultPrice * adults + childPrice * children;
+  const originalAmount = adultPrice * adults + childPrice * children;
+  const promoDiscount = appliedPromo ? Number(appliedPromo.discountAmount || 0) : 0;
+  const totalAmount = Math.max(0, originalAmount - promoDiscount);
 
   const setField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -192,6 +196,7 @@ function TourBookingInner() {
         guestEmail: form.guestEmail.trim(),
         guestPhone: form.guestPhone.trim(),
         specialRequests: form.specialRequests.trim() || null,
+        ...(appliedPromo?.code && { promoCode: appliedPromo.code }),
       };
       const response = await bookingApi.createTourBooking(payload);
       const booking = response?.data;
@@ -388,11 +393,30 @@ function TourBookingInner() {
                   <span className={styles.summaryRowLabel}>Tổng khách</span>
                   <span className={styles.summaryRowValue}>{totalGuests} người</span>
                 </div>
+                {promoDiscount > 0 && (
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryRowLabel}>Mã khuyến mãi ({appliedPromo?.code})</span>
+                    <span className={styles.summaryRowValue} style={{ color: '#dc2626', fontWeight: 700 }}>
+                      -{formatVnd(promoDiscount)}
+                    </span>
+                  </div>
+                )}
                 <div className={styles.totalRow}>
                   <span className={styles.totalLabel}>Tổng thanh toán</span>
                   <span className={styles.totalAmount}>{formatVnd(totalAmount)}</span>
                 </div>
               </div>
+            </div>
+
+            {/* Promotion Selector */}
+            <div className={styles.block}>
+              <PromotionSelector
+                appliesTo="TOUR"
+                orderAmount={originalAmount}
+                selectedPromo={appliedPromo}
+                onApply={(promo) => setAppliedPromo(promo)}
+                onRemove={() => setAppliedPromo(null)}
+              />
             </div>
 
             {/* Booking form */}

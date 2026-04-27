@@ -13,6 +13,7 @@ import {
   FaStar,
   FaArrowLeft,
   FaComments,
+  FaFlag,
 } from 'react-icons/fa';
 import styles from './AdminSidebar.module.css';
 
@@ -23,6 +24,7 @@ const MENU_ITEMS = [
   { label: 'Chuyến đi', href: '/admin/tours', icon: <FaPlaneDeparture /> },
   { label: 'Đơn đặt chỗ', href: '/admin/bookings', icon: <FaReceipt /> },
   { label: 'Tin nhắn', href: '/admin/messages', icon: <FaComments /> },
+  { label: 'Báo cáo', href: '/admin/reports', icon: <FaFlag /> },
   { label: 'Đánh giá', href: '/admin/reviews', icon: <FaStar /> },
   { label: 'Khuyến mãi', href: '/admin/promotions', icon: <FaTags /> },
   { label: 'Cài đặt Hệ thống', href: '/admin/settings', icon: <FaCog /> },

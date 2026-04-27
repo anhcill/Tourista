@@ -166,7 +166,25 @@ export default function AdminMessagesPage() {
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       onConnect: () => {
+        // Nhận tin nhắn gửi cho user đang login (hội thoại đang mở)
         client.subscribe('/user/queue/messages', (frame) => {
+          try {
+            const msg = JSON.parse(frame.body);
+            const currentId = activeIdRef.current;
+            if (msg.conversationId === currentId) {
+              setActiveMsgs(prev => {
+                if (prev.some(m => m.id === msg.id)) return prev;
+                return [...prev, msg];
+              });
+              setTimeout(() => {
+                msgListRef.current?.scrollTo({ top: msgListRef.current.scrollHeight, behavior: 'smooth' });
+              }, 50);
+            }
+          } catch { /* ignore */ }
+        });
+
+        // Nhận thông báo tin nhắn mới cho admin (từ /topic/admin/notifications)
+        client.subscribe('/topic/admin/notifications', (frame) => {
           try {
             const msg = JSON.parse(frame.body);
             const currentId = activeIdRef.current;

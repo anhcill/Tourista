@@ -9,9 +9,9 @@ import { toast } from 'react-toastify';
 import {
     FaSearch, FaGlobe, FaSignOutAlt,
     FaBookmark, FaChevronDown, FaHeart,
-    FaHotel, FaMapMarkedAlt, FaBusAlt,
+    FaHotel, FaMapMarkedAlt,
     FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments,
-    FaMoon, FaSun, FaRegLightbulb, FaChevronRight, FaUser
+    FaMoon, FaSun, FaRegLightbulb, FaUser, FaTag, FaSuitcaseRolling, FaPlaneDeparture
 } from 'react-icons/fa';
 import { logout } from '../../../store/slices/authSlice';
 import authApi from '../../../api/authApi';
@@ -68,6 +68,54 @@ const groupRecentSearches = (items) => {
     ].filter((group) => group.items.length > 0);
 };
 
+const AnimatedBusLogo = ({ className }) => (
+    <svg
+        className={className}
+        width="32"
+        height="32"
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <defs>
+            <linearGradient id="busGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#FF6B35"/>
+                <stop offset="50%" stopColor="#F7C59F"/>
+                <stop offset="100%" stopColor="#00B4D8"/>
+            </linearGradient>
+            <linearGradient id="busGradDark" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#FF8C5A"/>
+                <stop offset="50%" stopColor="#FFB88A"/>
+                <stop offset="100%" stopColor="#4DC9FF"/>
+            </linearGradient>
+        </defs>
+        {/* Bus body */}
+        <rect x="6" y="18" width="52" height="28" rx="8" fill="url(#busGrad)" className={styles.busBody}/>
+        {/* Windshield */}
+        <rect x="10" y="22" width="16" height="12" rx="4" fill="rgba(255,255,255,0.45)" className={styles.busWindow}/>
+        {/* Rear window */}
+        <rect x="30" y="22" width="12" height="12" rx="3" fill="rgba(255,255,255,0.3)" className={styles.busRearWindow}/>
+        {/* Door */}
+        <rect x="44" y="22" width="10" height="18" rx="3" fill="rgba(255,255,255,0.25)" className={styles.busDoor}/>
+        {/* Wheels */}
+        <circle cx="20" cy="50" r="7" fill="#2D3748" className={styles.wheelFront}/>
+        <circle cx="20" cy="50" r="3" fill="#718096" className={styles.wheelHubFront}/>
+        <circle cx="44" cy="50" r="7" fill="#2D3748" className={styles.wheelRear}/>
+        <circle cx="44" cy="50" r="3" fill="#718096" className={styles.wheelHubRear}/>
+        {/* Headlights */}
+        <rect x="6" y="34" width="4" height="6" rx="2" fill="#FFD700" opacity="0.9"/>
+        {/* Taillights */}
+        <rect x="54" y="34" width="4" height="6" rx="2" fill="#FF4444" opacity="0.8"/>
+        {/* Stripe decoration */}
+        <rect x="6" y="38" width="52" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
+        {/* Roof */}
+        <rect x="10" y="14" width="44" height="6" rx="3" fill="rgba(0,0,0,0.12)"/>
+        {/* Antenna */}
+        <rect x="48" y="8" width="3" height="8" rx="1.5" fill="#718096"/>
+        <circle cx="49.5" cy="8" r="2.5" fill="#FF6B35"/>
+    </svg>
+);
+
 const Header = () => {
     const dispatch = useDispatch();
     const router = useRouter();
@@ -99,7 +147,6 @@ const Header = () => {
 
     useEffect(() => { setHasMounted(true); }, []);
 
-    // Sticky search bar on mobile: activate after scrolling down 80px
     useEffect(() => {
         const checkMobile = () => setIsMobileScreen(window.innerWidth <= 768);
         checkMobile();
@@ -125,7 +172,9 @@ const Header = () => {
         }
     }, [hasMounted]);
 
+    const isPartner = user?.role === 'PARTNER' || user?.role === 'HOTEL_OWNER' || user?.role === 'HOST';
     const showAuthenticatedMenu = hasMounted && isAuthenticated;
+    const showPartnerIcon = showAuthenticatedMenu && isPartner;
 
     useEffect(() => {
         if (!hasMounted || !isAuthenticated) return;
@@ -171,14 +220,14 @@ const Header = () => {
         }
     };
 
-    const MovingBusIcon = ({ className }) => <FaBusAlt className={`${className || ''} ${styles.movingBus}`} />;
-
     const navigationTabs = [
-        { id: 'hotel', label: 'Khách sạn', hint: 'Nghỉ dưỡng', href: '/hotels', icon: FaHotel },
-        { id: 'tour', label: 'Tour du lịch', hint: 'Khám phá tự do', href: '/tours', icon: FaMapMarkedAlt },
-        { id: 'bus', label: 'Vé xe khách', hint: 'Vi vu mọi ngả', href: '/bus', icon: MovingBusIcon },
-        { id: 'ai', label: 'AI Planner', hint: 'Chuyên gia du lịch', href: '/ai-travel-planner', icon: FaRegLightbulb },
-        { id: 'article', label: 'Cẩm nang', hint: 'Bí kíp thả ga', href: '/articles', icon: FaBookOpen },
+        { id: 'hotel', label: 'Khách sạn', hint: 'Nghỉ dưỡng', href: '/hotels', icon: FaHotel, color: '#FF6B6B' },
+        { id: 'tour', label: 'Tour du lịch', hint: 'Khám phá tự do', href: '/tours', icon: FaMapMarkedAlt, color: '#4ECDC4' },
+        { id: 'bus', label: 'Vé xe khách', hint: 'Vi vu mọi ngả', href: '/bus', icon: FaPlaneDeparture, color: '#45B7D1', isBus: true },
+        { id: 'ai', label: 'AI Planner', hint: 'Chuyên gia du lịch', href: '/ai-travel-planner', icon: FaRegLightbulb, color: '#96CEB4' },
+        { id: 'promo', label: 'Khuyến mãi', hint: 'Ưu đãi hot', href: '/promotions', icon: FaTag, color: '#F7DC6F' },
+        { id: 'combo', label: 'Combo', hint: 'Tiết kiệm hơn', href: '/combos', icon: FaSuitcaseRolling, color: '#BB8FCE' },
+        { id: 'article', label: 'Cẩm nang', hint: 'Bí kíp thả ga', href: '/articles', icon: FaBookOpen, color: '#85C1E9' },
     ];
 
     const isTabActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
@@ -293,9 +342,10 @@ const Header = () => {
                 <div className="container">
                     <div className={styles.topBarInner}>
 
+                        {/* Logo */}
                         <Link href="/" className={styles.logo}>
-                            <div className={styles.logoIconBg}>
-                                <FaBusAlt className={styles.movingBusLogo} />
+                            <div className={styles.logoIconWrap}>
+                                <AnimatedBusLogo className={styles.logoIcon} />
                             </div>
                             <div className={styles.logoTextWrap}>
                                 <span className={styles.logoText}>Tourista</span>
@@ -303,7 +353,7 @@ const Header = () => {
                             </div>
                         </Link>
 
-                        {/* --- Search Bar --- */}
+                        {/* Search Bar */}
                         <div className={styles.searchWrap}>
                             <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
                                 <div className={styles.searchField}>
@@ -395,7 +445,7 @@ const Header = () => {
                             </form>
                         </div>
 
-                        {/* --- Actions --- */}
+                        {/* Actions */}
                         <div className={styles.actions}>
                             <div className={styles.utilityButtons}>
                                 <button
@@ -422,8 +472,8 @@ const Header = () => {
                                 </button>
                                 <NotificationDropdown />
                                 <SupportDropdown />
-                                {showAuthenticatedMenu && (
-                                    <Link href="/partner/messages" className={styles.iconBtn} aria-label="Tin nhắn">
+                                {showAuthenticatedMenu && isPartner && (
+                                    <Link href="/partner/messages" className={styles.iconBtn} aria-label="Tin nhắn Partner">
                                         <FaComments />
                                         {totalUnread > 0 && (
                                             <span className={styles.chatBadge}>{totalUnread > 9 ? '9+' : totalUnread}</span>
@@ -504,7 +554,7 @@ const Header = () => {
                         </div>
                     </div>
 
-                    {/* --- Nav Row --- */}
+                    {/* Nav Row */}
                     <nav className={styles.navRow}>
                         <div className={styles.navTabs}>
                             {navigationTabs.map((tab) => (
@@ -512,17 +562,24 @@ const Header = () => {
                                     key={tab.id}
                                     href={tab.href}
                                     className={`${styles.navTab} ${isTabActive(tab.href) ? styles.active : ''}`}
+                                    style={isTabActive(tab.href) ? { '--tab-accent': tab.color } : {}}
                                     onClick={(e) => tab.comingSoon && handleComingSoon(e, tab.label)}
                                 >
-                                    <tab.icon className={styles.navTabIcon} />
+                                    {tab.isBus ? (
+                                        <span className={styles.navTabIconBus}>
+                                            <AnimatedBusLogo className={styles.busIconSmall} />
+                                        </span>
+                                    ) : (
+                                        <tab.icon className={styles.navTabIcon} style={isTabActive(tab.href) ? { color: tab.color } : {}} />
+                                    )}
                                     <span>{tab.label}</span>
                                     {tab.comingSoon && <span className={styles.comingSoonBadge}>Sớm</span>}
-                                    {isTabActive(tab.href) && <span className={styles.activeIndicator} />}
                                 </Link>
                             ))}
                         </div>
                     </nav>
-                    {/* --- Sticky Mobile Search Bar (appears after scroll) --- */}
+
+                    {/* Sticky Mobile Search Bar */}
                     {isMobileScreen && (
                         <div className={`${styles.stickySearchWrap} ${isMobileScrolled ? styles.stickySearchVisible : ''}`}>
                         <form className={styles.stickySearchForm} onSubmit={(e) => {
@@ -542,7 +599,7 @@ const Header = () => {
                         </div>
                     )}
 
-                    {/* --- Mobile Menu --- */}
+                    {/* Mobile Menu */}
                     {mobileMenuOpen && (
                         <div className={styles.mobileMenu}>
                             <div className={styles.mobileMenuHeader}>
@@ -579,7 +636,13 @@ const Header = () => {
                                         className={`${styles.mobileNavItem} ${isTabActive(tab.href) ? styles.active : ''}`}
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
-                                        <span className={styles.mobileNavIcon}><tab.icon /></span>
+                                        <span className={styles.mobileNavIcon}>
+                                            {tab.isBus ? (
+                                                <AnimatedBusLogo className={styles.busIconMobile} />
+                                            ) : (
+                                                <tab.icon />
+                                            )}
+                                        </span>
                                         <span className={styles.mobileNavLabel}>{tab.label}</span>
                                         {tab.comingSoon && <span className={styles.comingSoonBadge}>Sớm</span>}
                                     </Link>

@@ -87,6 +87,10 @@ public class MessageController {
                 if (recipientEmail != null) {
                     messagingTemplate.convertAndSendToUser(recipientEmail, "/queue/messages", response);
                 }
+
+                // Push đến tất cả admin đang online (qua kênh broadcast)
+                // Frontend admin subscribe /topic/admin/notifications để nhận
+                messagingTemplate.convertAndSend("/topic/admin/notifications", response);
             }
         } catch (Exception ex) {
             log.error("Failed to process /chat.send. sender={}, conversationId={}",

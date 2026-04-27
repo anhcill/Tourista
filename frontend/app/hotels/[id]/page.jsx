@@ -366,9 +366,12 @@ function HotelDetailInner() {
                 const safeCheckIn = checkIn || getTodayDate();
                 const safeCheckOut = checkOut || getTomorrowDate();
                 const city = String(hotel.city || '').trim();
+                const currentHotelId = Number(hotel.id);
+                const currentCityNorm = normalizeText(hotel.city);
 
                 let list = [];
 
+                // Strategy 1: search by city
                 try {
                     const searchResponse = await hotelApi.searchHotels({
                         city,
@@ -382,26 +385,42 @@ function HotelDetailInner() {
                         ? payload
                         : Array.isArray(payload?.content)
                             ? payload.content
-                            : [];
+                            : Array.isArray(payload?.items)
+                                ? payload.items
+                                : Array.isArray(payload?.hotels)
+                                    ? payload.hotels
+                                    : [];
                 } catch {
-                    const fallbackResponse = await hotelApi.getHotels({ limit: 60 });
-                    const payload = fallbackResponse?.data;
-                    list = Array.isArray(payload)
-                        ? payload
-                        : Array.isArray(payload?.content)
-                            ? payload.content
-                            : [];
+                    list = [];
                 }
 
-                const currentHotelId = Number(hotel.id);
-                const currentCityNorm = normalizeText(hotel.city);
+                // Strategy 2: get all hotels if search returned nothing
+                if (list.length === 0) {
+                    try {
+                        const fallbackResponse = await hotelApi.getHotels({ limit: 100 });
+                        const payload = fallbackResponse?.data;
+                        list = Array.isArray(payload)
+                            ? payload
+                            : Array.isArray(payload?.content)
+                                ? payload.content
+                                : Array.isArray(payload?.items)
+                                    ? payload.items
+                                    : Array.isArray(payload?.hotels)
+                                        ? payload.hotels
+                                        : [];
+                    } catch {
+                        list = [];
+                    }
+                }
 
                 const sorted = list
                     .filter((item) => Number(item?.id || 0) !== currentHotelId)
-                    .filter((item) => normalizeText(item?.city).includes(currentCityNorm))
-                    .sort((a, b) => {
-                        return Number(b?.avgRating || 0) - Number(a?.avgRating || 0);
+                    .filter((item) => {
+                        const itemCity = String(item?.city || '').trim();
+                        if (!itemCity) return false;
+                        return normalizeText(itemCity).includes(currentCityNorm);
                     })
+                    .sort((a, b) => Number(b?.avgRating || 0) - Number(a?.avgRating || 0))
                     .slice(0, 6);
 
                 setRecommendedHotels(sorted);

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaComments, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { FaComments, FaPaperPlane, FaTimes, FaCircle } from 'react-icons/fa';
 import { IoEllipsisVertical } from 'react-icons/io5';
 import chatApi from '@/api/chatApi';
 import { useChatWebSocket } from '@/hooks/useChatWebSocket';
@@ -18,24 +18,25 @@ import {
 import { p2pModalBus } from '@/utils/p2pModalBus';
 import styles from './ClientChatModal.module.css';
 
-// axiosClient interceptor returns response.data (parsed ApiResponse body = { success, data, timestamp })
 const unwrapPayload = (response) =>
     response?.data?.data ??
     response?.data ??
     response ??
     null;
+
 const unwrapPageContent = (response) =>
     response?.data?.content ??
     response?.content ??
     response ?? [];
+
 const extractErrorMessage = (error) => {
-  if (!error) return 'Khong the ket noi chat luc nay.';
+  if (!error) return 'Không thể kết nối chat lúc này.';
   if (typeof error === 'string') return error;
-  if (error?.response?.status === 401) return 'Vui long dang nhap de su dung chat voi chu dich vu.';
-  if (error?.response?.status === 403) return 'Ban khong co quyen chat voi dich vu nay.';
-  if (error?.response?.status === 404) return 'Khong tim thay cuoc tro chuyen. Vui long thu lai.';
-  if (error?.response?.status === 500) return 'Loi server khi mo cuoc tro chuyen. Vui long thu lai sau giay lat.';
-  return error?.message || error?.data?.message || 'Khong the ket noi chat luc nay.';
+  if (error?.response?.status === 401) return 'Vui lòng đăng nhập để sử dụng chat.';
+  if (error?.response?.status === 403) return 'Bạn không có quyền chat với dịch vụ này.';
+  if (error?.response?.status === 404) return 'Không tìm thấy cuộc trò chuyện. Vui lòng thử lại.';
+  if (error?.response?.status === 500) return 'Lỗi server. Vui lòng thử lại sau giây lát.';
+  return error?.message || error?.data?.message || 'Không thể kết nối chat lúc này.';
 };
 
 function getInitials(name) {
@@ -43,6 +44,16 @@ function getInitials(name) {
   const parts = name.trim().split(' ');
   if (parts.length === 1) return parts[0][0].toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function formatClock(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d);
 }
 
 function formatDateLabel(dateStr) {
@@ -56,38 +67,39 @@ function formatDateLabel(dateStr) {
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-const MessageItem = ({ message, isOwn, showDate }) => {
-  const timeStr = message?.createdAt
-    ? new Date(message.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-    : '';
+const MessageBubble = ({ message, isOwn, showDate }) => {
+  if (message?.contentType === 'SYSTEM_LOG') {
+    return (
+      <>
+        {showDate && (
+          <div className={styles.dateSeparator}>
+            <span>{formatDateLabel(message.createdAt)}</span>
+          </div>
+        )}
+        <div className={styles.systemMessage}>{message.content}</div>
+      </>
+    );
+  }
 
   return (
     <>
       {showDate && (
         <div className={styles.dateSeparator}>
-          <span className={styles.dateSeparatorLine} />
           <span>{formatDateLabel(message.createdAt)}</span>
-          <span className={styles.dateSeparatorLine} />
         </div>
       )}
       <div className={`${styles.messageRow} ${isOwn ? styles.messageOwn : styles.messageIncoming}`}>
         <div className={`${styles.messageBubble} ${isOwn ? styles.messageBubbleOwn : styles.messageBubbleIncoming}`}>
-          {message?.contentType === 'SYSTEM_LOG' ? (
-            <span style={{ fontSize: '11px', fontStyle: 'italic', opacity: 0.7 }}>{message.content}</span>
-          ) : (
-            <>
-              <p>{message?.content || ''}</p>
-              <div className={styles.messageFooter}>
-                <span className={styles.messageTime}>{timeStr}</span>
-                {isOwn && (
-                  <span className={styles.readReceipt}>
-                    {/* simple double-check icon via unicode */}
-                    ✓
-                  </span>
-                )}
-              </div>
-            </>
+          {!isOwn && message?.senderName && (
+            <span className={styles.senderName}>{message.senderName}</span>
           )}
+          <p>{message?.content || ''}</p>
+          <div className={styles.messageFooter}>
+            <span className={styles.messageTime}>{formatClock(message?.createdAt)}</span>
+            {isOwn && (
+              <span className={styles.readReceipt}>✓✓</span>
+            )}
+          </div>
         </div>
       </div>
     </>
@@ -104,8 +116,9 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [draft, setDraft] = useState('');
-  const [headerTitle, setHeaderTitle] = useState('Chat với Chủ');
+  const [headerTitle, setHeaderTitle] = useState('Chat với Chủ dịch vụ');
   const [sendingIndicator, setSendingIndicator] = useState(false);
+  const [partnerAvatar, setPartnerAvatar] = useState('');
 
   const listRef = useRef(null);
   const inputRef = useRef(null);
@@ -144,11 +157,11 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
 
     const initConversation = async () => {
       if (!conversationSeed?.type || !conversationSeed?.referenceId) {
-        setError('Thong tin cuoc tro chuyen khong hop le.');
+        setError('Thông tin cuộc trò chuyện không hợp lệ.');
         return;
       }
       if (!conversationSeed?.partnerId) {
-        setError('Dich vu nay chua co thong tin chu so huu de mo chat truc tiep. Vui long lien he ho tro 24/7.');
+        setError('Dịch vụ này chưa có thông tin chủ sở hữu. Vui lòng liên hệ hỗ trợ.');
         return;
       }
 
@@ -163,18 +176,13 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
           bookingId: conversationSeed.bookingId ? Number(conversationSeed.bookingId) : undefined,
         };
 
-        let response;
-        try {
-          response = await chatApi.createConversation(payload);
-        } catch (apiErr) {
-          throw apiErr;
-        }
-
+        const response = await chatApi.createConversation(payload);
         const conversation = unwrapPayload(response);
-        if (!conversation?.id) throw new Error('Khong mo duoc cuoc tro chuyen.');
+        if (!conversation?.id) throw new Error('Không mở được cuộc trò chuyện.');
 
         dispatch(setActiveP2PConversation(conversation.id));
-        setHeaderTitle(conversation.partnerName || conversationSeed.title || 'Chat voi Chu');
+        setHeaderTitle(conversation.partnerName || conversationSeed.title || 'Chat với Chủ dịch vụ');
+        setPartnerAvatar(conversation.partnerAvatar || '');
 
         const historyResponse = await chatApi.getMessages(conversation.id);
         const history = unwrapPageContent(historyResponse);
@@ -199,15 +207,16 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
   }, [chatMessages, isOpen, sendingIndicator]);
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event?.preventDefault?.();
     const trimmed = draft.trim();
     if (!trimmed || !activeP2PConversationId || submitting) return;
 
+    // Optimistic update
     const optimisticMessage = {
       id: `temp-${Date.now()}`,
       conversationId: activeP2PConversationId,
       senderId: user?.id,
-      senderName: user?.name || user?.fullName || 'Bạn',
+      senderName: user?.fullName || user?.name || 'Bạn',
       contentType: 'TEXT',
       content: trimmed,
       createdAt: new Date().toISOString(),
@@ -215,24 +224,24 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     };
 
     dispatch(addMessage(optimisticMessage));
-    dispatch(setMessages({
-      conversationId: activeP2PConversationId,
-      messages: [...(messages[activeP2PConversationId] || []), optimisticMessage],
-    }));
 
-    try {
-      setSubmitting(true);
-      setSendingIndicator(true);
-      const sent = sendMessage(activeP2PConversationId, trimmed);
-      if (!sent) {
-        setError('Mat ket noi chat thoi gian thuc. Vui long thu lai sau it giay.');
-        return;
-      }
-      setDraft('');
-      setError('');
-    } finally {
-      setSubmitting(false);
-      setTimeout(() => setSendingIndicator(false), 1200);
+    setDraft('');
+    setSubmitting(true);
+    setSendingIndicator(true);
+
+    const sent = sendMessage(activeP2PConversationId, trimmed);
+    if (!sent) {
+      setError('Mất kết nối chat. Vui lòng thử lại sau giây lát.');
+    }
+
+    setSubmitting(false);
+    setTimeout(() => setSendingIndicator(false), 1200);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -244,118 +253,163 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
 
         {/* ── Header ── */}
         <header className={styles.header}>
-          <div className={styles.headerTitleWrap}>
-            <div className={styles.avatar}>
-              <div className={styles.avatarCircle}>{getInitials(headerTitle)}</div>
-              <span className={styles.statusDot} />
+          <div className={styles.headerLeft}>
+            <div className={styles.avatarWrap}>
+              <div className={styles.avatarCircle}>
+                {partnerAvatar ? (
+                  <img src={partnerAvatar} alt="" className={styles.avatarImg} />
+                ) : (
+                  getInitials(headerTitle)
+                )}
+              </div>
+              <span className={styles.onlineDot} />
             </div>
             <div className={styles.headerText}>
               <h3>{headerTitle}</h3>
-              <div className={styles.headerMeta}>
-                <span>Online</span>
-                <span className={styles.headerMetaDot} />
-                <span>Phản hồi nhanh</span>
+              <div className={styles.headerStatus}>
+                <FaCircle style={{ fontSize: 8, color: '#22c55e' }} />
+                <span>Đang hoạt động</span>
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button type="button" className={styles.closeBtn} onClick={closeModal} aria-label="Dong chat">
-              <IoEllipsisVertical size={15} />
+          <div className={styles.headerRight}>
+            <button type="button" className={styles.iconBtn} aria-label="Tùy chọn">
+              <IoEllipsisVertical size={16} />
             </button>
-            <button type="button" className={styles.closeBtn} onClick={closeModal} aria-label="Dong chat">
-              <FaTimes size={15} />
+            <button type="button" className={styles.closeBtn} onClick={closeModal} aria-label="Đóng chat">
+              <FaTimes size={16} />
             </button>
           </div>
         </header>
 
         {/* ── Body ── */}
-        {!isAuthenticated ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}><FaComments /></div>
-            <h4>Chat với Chủ dịch vụ</h4>
-            <p>Đăng nhập để nhắn tin trực tiếp với chủ dịch vụ du lịch và đặt phòng ngay hôm nay.</p>
-            <Link href="/login" className={styles.ctaLink}>Đăng nhập ngay</Link>
-          </div>
-        ) : loading ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}><FaComments /></div>
-            <h4>Đang kết nối...</h4>
-            <p>Đang thiết lập cuộc trò chuyện với chủ dịch vụ.</p>
-          </div>
-        ) : error ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon} style={{ background: 'linear-gradient(135deg, #fee2e2, #fecaca)', color: '#dc2626' }}>
-              <FaTimes />
+        <div className={styles.body}>
+          {!isAuthenticated ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}><FaComments /></div>
+              <h4>Chat với Chủ dịch vụ</h4>
+              <p>Đăng nhập để nhắn tin trực tiếp với chủ dịch vụ du lịch.</p>
+              <Link href="/login" className={styles.ctaLink} onClick={closeModal}>
+                Đăng nhập ngay
+              </Link>
             </div>
-            <h4>Không thể kết nối</h4>
-            <p>{error}</p>
-          </div>
-        ) : (
-          <>
-            <div className={styles.messages} ref={listRef}>
-              {chatMessages.length === 0 ? (
-                <div className={styles.systemMessage}>
-                  Bắt đầu cuộc trò chuyện với chủ dịch vụ ngay bây giờ
-                </div>
-              ) : (
-                chatMessages.map((message, idx) => {
-                  const isOwn =
-                    message?.senderId != null && user?.id != null
-                      ? Number(message.senderId) === Number(user.id)
-                      : false;
+          ) : loading ? (
+            <div className={styles.emptyState}>
+              <div className={styles.spinner} />
+              <h4>Đang kết nối...</h4>
+              <p>Thiết lập cuộc trò chuyện với chủ dịch vụ.</p>
+            </div>
+          ) : error ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon} style={{ background: 'linear-gradient(135deg, #fee2e2, #fecaca)', color: '#dc2626' }}>
+                <FaTimes />
+              </div>
+              <h4>Không thể kết nối</h4>
+              <p>{error}</p>
+            </div>
+          ) : (
+            <>
+              <div className={styles.messages} ref={listRef}>
+                {chatMessages.length === 0 ? (
+                  <div className={styles.emptyChat}>
+                    <p>Bắt đầu cuộc trò chuyện với chủ dịch vụ</p>
+                    <small>Hỏi về phòng, giá, dịch vụ...</small>
+                  </div>
+                ) : (
+                  chatMessages.map((message, idx) => {
+                    const isOwn =
+                      message?.senderId != null && user?.id != null
+                        ? Number(message.senderId) === Number(user.id)
+                        : false;
 
-                  const prev = chatMessages[idx - 1];
-                  const showDate = !prev || formatDateLabel(message.createdAt) !== formatDateLabel(prev.createdAt);
+                    const prev = chatMessages[idx - 1];
+                    const showDate = !prev || formatDateLabel(message.createdAt) !== formatDateLabel(prev.createdAt);
 
-                  return (
-                    <MessageItem
-                      key={message.id || `${message.createdAt}-${message.content}`}
-                      message={message}
-                      isOwn={isOwn}
-                      showDate={showDate}
-                    />
-                  );
-                })
-              )}
+                    return (
+                      <MessageItem
+                        key={message.id || `${message.createdAt}-${message.content}`}
+                        message={message}
+                        isOwn={isOwn}
+                        showDate={showDate}
+                      />
+                    );
+                  })
+                )}
 
-              {sendingIndicator && (
-                <div className={`${styles.messageRow} ${styles.messageIncoming}`}>
-                  <div className={`${styles.messageBubble} ${styles.messageBubbleIncoming}`} style={{ gap: 0 }}>
-                    <div className={styles.typingRow}>
-                      <span className={styles.dot} />
-                      <span className={styles.dot} />
-                      <span className={styles.dot} />
-                      <small>Đang gửi...</small>
+                {sendingIndicator && (
+                  <div className={`${styles.messageRow} ${styles.messageIncoming}`}>
+                    <div className={`${styles.messageBubble} ${styles.messageBubbleIncoming}`}>
+                      <div className={styles.typingRow}>
+                        <span className={styles.dot} />
+                        <span className={styles.dot} />
+                        <span className={styles.dot} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* ── Composer ── */}
-            <form className={styles.composer} onSubmit={handleSubmit}>
-              <div className={styles.inputWrap}>
+              {/* ── Composer ── */}
+              <form className={styles.composer} onSubmit={handleSubmit}>
                 <textarea
                   ref={inputRef}
                   value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Nhắn tin cho chủ dịch vụ..."
                   className={styles.input}
                   rows={1}
                 />
-              </div>
-              <button
-                type="submit"
-                className={styles.sendBtn}
-                disabled={!draft.trim() || submitting}
-                aria-label="Gui tin nhan"
-              >
-                <FaPaperPlane size={15} />
-              </button>
-            </form>
-          </>
-        )}
+                <button
+                  type="submit"
+                  className={styles.sendBtn}
+                  disabled={!draft.trim() || submitting}
+                  aria-label="Gửi tin nhắn"
+                >
+                  <FaPaperPlane size={15} />
+                </button>
+              </form>
+            </>
+          )}
+        </div>
       </section>
     </div>
+  );
+}
+
+function MessageItem({ message, isOwn, showDate }) {
+  if (message?.contentType === 'SYSTEM_LOG') {
+    return (
+      <>
+        {showDate && (
+          <div className={styles.dateSeparator}>
+            <span>{formatDateLabel(message.createdAt)}</span>
+          </div>
+        )}
+        <div className={styles.systemMessage}>{message.content}</div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {showDate && (
+        <div className={styles.dateSeparator}>
+          <span>{formatDateLabel(message.createdAt)}</span>
+        </div>
+      )}
+      <div className={`${styles.messageRow} ${isOwn ? styles.messageOwn : styles.messageIncoming}`}>
+        <div className={`${styles.messageBubble} ${isOwn ? styles.messageBubbleOwn : styles.messageBubbleIncoming}`}>
+          {!isOwn && message?.senderName && (
+            <span className={styles.senderName}>{message.senderName}</span>
+          )}
+          <p>{message?.content || ''}</p>
+          <div className={styles.messageFooter}>
+            <span className={styles.messageTime}>{formatClock(message?.createdAt)}</span>
+            {isOwn && <span className={styles.readReceipt}>✓✓</span>}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

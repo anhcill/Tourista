@@ -540,11 +540,18 @@ public class AdminServiceImpl implements AdminService {
                         .endAt(promotion.getValidUntil())
                         .isActive(promotion.getIsActive())
                         .createdAt(promotion.getCreatedAt())
-                        .updatedAt(promotion.getCreatedAt())
+                        .updatedAt(promotion.getUpdatedAt())
                         .build())
                 .toList();
 
         return toPageResponse(promotionPage, items);
+    }
+
+    @Override
+    public AdminPromotionItemResponse getPromotionById(Long promotionId) {
+        Promotion promotion = promotionRepository.findById(promotionId)
+                .orElseThrow(() -> new NoSuchElementException("Khong tim thay promotion"));
+        return toPromotionItem(promotion);
     }
 
     @Override
@@ -773,6 +780,7 @@ public class AdminServiceImpl implements AdminService {
         AdminPromotionItemResponse before = toPromotionItem(promotion);
 
         applyPromotionPayload(promotion, request, false);
+        promotion.setUpdatedAt(LocalDateTime.now());
 
         Promotion saved = promotionRepository.save(promotion);
         AdminPromotionItemResponse after = toPromotionItem(saved);
@@ -793,6 +801,7 @@ public class AdminServiceImpl implements AdminService {
         AdminPromotionItemResponse before = toPromotionItem(promotion);
 
         promotion.setIsActive(request.getIsActive());
+        promotion.setUpdatedAt(LocalDateTime.now());
         Promotion saved = promotionRepository.save(promotion);
         AdminPromotionItemResponse after = toPromotionItem(saved);
 
@@ -1293,6 +1302,12 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalArgumentException("Usage limit khong hop le");
         }
 
+        if (request.getUsageLimit() == null) {
+            promotion.setUsageLimit(0);
+        } else {
+            promotion.setUsageLimit(request.getUsageLimit());
+        }
+
         promotion.setCode(code);
         promotion.setName(request.getName().trim());
         promotion
@@ -1301,7 +1316,6 @@ public class AdminServiceImpl implements AdminService {
         promotion.setDiscountValue(request.getValue());
         promotion.setMinOrderAmount(request.getMinOrderAmount());
         promotion.setMaxDiscountAmount(request.getMaxDiscountAmount());
-        promotion.setUsageLimit(request.getUsageLimit());
         promotion.setAppliesTo(appliesTo);
         promotion.setValidFrom(request.getStartAt());
         promotion.setValidUntil(request.getEndAt());
@@ -1556,7 +1570,7 @@ public class AdminServiceImpl implements AdminService {
                 .endAt(promotion.getValidUntil())
                 .isActive(promotion.getIsActive())
                 .createdAt(promotion.getCreatedAt())
-                .updatedAt(promotion.getCreatedAt())
+                .updatedAt(promotion.getUpdatedAt())
                 .build();
     }
 

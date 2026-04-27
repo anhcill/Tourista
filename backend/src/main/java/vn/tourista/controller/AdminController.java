@@ -155,6 +155,12 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("Lay danh sach promotions thanh cong", data));
     }
 
+    @GetMapping("/promotions/{promotionId}")
+    public ResponseEntity<ApiResponse<AdminPromotionItemResponse>> getPromotionById(@PathVariable Long promotionId) {
+        AdminPromotionItemResponse data = adminService.getPromotionById(promotionId);
+        return ResponseEntity.ok(ApiResponse.ok("Lay chi tiet promotion thanh cong", data));
+    }
+
     @GetMapping("/audit-logs")
     public ResponseEntity<ApiResponse<AdminPageResponse<AdminAuditLogItemResponse>>> getAuditLogs(
             @RequestParam(defaultValue = "1") Integer page,

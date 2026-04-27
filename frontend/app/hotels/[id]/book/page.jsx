@@ -15,6 +15,7 @@ import {
 } from 'react-icons/fa';
 import hotelApi from '@/api/hotelApi';
 import bookingApi from '@/api/bookingApi';
+import PromotionSelector from '@/components/Common/PromotionSelector/PromotionSelector';
 import styles from './page.module.css';
 
 const formatVnd = (value) => new Intl.NumberFormat('vi-VN').format(Number(value || 0));
@@ -180,7 +181,10 @@ function HotelBookingInner() {
   const roomPrice = Number(selectedRoom?.basePricePerNight || 0);
   const originalPrice = roomPrice * nights * query.rooms;
   const loyaltyDiscount = Math.round(originalPrice * 0.04);
-  const totalPrice = Math.max(0, originalPrice - loyaltyDiscount);
+
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const promoDiscount = appliedPromo ? Number(appliedPromo.discountAmount || 0) : 0;
+  const totalPrice = Math.max(0, originalPrice - loyaltyDiscount - promoDiscount);
   const amountDueNow = totalPrice;
   const amountPayLater = 0;
   const requiresCardForm = formState.paymentMethod === 'card_domestic';
@@ -268,6 +272,7 @@ function HotelBookingInner() {
         guestEmail: formState.email,
         guestPhone: formState.phone,
         specialRequests: specialParts.join(' | '),
+        ...(appliedPromo?.code && { promoCode: appliedPromo.code }),
       };
 
       // Bước 1: Tạo booking
@@ -633,6 +638,9 @@ function HotelBookingInner() {
             <h2>{TEXTS.titlePaymentSummary}</h2>
             <div className={styles.summaryLine}><span>Giá phòng gốc</span><strong>{formatVnd(originalPrice)} VND</strong></div>
             <div className={styles.summaryLine}><span>Ưu đãi thành viên 4%</span><strong className={styles.discount}>-{formatVnd(loyaltyDiscount)} VND</strong></div>
+            {promoDiscount > 0 && (
+              <div className={styles.summaryLine}><span>Mã khuyến mãi ({appliedPromo?.code})</span><strong className={styles.discount}>-{formatVnd(promoDiscount)} VND</strong></div>
+            )}
             <div className={`${styles.summaryLine} ${styles.total}`}><span>Tổng tiền phòng</span><strong>{formatVnd(totalPrice)} VND</strong></div>
             <div className={styles.summaryLine}><span>Thanh toán ngay (bắt buộc)</span><strong>{formatVnd(amountDueNow)} VND</strong></div>
             <div className={styles.summaryLine}><span>Thanh toán tại khách sạn</span><strong>{formatVnd(amountPayLater)} VND</strong></div>
@@ -642,6 +650,17 @@ function HotelBookingInner() {
             <p className={styles.note}>
               Để giữ phòng chắc chắn, đơn đặt phòng được xác nhận sau khi thanh toán đầy đủ.
             </p>
+          </article>
+
+          {/* Promotion Selector */}
+          <article className={styles.block}>
+            <PromotionSelector
+              appliesTo="HOTEL"
+              orderAmount={totalPrice}
+              selectedPromo={appliedPromo}
+              onApply={(promo) => setAppliedPromo(promo)}
+              onRemove={() => setAppliedPromo(null)}
+            />
           </article>
         </section>
         </div>

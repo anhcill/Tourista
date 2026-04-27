@@ -60,6 +60,8 @@ public interface AdminService {
                         String sort,
                         String type);
 
+        AdminPromotionItemResponse getPromotionById(Long promotionId);
+
         AdminPageResponse<AdminAuditLogItemResponse> getAuditLogs(
                         Integer page,
                         Integer size,

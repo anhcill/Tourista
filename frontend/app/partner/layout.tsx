@@ -43,11 +43,6 @@ export default function PartnerLayout({
             </Link>
           </nav>
 
-          <div className={styles.footerBlock}>
-            <Link href="/" className={styles.backLink}>
-              ← Về trang chủ
-            </Link>
-          </div>
         </aside>
 
         <div className={styles.mainColumn}>
