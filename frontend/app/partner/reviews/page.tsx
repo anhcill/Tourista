@@ -49,7 +49,7 @@ export default function PartnerReviewsPage() {
       setError('');
 
       const data = await partnerApi.getPartnerReviews();
-      const list = Array.isArray(data) ? data : (data?.result || []);
+      const list = Array.isArray(data) ? data : (data?.data || []);
       setReviews(list);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải danh sách review.');

@@ -106,11 +106,13 @@ export default function PartnerPage() {
           partnerApi.getRevenueStats(period).catch(() => null),
         ]);
 
-        setHotels(Array.isArray(hotelData) ? hotelData : (hotelData?.result || []));
-        setTours(Array.isArray(tourData) ? tourData : (tourData?.result || []));
-        setHotelBookings(Array.isArray(hotelBk) ? hotelBk : (hotelBk?.result?.content || hotelBk?.content || []));
-        setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.result?.content || tourBk?.content || []));
-        setRevenueStats(revStats?.result || revStats || null);
+        setHotels(Array.isArray(hotelData) ? hotelData : (hotelData?.data || []));
+        setTours(Array.isArray(tourData) ? tourData : (tourData?.data || []));
+        setHotelBookings(Array.isArray(hotelBk) ? hotelBk : (hotelBk?.data?.content || hotelBk?.content || []));
+        setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.data?.content || tourBk?.content || []));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const apiRev = revStats as any;
+        setRevenueStats(apiRev?.data ?? null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu.');
       } finally {
@@ -238,11 +240,13 @@ export default function PartnerPage() {
         partnerApi.getPartnerTourBookings({ size: 100 }).catch(() => []),
         partnerApi.getRevenueStats(period).catch(() => null),
       ]);
-      setHotels(Array.isArray(hotelData) ? hotelData : (hotelData?.result || []));
-      setTours(Array.isArray(tourData) ? tourData : (tourData?.result || []));
-      setHotelBookings(Array.isArray(hotelBk) ? hotelBk : (hotelBk?.result?.content || hotelBk?.content || []));
-      setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.result?.content || tourBk?.content || []));
-      setRevenueStats(revStats?.result || revStats || null);
+        setHotels(Array.isArray(hotelData) ? hotelData : (hotelData?.data || []));
+        setTours(Array.isArray(tourData) ? tourData : (tourData?.data || []));
+        setHotelBookings(Array.isArray(hotelBk) ? hotelBk : (hotelBk?.data?.content || hotelBk?.content || []));
+        setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.data?.content || tourBk?.content || []));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const apiRev2 = revStats as any;
+        setRevenueStats(apiRev2?.data ?? null);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -290,7 +294,9 @@ export default function PartnerPage() {
                   setLoading(true);
                   try {
                     const revStats = await partnerApi.getRevenueStats(p.value).catch(() => null);
-                    setRevenueStats(revStats?.result || revStats || null);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const apiRev3 = revStats as any;
+                    setRevenueStats(apiRev3?.data ?? null);
                   } finally {
                     setLoading(false);
                   }

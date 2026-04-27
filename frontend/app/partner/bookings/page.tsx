@@ -76,14 +76,14 @@ export default function PartnerBookingsPage() {
 
         if (activeTab === 'hotel') {
           const res = await partnerApi.getPartnerHotelBookings(params);
-          const content = res?.result?.content || res?.content || [];
+          const content = res?.data?.content || res?.content || [];
           setHotelBookings(content);
-          setHotelTotal(res?.result?.totalElements || res?.totalElements || 0);
+          setHotelTotal(res?.data?.totalElements || res?.totalElements || 0);
         } else {
           const res = await partnerApi.getPartnerTourBookings(params);
-          const content = res?.result?.content || res?.content || [];
+          const content = res?.data?.content || res?.content || [];
           setTourBookings(content);
-          setTourTotal(res?.result?.totalElements || res?.totalElements || 0);
+          setTourTotal(res?.data?.totalElements || res?.totalElements || 0);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Không thể tải bookings.');
