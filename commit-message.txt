@@ -1,6 +1,0 @@
-fix: Partner dashboard access for HOTEL_OWNER role
-
-- SecurityConfig: add HOTEL_OWNER to Partner API allowed roles
-- JwtAuthFilter: load role from DB on every request instead of trusting JWT token
-- SecurityConfig: inject UserRepository and pass to JwtAuthFilter
-- Frontend PartnerShell: add HOTEL_OWNER to allowed roles set
