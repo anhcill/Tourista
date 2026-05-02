@@ -51,9 +51,9 @@ CREATE TABLE IF NOT EXISTS combo_packages (
 -- Booking Combos table (individual combo bookings)
 -- =========================================================
 CREATE TABLE IF NOT EXISTS booking_combos (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    booking_id BIGINT NOT NULL,
-    combo_package_id BIGINT NOT NULL,
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    booking_id BIGINT UNSIGNED NOT NULL,
+    combo_package_id BIGINT UNSIGNED NOT NULL,
 
     -- Guest info
     guest_name VARCHAR(100) NOT NULL,

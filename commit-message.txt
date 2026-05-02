@@ -1,0 +1,6 @@
+fix: TravelPlan AI model name and frontend response parsing
+
+- Fix model name glm-4-7-flash -> glm-4.7-flash (Beeknoee API)
+- Increase AI timeout from 10s to 30s for slower responses
+- Fix frontend response parsing: data.data.result -> data.data
+- Update schema-combo.sql: add UNSIGNED to booking_combos columns

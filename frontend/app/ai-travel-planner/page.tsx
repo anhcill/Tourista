@@ -142,7 +142,7 @@ export default function AITravelPlannerPage() {
                 tripType: form.tripType,
             };
             const data = await travelPlanApi.generate(payload);
-            const result = data?.data?.result;
+            const result = data?.data;
             if (result) {
                 setPlan(result);
                 setActiveDay(0);

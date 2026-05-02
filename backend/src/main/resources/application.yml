@@ -113,7 +113,7 @@ app:
 # ===== BEEKNOEE AI (OpenAI-compatible, powered by Zhipu GLM-4.7-flash) =====
 beeknoee:
   api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff84f0df7dc5edb4e8ebd1b849e4e8395b8}
-  model: glm-4-7-flash
+  model: glm-4.7-flash
   api-url: https://platform.beeknoee.com/api/v1/chat/completions
-  timeout-seconds: 10
+  timeout-seconds: 30
   max-tokens: 500

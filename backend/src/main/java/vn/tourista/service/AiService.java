@@ -33,7 +33,7 @@ public class AiService {
     @Value("${beeknoee.api-url:https://platform.beeknoee.com/api/v1/chat/completions}")
     private String apiUrl;
 
-    @Value("${beeknoee.model:glm-4-7-flash}")
+    @Value("${beeknoee.model:glm-4.7-flash}")
     private String model;
 
     @Value("${beeknoee.timeout-seconds:10}")
