@@ -58,6 +58,7 @@ public class AiService {
 
     /**
      * Generic ask method — sends a prompt and returns the AI response.
+     * Fails fast (5s wait) so the user never waits too long.
      */
     public String ask(String userMessage) {
         return ask(userMessage, null);
@@ -72,10 +73,10 @@ public class AiService {
             return null;
         }
 
-        // Serialize requests to avoid 429 rate limit errors
+        // Fail fast — don't make user wait more than 5s for the AI slot
         try {
-            if (!aiSemaphore.tryAcquire(timeoutSeconds + 5, TimeUnit.SECONDS)) {
-                log.warn("AiService: Could not acquire semaphore, skipping request");
+            if (!aiSemaphore.tryAcquire(5, TimeUnit.SECONDS)) {
+                log.warn("AiService: Could not acquire semaphore (AI busy), skipping request");
                 return null;
             }
         } catch (InterruptedException ie) {
