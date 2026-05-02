@@ -136,17 +136,25 @@ public class AiService {
             return null;
         }
 
+        String dateContext = java.time.LocalDate.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("'Ngày hiện tại:' dd/MM/yyyy — Mùa: "
+                        + getVietnameseSeason()));
+
         String prompt = """
                 Bạn là một travel blogger Việt Nam nhiệt huyết. Viết lại lịch trình du lịch thành văn phong tự nhiên, thân thiện, hào hứng — như đang kể cho bạn bè nghe về chuyến đi sắp tới.
 
+                %s
+
                 YÊU CẦU:
-                - Viết theo phong cách travel blogger: tự nhiên, gần gũi, có cảm xúc
-                - Dùng emoji phù hợp khi mô tả địa điểm
-                - Mỗi ngày viết 1 đoạn văn 2-4 câu
-                - Đề cập các hoạt động chính, thời gian, và mẹo nhỏ
+                - Viết theo phong cách travel blogger: tự nhiên, gần gũi, có cảm xúc, có cá tính
+                - Mỗi ngày viết 1-2 đoạn văn, mỗi đoạn 3-5 câu
+                - Đề cập các hoạt động chính với thời gian cụ thể
+                - Thêm mẹo nhỏ thực tế phù hợp với MÙA HIỆN TẠI
                 - KHÔNG bịa giá, KHÔNG thêm hoạt động không có trong lịch trình
-                - Tổng độ dài: 3-6 đoạn văn (mỗi đoạn 1 ngày)
+                - KHÔNG viết generic tips như "nên mang kem chống nắng"
+                - Tổng độ dài: 4-8 đoạn văn
                 - Trả lời CHỈ bằng văn bản, không dùng markdown phức tạp
+                - VARIATION: Mỗi ngày có góc nhìn khác nhau (ngày 1: háo hức/check-in, ngày 2: khám phá sâu, ngày cuối: thư giãn/mua sắm)
 
                 Lịch trình:
                 %s
@@ -154,10 +162,18 @@ public class AiService {
                 Chi tiết từng ngày:
                 %s
 
-                Hãy viết ngay phần nội dung, không có tiêu đề hay preamble.
-                """.formatted(planSummary, dayPlansJson);
+                Hãy viết ngay phần nội dung, không có tiêu đề hay preamble. Bắt đầu luôn!
+                """.formatted(dateContext, planSummary, dayPlansJson);
 
         return ask(prompt);
+    }
+
+    private static String getVietnameseSeason() {
+        int month = java.time.LocalDate.now().getMonthValue();
+        if (month >= 3 && month <= 5) return "Hè / Nắng nóng";
+        if (month >= 6 && month <= 8) return "Hè nóng / Mưa mùa hạ";
+        if (month >= 9 && month <= 11) return "Thu / Đông đầu";
+        return "Đông / Lạnh";
     }
 
     // ============================================================

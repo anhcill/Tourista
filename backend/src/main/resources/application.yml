@@ -115,5 +115,5 @@ beeknoee:
   api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff84f0df7dc5edb4e8ebd1b849e4e8395b8}
   model: gemini-3.1-flash-lite-preview
   api-url: https://platform.beeknoee.com/api/v1/chat/completions
-  timeout-seconds: 15
-  max-tokens: 500
+  timeout-seconds: 30
+  max-tokens: 1200
