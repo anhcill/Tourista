@@ -234,6 +234,74 @@ public class AiService {
     }
 
     // ============================================================
+    // CHATBOT — AI trả lời câu hỏi tự do, có context từ DB thật
+    // ============================================================
+
+    /**
+     * Trả lời câu hỏi tự do của user bằng AI, kèm dữ liệu thật từ DB.
+     * Được gọi khi không khớp rule nào trong BotService.
+     *
+     * @param userMessage     Tin nhắn của user
+     * @param conversationContext Lịch sử chat gần đây (để có context)
+     * @param dbContext       Dữ liệu thật từ DB (tour, hotel, booking, cities...)
+     * @return Câu trả lời tự nhiên từ AI, hoặc null nếu AI lỗi
+     */
+    public String askChatbot(String userMessage, String conversationContext, String dbContext) {
+        if (!isEnabled()) {
+            return null;
+        }
+
+        String prompt = buildChatbotPrompt(userMessage, conversationContext, dbContext);
+        return ask(prompt, null);
+    }
+
+    /**
+     * Trả lời câu hỏi tự do — phiên bản không có DB context (fallback).
+     */
+    public String askChatbotFree(String userMessage, String conversationContext) {
+        return askChatbot(userMessage, conversationContext,
+                "Hiện tại chưa có dữ liệu tour/hotel trong hệ thống. Hãy trả lời dựa trên kiến thức chung về du lịch Việt Nam.");
+    }
+
+    private String buildChatbotPrompt(String userMessage, String conversationContext, String dbContext) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Bạn là trợ lý du lịch AI của nền tảng Tourista Studio.\n");
+        sb.append("Nền tảng cho phép đặt tour du lịch và khách sạn tại Việt Nam.\n\n");
+
+        // DB context
+        if (dbContext != null && !dbContext.isBlank()) {
+            sb.append("=== DỮ LIỆU TỪ HỆ THỐNG ===\n");
+            sb.append(dbContext);
+            sb.append("\n\n");
+        }
+
+        // Conversation history
+        if (conversationContext != null && !conversationContext.isBlank()) {
+            sb.append("=== LỊCH SỬ HỘI THOẠI GẦN ĐÂY ===\n");
+            sb.append(conversationContext);
+            sb.append("\n\n");
+        }
+
+        // Current question
+        sb.append("=== CÂU HỎI HIỆN TẠI ===\n");
+        sb.append(userMessage);
+        sb.append("\n\n");
+
+        sb.append("YÊU CẦU:\n");
+        sb.append("- Trả lời tự nhiên, thân thiện, như đang chat với bạn bè\n");
+        sb.append("- Dùng emoji phù hợp (VD: 🏖️ cho biển, 🏨 cho khách sạn, 🍜 cho ẩm thực)\n");
+        sb.append("- Nếu có dữ liệu tour/hotel: đề cập tên cụ thể, giá, rating nếu có\n");
+        sb.append("- Nếu không có dữ liệu: trả lời dựa trên kiến thức chung\n");
+        sb.append("- Trả lời ngắn gọn (dưới 300 từ), không cần quá dài\n");
+        sb.append("- KHÔNG bịa thông tin (giá, tên, địa chỉ) nếu không có trong dữ liệu\n");
+        sb.append("- Nếu user hỏi về booking: hướng dẫn gửi mã TRS-YYYYMMDD-XXXXXX để tra cứu\n");
+        sb.append("- Nếu user muốn đặt tour: hướng dẫn vào trang tìm kiếm hoặc gợi ý ngân sách + số người\n");
+        sb.append("- Luôn kết thúc bằng 1 câu gợi ý hành động tiếp theo\n");
+
+        return sb.toString();
+    }
+
+    // ============================================================
     // PRIVATE HELPERS
     // ============================================================
 

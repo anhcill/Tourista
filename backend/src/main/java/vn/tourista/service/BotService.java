@@ -41,8 +41,16 @@ import java.util.regex.Pattern;
  * → query DB lấy toàn bộ thông tin
  * → trả về Rich Card (BOOKING_DETAILS) cho Frontend render Timeline
  *
- * Luồng 2 — FAQ cứng (Fallback):
- * Không tìm thấy mã → khớp keyword → trả lời hướng dẫn thường gặp
+ * Luồng 2 — Gợi ý Tour:
+ * Nhận diện intent "gợi ý tour" + budget + travelers
+ * → query DB tìm tour phù hợp
+ * → trả TOUR_CARDS
+ *
+ * Luồng 3 — AI Chatbot (NEW):
+ * Không khớp rule nào → gọi AiService.askChatbot()
+ * → query DB thật trước (tours, hotels, cities, user's bookings)
+ * → gửi context lên AI Beeknoee
+ * → trả AI_TEXT response real-time
  */
 @Slf4j
 @Service
@@ -98,6 +106,7 @@ public class BotService {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AiService aiService;
     private final BookingRepository bookingRepository;
     private final BookingTourDetailRepository tourDetailRepository;
     private final BookingHotelDetailRepository hotelDetailRepository;
@@ -108,6 +117,8 @@ public class BotService {
     private final ConversationSessionRepository conversationSessionRepository;
     private final SessionRecommendationStateRepository recommendationStateRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final CityRepository cityRepository;
+    private final HotelRepository hotelRepository;
     private final ObjectMapper objectMapper;
     private final TourRecommendationService tourRecommendationService;
     private volatile List<FaqRule> faqRules = List.of();
@@ -186,10 +197,10 @@ public class BotService {
                     processRecommendationFlow(conversationId, inputText, canonicalInput, clientEmail);
                 } else if (isRecommendationIntent(canonicalInput)) {
                     startRecommendationFlow(conversationId, inputText, clientEmail);
-        } else {
-            String context = currentConversationContext.get();
-            processFaqFallback(conversationId, inputText, clientEmail, context);
-        }
+                } else {
+                    String context = currentConversationContext.get();
+                    processAiChatbot(conversationId, inputText, clientEmail, context);
+                }
             }
         } catch (Exception ex) {
             log.error("BotService: Unexpected error while handling bot message. conversationId={}, clientEmail={}",
@@ -951,32 +962,158 @@ public class BotService {
     }
 
     // =====================================================================
-    // LUONG 2: FAQ fallback (data-driven)
+    // LUỒNG 3: AI CHATBOT — trả lời tự do bằng AI + dữ liệu DB thật
     // =====================================================================
 
-    private void processFaqFallback(Long conversationId, String inputText, String clientEmail, String conversationContext) {
+    /**
+     * Xử lý câu hỏi tự do bằng AI.
+     * Priority: FAQ rules → AI chatbot with DB context.
+     */
+    private void processAiChatbot(Long conversationId, String inputText, String clientEmail, String conversationContext) {
         String lower = normalizeInput(inputText);
         String canonical = canonicalize(lower);
-        String answer = null;
 
-        // Bước 1: Tìm trong FAQ rules trước
+        // Bước 1: Thử FAQ rules trước (fast path)
         for (FaqRule rule : faqRules) {
             List<String> canonicalKeywords = rule.keywords().stream()
                     .map(this::canonicalize)
                     .toList();
             if (containsAny(canonical, canonicalKeywords)) {
-                answer = rule.answer();
-                break;
+                pushBotText(conversationId, clientEmail, rule.answer());
+                return;
             }
         }
 
-        // Bước 2: Nếu không khớp FAQ nào → hiển thị menu FAQ nhanh
-        if (answer == null || answer.isBlank()) {
+        // Bước 2: Không khớp rule → gọi AI với DB context
+        // Push typing indicator trước khi AI xử lý
+        pushTypingIndicator(conversationId, clientEmail);
+
+        // Query dữ liệu thật từ DB
+        String dbContext = buildDbContextForChatbot(inputText, canonical, conversationContext);
+
+        // Gọi AI
+        String aiResponse = aiService.askChatbot(inputText, conversationContext, dbContext);
+
+        if (aiResponse != null && !aiResponse.isBlank()) {
+            ChatMessage saved = chatService.saveBotMessage(
+                    conversationId,
+                    sanitizeForStorage(aiResponse),
+                    ChatMessage.ContentType.AI_TEXT,
+                    null);
+            messagingTemplate.convertAndSendToUser(
+                    clientEmail, "/queue/messages", ChatMessageResponse.from(saved));
+        } else {
+            // AI lỗi → fallback về FAQ menu
             pushFaqMenu(conversationId, clientEmail, inputText);
-            return;
+        }
+    }
+
+    /**
+     * Xây dựng context từ DB thật để gửi cho AI.
+     * Query theo keywords trong câu hỏi của user.
+     */
+    private String buildDbContextForChatbot(String inputText, String canonical, String conversationContext) {
+        StringBuilder ctx = new StringBuilder();
+
+        // Cities
+        try {
+            List<Object[]> cities = cityRepository.findTrendingCities(5);
+            if (cities != null && !cities.isEmpty()) {
+                ctx.append("Các thành phố du lịch phổ biến: ");
+                for (int i = 0; i < Math.min(5, cities.size()); i++) {
+                    Object[] row = cities.get(i);
+                    String nameVi = row[1] != null ? row[1].toString() : "";
+                    String nameEn = row[2] != null ? row[2].toString() : "";
+                    int hotels = row[3] != null ? ((Number) row[3]).intValue() : 0;
+                    int tours = row[4] != null ? ((Number) row[4]).intValue() : 0;
+                    if (i > 0) ctx.append("; ");
+                    ctx.append(nameVi).append("/").append(nameEn)
+                            .append(" (").append(hotels).append(" khách sạn, ")
+                            .append(tours).append(" tour)");
+                }
+                ctx.append(".\n");
+            }
+        } catch (Exception e) {
+            log.debug("Could not load cities for chatbot: {}", e.getMessage());
         }
 
-        pushBotText(conversationId, clientEmail, answer);
+        // Tours (nếu user hỏi về tour/địa điểm)
+        if (containsAny(canonical, List.of("tour", "du lich", "di dau", "goi y", "goi i", "de xuat"))) {
+            try {
+                List<Long> tourIds = tourRepository.findActiveTourIds(PageRequest.of(0, 5));
+                if (tourIds != null && !tourIds.isEmpty()) {
+                    List<Tour> tours = tourRepository.findAllById(tourIds);
+                    ctx.append("Tour đang hoạt động: ");
+                    for (int i = 0; i < tours.size(); i++) {
+                        Tour t = tours.get(i);
+                        if (i > 0) ctx.append("; ");
+                        ctx.append("- \"").append(t.getTitle()).append("\"")
+                                .append(" giá từ ").append(formatVnd(t.getPricePerAdult().longValue()))
+                                .append("/người lớn");
+                        if (t.getAvgRating() != null && t.getAvgRating().compareTo(BigDecimal.ZERO) > 0) {
+                            ctx.append(", rating ").append(t.getAvgRating()).append("★");
+                        }
+                        ctx.append(", ").append(t.getDurationDays()).append(" ngày ")
+                                .append(t.getDurationNights()).append(" đêm");
+                    }
+                    ctx.append(".\n");
+                }
+            } catch (Exception e) {
+                log.debug("Could not load tours for chatbot: {}", e.getMessage());
+            }
+        }
+
+        // Hotels (nếu user hỏi về khách sạn)
+        if (containsAny(canonical, List.of("khach san", "hotel", "noi that", "nghi duong", "住宿"))) {
+            try {
+                List<Long> hotelIds = hotelRepository.findActiveHotelIds(PageRequest.of(0, 5));
+                if (hotelIds != null && !hotelIds.isEmpty()) {
+                    List<Hotel> hotels = hotelRepository.findAllById(hotelIds);
+                    ctx.append("Khách sạn đang hoạt động: ");
+                    for (int i = 0; i < hotels.size(); i++) {
+                        Hotel h = hotels.get(i);
+                        if (i > 0) ctx.append("; ");
+                        ctx.append("- \"").append(h.getName()).append("\"")
+                                .append(" (").append(h.getStarRating()).append("★)")
+                                .append(" tại ").append(h.getAddress() != null ? h.getAddress() : h.getCity().getNameVi());
+                        if (h.getAvgRating() != null && h.getAvgRating().compareTo(BigDecimal.ZERO) > 0) {
+                            ctx.append(", rating ").append(h.getAvgRating()).append("★");
+                        }
+                    }
+                    ctx.append(".\n");
+                }
+            } catch (Exception e) {
+                log.debug("Could not load hotels for chatbot: {}", e.getMessage());
+            }
+        }
+
+        // User's bookings (nếu hỏi về booking của mình)
+        if (containsAny(canonical, List.of("booking", "dat cho", "tour cua toi", "lich su"))) {
+            ctx.append("Để tra cứu booking, hãy gửi mã theo định dạng TRS-YYYYMMDD-XXXXXX (ví dụ: TRS-20260503-ABC123).\n");
+        }
+
+        if (ctx.isEmpty()) {
+            return "Hệ thống Tourista Studio có tour du lịch và khách sạn tại nhiều thành phố Việt Nam. Bạn có thể hỏi về tour, khách sạn, điểm đến hoặc gửi mã booking để tra cứu.";
+        }
+
+        return ctx.toString();
+    }
+
+    /**
+     * Push typing indicator để frontend hiện "đang nhắn...".
+     */
+    private void pushTypingIndicator(Long conversationId, String clientEmail) {
+        try {
+            ChatMessage saved = chatService.saveBotMessage(
+                    conversationId,
+                    "",
+                    ChatMessage.ContentType.TYPING,
+                    null);
+            messagingTemplate.convertAndSendToUser(
+                    clientEmail, "/queue/messages", ChatMessageResponse.from(saved));
+        } catch (Exception e) {
+            log.debug("Could not push typing indicator: {}", e.getMessage());
+        }
     }
 
     /**
