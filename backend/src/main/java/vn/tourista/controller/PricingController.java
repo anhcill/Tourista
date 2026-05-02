@@ -11,6 +11,7 @@ import vn.tourista.dto.response.PricingCalculationResponse;
 import vn.tourista.entity.PricingRule;
 import vn.tourista.service.PricingService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -74,5 +75,15 @@ public class PricingController {
             @RequestParam(required = false) Integer rooms) {
         PricingCalculationResponse response = pricingService.calculateHotelPrice(hotelId, nights, rooms);
         return ResponseEntity.ok(ApiResponse.ok("Tính giá khách sạn thành công", response));
+    }
+
+    @GetMapping("/calculate/hotel/{hotelId}/per-night")
+    public ResponseEntity<ApiResponse<PricingCalculationResponse>> calculateHotelNightPrice(
+            @PathVariable Long hotelId,
+            @RequestParam String checkIn,
+            @RequestParam(required = false) Integer adults) {
+        PricingCalculationResponse response = pricingService.calculateHotelNightPrice(
+                hotelId, LocalDate.parse(checkIn), adults);
+        return ResponseEntity.ok(ApiResponse.ok("Tính giá theo đêm thành công", response));
     }
 }

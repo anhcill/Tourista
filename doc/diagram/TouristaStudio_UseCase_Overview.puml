@@ -1,0 +1,242 @@
+@startuml TouristaStudio_UseCase_Overview
+!theme plain
+
+title BIỂU ĐỒ USE CASE TỔNG QUAN — HỆ THỐNG TOURISTA STUDIO
+
+' ============================================================
+' ACTORS
+' ============================================================
+actor "Khách (Guest)" as GUEST
+actor "Khách hàng (Customer)" as CUSTOMER
+actor "Đối tác (Partner)" as PARTNER
+actor "Quản trị viên (Admin)" as ADMIN
+actor "AI Chatbot" as AI_BOT
+actor "VNPay" as VNPAY
+actor "Cloudinary" as CLOUD
+actor "Email Server" as EMAIL
+
+' ============================================================
+' SYSTEM BOUNDARY
+' ============================================================
+rectangle "HỆ THỐNG TOURISTA STUDIO" {
+
+    ' ---- Package 1: Xác thực ----
+    package "Xác thực & Tài khoản" {
+        usecase "UC01\nĐăng ký tài khoản" as UC01
+        usecase "UC02\nĐăng nhập (JWT)" as UC02
+        usecase "UC03\nĐăng nhập OAuth2\n(Google, Facebook)" as UC03
+        usecase "UC04\nXác thực email" as UC04
+        usecase "UC05\nQuên mật khẩu" as UC05
+    }
+
+    ' ---- Package 2: Khách sạn ----
+    package "Khách sạn & Phòng" {
+        usecase "UC10\nTìm kiếm khách sạn\n(tên, thành phố, giá, tiện nghi)" as UC10
+        usecase "UC11\nXem chi tiết khách sạn\n(phòng, gallery, đánh giá, bản đồ)" as UC11
+        usecase "UC12\nĐặt phòng khách sạn\n(CRUD RoomType, PricingRule)" as UC12
+    }
+
+    ' ---- Package 3: Tour ----
+    package "Tour Du lịch" {
+        usecase "UC20\nTìm kiếm tour\n(tên, thành phố, ngày khởi hành)" as UC20
+        usecase "UC21\nXem chi tiết tour\n(lịch trình, slot, đánh giá)" as UC21
+        usecase "UC22\nĐặt tour du lịch\n(CRUD Tour, TourDeparture)" as UC22
+    }
+
+    ' ---- Package 4: Combo ----
+    package "Gói Combo" {
+        usecase "UC25\nXem & đặt Combo\n(Khách sạn + Tour, tiết kiệm)" as UC25
+    }
+
+    ' ---- Package 5: Thanh toán ----
+    package "Thanh toán" {
+        usecase "UC30\nThanh toán VNPay\n(ATM, QR, Visa)" as UC30
+        usecase "UC31\nIPN Callback\n& Xác nhận thanh toán" as UC31
+    }
+
+    ' ---- Package 6: Đánh giá ----
+    package "Đánh giá & Phản hồi" {
+        usecase "UC35\nViết đánh giá\n(khách sạn / tour, kèm ảnh/video)" as UC35
+        usecase "UC36\nDuyệt đánh giá\n(Review Moderation)" as UC36
+    }
+
+    ' ---- Package 7: Chat ----
+    package "Chat & AI" {
+        usecase "UC40\nChat với AI Chatbot\n(Gemini API, FAQ, tra cứu booking)" as UC40
+        usecase "UC41\nAI Travel Planner\n(lập lịch trình tự động)" as UC41
+        usecase "UC42\nChat P2P\n(WebSocket, real-time)" as UC42
+    }
+
+    ' ---- Package 8: Khuyến mãi ----
+    package "Khuyến mãi" {
+        usecase "UC45\nQuản lý khuyến mãi\n(Tạo, sửa, xóa mã giảm giá)" as UC45
+        usecase "UC46\nÁp dụng mã khuyến mãi\nkhi đặt phòng / tour" as UC46
+    }
+
+    ' ---- Package 9: Admin ----
+    package "Quản trị Hệ thống" {
+        usecase "UC50\nDashboard Admin\n(Thống kê doanh thu, booking)" as UC50
+        usecase "UC51\nQuản lý người dùng\n(Duyệt, khóa, vai trò)" as UC51
+        usecase "UC52\nDuyệt / Khóa\nkhách sạn, tour, combo" as UC52
+        usecase "UC53\nQuản lý đơn đặt\n(Duyệt hủy, hoàn tiền)" as UC53
+        usecase "UC54\nQuản lý bài viết\ntin tức (Blog du lịch)" as UC54
+        usecase "UC55\nXem Audit Log\n& Nhật ký hệ thống" as UC55
+    }
+
+    ' ---- Package 10: Partner ----
+    package "Quản lý Đối tác" {
+        usecase "UC60\nDashboard Partner\n(Doanh thu, booking mới)" as UC60
+        usecase "UC61\nCRUD khách sạn\n& loại phòng" as UC61
+        usecase "UC62\nCRUD tour\n& lịch khởi hành" as UC62
+        usecase "UC63\nCRUD Combo\n(gói khách sạn + tour)" as UC63
+        usecase "UC64\nPhản hồi đánh giá\ncủa khách hàng" as UC64
+    }
+}
+
+' ============================================================
+' ACTOR — USE CASE ASSOCIATIONS
+' ============================================================
+
+' --- Guest ---
+GUEST --> UC01
+GUEST --> UC02
+GUEST --> UC03
+GUEST --> UC04
+GUEST --> UC05
+GUEST --> UC10
+GUEST --> UC11
+GUEST --> UC20
+GUEST --> UC21
+GUEST --> UC25
+GUEST --> UC40
+
+' --- Customer ---
+CUSTOMER --> UC10
+CUSTOMER --> UC11
+CUSTOMER --> UC12
+CUSTOMER --> UC20
+CUSTOMER --> UC21
+CUSTOMER --> UC22
+CUSTOMER --> UC25
+CUSTOMER --> UC30
+CUSTOMER --> UC35
+CUSTOMER --> UC40
+CUSTOMER --> UC41
+CUSTOMER --> UC42
+CUSTOMER --> UC46
+
+' --- Partner ---
+PARTNER --> UC01
+PARTNER --> UC02
+PARTNER --> UC04
+PARTNER --> UC05
+PARTNER --> UC60
+PARTNER --> UC61
+PARTNER --> UC62
+PARTNER --> UC63
+PARTNER --> UC64
+PARTNER --> UC42
+PARTNER --> UC52
+
+' --- Admin ---
+ADMIN --> UC01
+ADMIN --> UC04
+ADMIN --> UC30
+ADMIN --> UC31
+ADMIN --> UC35
+ADMIN --> UC36
+ADMIN --> UC45
+ADMIN --> UC50
+ADMIN --> UC51
+ADMIN --> UC52
+ADMIN --> UC53
+ADMIN --> UC54
+ADMIN --> UC55
+
+' --- System ---
+AI_BOT --> UC40
+AI_BOT --> UC41
+VNPAY --> UC30
+VNPAY --> UC31
+CLOUD --> UC61
+CLOUD --> UC62
+CLOUD --> UC54
+EMAIL --> UC04
+
+' ============================================================
+' INCLUDE / EXTEND
+' ============================================================
+
+' Booking includes Payment
+UC12 .down.> UC30 : <<include>>
+UC22 .down.> UC30 : <<include>>
+UC25 .down.> UC30 : <<include>>
+
+' Booking includes Promo
+UC12 .right.> UC46 : <<include>>
+UC22 .right.> UC46 : <<include>>
+UC25 .right.> UC46 : <<include>>
+
+' Payment includes VNPay
+UC30 .down.> VNPAY : <<communicate>>
+
+' Review Moderation extends View
+UC35 .right.> UC36 : <<extend>>
+
+' AI Travel Planner extends Chat
+UC40 .right.> UC41 : <<extend>>
+
+' Chat P2P includes WebSocket
+UC42 .right.> UC42 : <<include>>
+
+' Auth flows
+UC02 .right.> UC04 : <<include>>
+UC05 .up.> UC04 : <<include>>
+
+' ============================================================
+' LEGEND NOTES
+' ============================================================
+note bottom of GUEST
+  Actor: Khách chưa đăng nhập
+  → Xem, tìm kiếm, chat AI
+end note
+
+note right of CUSTOMER
+  Actor: Khách đã xác thực
+  → Đặt phòng/tour, thanh toán,
+    đánh giá, chat P2P, AI Planner
+end note
+
+note right of PARTNER
+  Actor: Đối tác / Chủ KS
+  → CRUD tài sản, chat khách,
+    phản hồi đánh giá
+end note
+
+note top of ADMIN
+  Actor: Quản trị viên
+  → Giám sát toàn hệ thống,
+    duyệt nội dung, báo cáo
+end note
+
+note bottom of AI_BOT
+  Gemini API
+  Chatbot + Travel Planner
+end note
+
+note bottom of VNPAY
+  Cổng thanh toán VNPay
+  ATM / QR Code / Visa
+end note
+
+note bottom of CLOUD
+  Cloudinary CDN
+  Upload ảnh KS, Tour, Blog
+end note
+
+note bottom of EMAIL
+  Spring Mail (SMTP)
+  Xác thực, thông báo
+end note
+
+@enduml

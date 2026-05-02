@@ -13,6 +13,7 @@ const TITLE_MAP = {
   tours: 'Quản lý Chuyến đi',
   bookings: 'Quản lý Đơn đặt chỗ',
   promotions: 'Quản lý Khuyến mãi',
+  combos: 'Quản lý Combo',
   reviews: 'Kiểm duyệt Đánh giá',
   settings: 'Cài đặt Hệ thống',
   // Sub-pages

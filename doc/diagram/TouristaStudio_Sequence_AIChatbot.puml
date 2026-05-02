@@ -1,0 +1,107 @@
+@startuml TouristaStudio_Sequence_AIChatbot
+!theme plain
+
+title BIỂU ĐỒ TRÌNH TỰ — UC55. CHAT VỚI AI CHATBOT (Gemini API)
+
+participant "Khách hàng\n(Customer)" as CUSTOMER
+participant "Frontend\n(Next.js)" as FE
+participant "Backend API\n(Spring Boot)" as API
+participant "BotService" as BOT
+participant "GeminiService" as GEMINI
+participant "BookingService" as BOOK_SVC
+participant "HotelService" as HOTEL_SVC
+participant "TourService" as TOUR_SVC
+participant "MySQL\nDatabase" as DB
+participant "Google Gemini\nAPI" as GEMINI_API
+
+' === Bước 1: Mở Chatbot ===
+CUSTOMER -> FE : 1. Nhấn icon Chatbot\n(góc phải màn hình)
+FE -> FE : 2. Mở BotChatWidget\n(chat panel overlay)
+FE --> CUSTOMER : 3. Giao diện chat\nhiển thị\n+ Tin nhắn chào mừng
+
+note right of FE
+  Widget được load động\n(dynamic import)\nđể tối ưu performance
+end note
+
+CUSTOMER -> FE : 4. Nhập tin nhắn\n(ví dụ: "Cho tôi xem\nkhách sạn ở Đà Nẵng")
+
+' === Bước 2: Gửi tin nhắn ===
+FE -> FE : 5. Validate input\n(không rỗng, không quá dài)
+FE -> API : 6. POST /api/bot/chat\n{message, conversationId?, userId?}
+API -> BOT : 7. processMessage(message)
+BOT -> DB : 8. SELECT conversation\nWHERE id = conversationId\n(or CREATE new conversation)
+
+BOT -> BOT : 9. Intent Detection\n(Spring AI / regex patterns):\n• "tra cứu booking" → intent: LOOKUP_BOOKING\n• "khách sạn ở X" → intent: HOTEL_SEARCH\n• "tour cho ngày Y" → intent: TOUR_SEARCH\n• "gợi ý" / "nên đi đâu" → intent: SUGGESTION\n• fallback → intent: GENERAL
+
+alt intent = LOOKUP_BOOKING
+    BOT -> BOOK_SVC : 10a. lookupBookingByEmail\n(userEmail extracted from message)
+    BOOK_SVC -> DB : 11a. SELECT booking\nWHERE user_email = ?
+    DB --> BOOK_SVC : 12a. Booking list
+    BOOK_SVC --> BOT : 13a. Booking data
+    BOT --> BOT : 14a. Format response\n(danh sách booking + status)
+
+else intent = HOTEL_SEARCH
+    BOT -> HOTEL_SVC : 10b. searchHotelsBrief(city)
+    HOTEL_SVC -> DB : 11b. SELECT hotels\nWHERE city LIKE '%X%' LIMIT 5
+    DB --> HOTEL_SVC : 12b. Top 5 hotels
+    HOTEL_SVC --> BOT : 13b. Hotel list
+    BOT --> BOT : 14b. Format response\n(ảnh + giá + link)
+
+else intent = TOUR_SEARCH
+    BOT -> TOUR_SVC : 10c. searchToursBrief(params)
+    TOUR_SVC -> DB : 11c. SELECT tours\nWHERE city LIKE '%X%' LIMIT 5
+    DB --> TOUR_SVC : 12c. Top 5 tours
+    TOUR_SVC --> BOT : 13c. Tour list
+    BOT --> BOT : 14c. Format response
+
+else intent = SUGGESTION | GENERAL
+    BOT -> GEMINI : 10d. generateResponse(message, history)
+end
+
+alt Intent = GENERAL / SUGGESTION / Default
+    BOT -> GEMINI : 10d. generateResponse(message, history)
+    GEMINI -> DB : 11d. Lấy context\n(khách sạn, tour nổi bật)
+    DB --> GEMINI : 12d. Context data
+    GEMINI -> GEMINI_API : 13d. callGeminiAPI\n(system prompt + user message)
+    GEMINI_API --> GEMINI : 14d. AI response\n(text reply)
+    GEMINI --> BOT : 15d. Generated text
+    BOT --> BOT : 16d. Format response\n(rich text + quick replies)
+end
+
+BOT -> DB : 17. INSERT INTO chat_message\n{conversationId, role: ASSISTANT,\ncontent, timestamp}
+DB --> BOT : 18. Message saved
+
+BOT --> API : 19. BotResponse\n{reply, quickReplies,\nconversationId, suggestions}
+API --> FE : 20. JSON response
+FE -> FE : 21. Render tin nhắn\nAI trong chat widget
+FE --> CUSTOMER : 22. Hiển thị reply\n+ Quick reply buttons\n(ví dụ: [Xem KS] [Đặt ngay])
+
+' === Bước 3: Quick Reply / Action ===
+CUSTOMER -> FE : 23. Nhấn quick reply\n"Xem khách sạn"
+FE -> API : 24. POST /api/bot/chat\n{message: "Xem khách sạn", \nconversationId, \naction: "VIEW_HOTELS"}
+API -> BOT : 25. processAction("VIEW_HOTELS")
+BOT -> HOTEL_SVC : 26. getTopHotels(limit: 10)
+HOTEL_SVC -> DB : 27. SELECT * FROM hotels\nORDER BY avg_rating DESC LIMIT 10
+DB --> HOTEL_SVC : 28. Top 10 hotels
+HOTEL_SVC --> BOT : 29. Hotels data
+BOT --> API : 30. Rich response\n(carousel: ảnh KS)
+API --> FE : 31. CarouselResponse
+FE --> CUSTOMER : 32. Carousel khách sạn\nảnh + tên + giá\n+ [Đặt ngay] button
+
+' === Bước 4: Chat tiếp ===
+CUSTOMER -> FE : 33. Nhắn tiếp\n"Đặt khách sạn thứ 2"
+FE -> API : 34. POST /api/bot/chat\n{message, conversationId}
+API -> BOT : 35. processMessage
+BOT -> HOTEL_SVC : 36. getHotelByRank(2)
+HOTEL_SVC -> DB : 37. SELECT hotel #2
+DB --> HOTEL_SVC : 38. Hotel detail
+HOTEL_SVC --> BOT : 39. Hotel info
+BOT --> API : 40. Response + deep link\n"/hotels/{id}"
+API --> FE : 41. Rich response
+FE --> CUSTOMER : 42. Gợi ý đặt\n+ Deep link button
+
+note right of BOT
+  BotService hỗ trợ:\n• Intent detection đa ngôn ngữ\n  (Tiếng Việt + English)\n• Conversation memory\n  (lưu context 10 tin nhắn gần nhất)\n• Quick replies cho action\n  (Đặt ngay, Xem chi tiết, So sánh)\n• Fallback khi Gemini timeout\n  (trả lời từ database thay thế)
+end note
+
+note across: \n**GEMINI API INTEGRATION:**\n• System prompt định nghĩa vai trò: "Bạn là trợ lý\n  du lịch của Tourista Studio"\n• Context được truyền kèm để tăng\n  độ chính xác của phản hồi\n• Rate limiting: tối đa 60 req/phút\n• Fallback: nếu Gemini fail → trả lời từ\n  database cache\n\n@enduml

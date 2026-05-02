@@ -18,7 +18,7 @@ import HotelMap from '@/components/Hotels/HotelMap/HotelMap';
 import AvailabilityBadge from '@/components/Hotels/AvailabilityBadge/AvailabilityBadge';
 import hotelApi from '@/api/hotelApi';
 import tourApi from '@/api/tourApi';
-import reviewApi from '@/api/reviewApi';
+import pricingApi from '@/api/pricingApi';
 import favoriteApi from '@/api/favoriteApi';
 import styles from './page.module.css';
 
@@ -272,6 +272,8 @@ function HotelDetailInner() {
     const [helpfulMap, setHelpfulMap] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
     const [canReview, setCanReview] = useState(false);
+    const [dynamicPrice, setDynamicPrice] = useState(null);
+    const [priceLoading, setPriceLoading] = useState(false);
 
     const checkIn = searchParams.get('checkIn') || '';
     const checkOut = searchParams.get('checkOut') || '';
@@ -318,6 +320,44 @@ function HotelDetailInner() {
         };
         if (id) fetchDetail();
     }, [id]);
+
+    // Fetch dynamic price when dates or selected room change
+    useEffect(() => {
+        const fetchDynamicPrice = async () => {
+            if (!checkIn || !checkOut || !selectedRoom || !hotel?.id) {
+                setDynamicPrice(null);
+                return;
+            }
+
+            try {
+                setPriceLoading(true);
+                const numNights = Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000));
+                let total = 0;
+                const numRooms = Number(rooms || 1);
+
+                for (let i = 0; i < numNights; i++) {
+                    const d = new Date(checkIn);
+                    d.setDate(d.getDate() + i);
+                    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    try {
+                        const res = await pricingApi.calculateHotelNightPrice(hotel.id, dateStr, Number(adults || 2));
+                        const price = res?.data?.data?.finalPrice ?? res?.data?.finalPrice;
+                        total += Number(price) || Number(selectedRoom.basePricePerNight);
+                    } catch {
+                        total += Number(selectedRoom.basePricePerNight);
+                    }
+                }
+
+                setDynamicPrice(total * numRooms);
+            } catch {
+                setDynamicPrice(null);
+            } finally {
+                setPriceLoading(false);
+            }
+        };
+
+        fetchDynamicPrice();
+    }, [checkIn, checkOut, selectedRoom, hotel?.id, adults, rooms]);
 
     useEffect(() => {
         const fetchNearbyTours = async () => {
@@ -434,10 +474,9 @@ function HotelDetailInner() {
         fetchRecommendedHotels();
     }, [hotel?.id, hotel?.city, checkIn, checkOut, adults, rooms]);
 
-    // Check if this hotel is favorited by the user
+    // Check if this hotel is favorited by the user (only when authenticated)
     useEffect(() => {
         if (!hotel?.id || !isAuthenticated) {
-            setIsFavorite(false);
             return;
         }
 
@@ -456,7 +495,9 @@ function HotelDetailInner() {
     const handleToggleFavorite = async () => {
         if (!isAuthenticated) {
             toast.info('Vui lòng đăng nhập để lưu vào danh sách yêu thích.');
-            router.push('/login');
+            const redirect = typeof window !== 'undefined'
+                ? `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}` : '';
+            router.push(`/login${redirect}`);
             return;
         }
         if (favoriteLoading || !hotel?.id) return;
@@ -735,8 +776,11 @@ function HotelDetailInner() {
                         </button>
                         {showCalendar && selectedRoom && (
                             <PriceCalendar
+                                hotelId={Number(hotel.id)}
+                                roomTypeId={selectedRoom.id}
                                 basePricePerNight={Number(selectedRoom.basePricePerNight || 1000000)}
                                 pricingRules={[]}
+                                adults={Number(adults || 2)}
                                 selectedCheckIn={calendarCheckIn || null}
                                 selectedCheckOut={calendarCheckOut || null}
                                 onSelectDates={(ci, co) => {
@@ -1233,7 +1277,9 @@ function HotelDetailInner() {
                                                 onClick={async () => {
                                                     if (!isAuthenticated) {
                                                         toast.info('Vui lòng đăng nhập để đánh dấu hữu ích.');
-                                                        router.push('/login');
+                                                        const redirect = typeof window !== 'undefined'
+                                                            ? `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}` : '';
+                                                        router.push(`/login${redirect}`);
                                                         return;
                                                     }
                                                     const wasVoted = helpfulMap[review.id];
@@ -1349,9 +1395,26 @@ function HotelDetailInner() {
                                     Loại phòng đã chọn: <strong>{selectedRoom.name}</strong>
                                 </p>
                                 <div className={styles.priceBlock}>
-                                    <div className={styles.totalPrice}>{formatVND(Number(selectedRoom.basePricePerNight) * nights * Number(rooms))}</div>
-                                    <div className={styles.priceNote}>{formatVND(selectedRoom.basePricePerNight)} × {nights} đêm × {rooms} phòng</div>
-                                    <div className={styles.taxNote}>Đã bao gồm thuế và phí</div>
+                                    {priceLoading ? (
+                                        <div className={styles.totalPrice}>Đang tính giá...</div>
+                                    ) : dynamicPrice ? (
+                                        <>
+                                            <div className={styles.totalPrice}>{formatVND(dynamicPrice)}</div>
+                                            <div className={styles.priceNote}>
+                                                {formatVND(selectedRoom.basePricePerNight)} × {nights} đêm × {rooms} phòng
+                                                {(dynamicPrice !== Number(selectedRoom.basePricePerNight) * nights * Number(rooms)) && (
+                                                    <span style={{ color: '#e74c3c', marginLeft: 6 }}>(đã áp dụng giá động)</span>
+                                                )}
+                                            </div>
+                                            <div className={styles.taxNote}>Đã bao gồm thuế và phí</div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className={styles.totalPrice}>{formatVND(Number(selectedRoom.basePricePerNight) * nights * Number(rooms))}</div>
+                                            <div className={styles.priceNote}>{formatVND(selectedRoom.basePricePerNight)} × {nights} đêm × {rooms} phòng</div>
+                                            <div className={styles.taxNote}>Đã bao gồm thuế và phí</div>
+                                        </>
+                                    )}
                                 </div>
                                 <button className={styles.bookNowBtn} onClick={() => handleBookNow()}>
                                     Đặt phòng ngay

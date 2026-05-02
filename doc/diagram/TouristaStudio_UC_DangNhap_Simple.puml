@@ -1,0 +1,119 @@
+@startuml TouristaStudio_UC_DangNhap
+!theme plain
+
+title UC02 — DANG KY / DANG NHAP TAI KHOAN
+
+' ============================================================
+' ACTORS
+' ============================================================
+actor "Nguoi dung" as USER
+actor "He thong Email" as EMAIL
+
+' ============================================================
+' SYSTEM BOUNDARY
+' ============================================================
+rectangle "He thong Tourista Studio" {
+
+    ' --- Use Cases ---
+    (Dang ky tai khoan\n(email + password)) as UC01
+    (Dang nhap\n(email + password)) as UC02
+    (Dang nhap Google) as UC03
+    (Dang nhap Facebook) as UC04
+    (Xac thuc email\n(ma OTP)) as UC05
+    (Quen mat khau\n(va dat lai)) as UC06
+    (Dang xuat) as UC07
+
+    ' --- Internal system functions ---
+    (Tao JWT Access Token\n(thoi han 15 phut)) as JWT_ACC
+    (Tao Refresh Token\n(thoi han 7 ngay)) as JWT_REF
+    (Ma hoa mat khau\n(BCrypt)) as BCRYPT
+}
+
+' ============================================================
+' RELATIONSHIPS
+' ============================================================
+
+USER --> UC01
+USER --> UC02
+USER --> UC03
+USER --> UC04
+USER --> UC05
+USER --> UC06
+USER --> UC07
+
+EMAIL --> UC05
+
+' UC includes internal functions
+UC01 .down.> BCRYPT : <<include>>
+UC01 .down.> UC05 : <<include>>
+
+UC02 .down.> BCRYPT : <<include>>
+UC02 .down.> JWT_ACC : <<include>>
+UC02 .down.> JWT_REF : <<include>>
+
+UC03 .down.> JWT_ACC : <<include>>
+UC03 .down.> JWT_REF : <<include>>
+
+UC04 .down.> JWT_ACC : <<include>>
+UC04 .down.> JWT_REF : <<include>>
+
+UC06 .down.> EMAIL : <<include>>
+
+' ============================================================
+' NOTES
+' ============================================================
+note bottom of UC01
+  **Luong Dang ky:**
+  1. Nhap email, password, ho ten
+  2. Ma hoa password (BCrypt)
+  3. Luu vao CSDL
+  4. Gui email xac thuc
+  5. Nhan link xac thuc trong email
+end note
+
+note bottom of UC02
+  **Luong Dang nhap:**
+  1. Nhap email, password
+  2. Kiem tra BCrypt hash
+  3. Tao JWT Access Token (15 phut)
+  4. Tao Refresh Token (7 ngay)
+  5. Tra token ve Frontend
+end note
+
+note bottom of UC03
+  **Luong Google OAuth2:**
+  1. Nhan "Dang nhap Google"
+  2. Chuyen sang trang Google
+  3. Cho phep truy cap
+  4. Quay lai + tao JWT
+  (Khong can nhap mat khau)
+end note
+
+note bottom of UC06
+  **Luong Quen mat khau:**
+  1. Nhap email da dang ky
+  2. He thong gui email dat lai
+  3. Nhan link trong email
+  4. Nhap mat khau moi
+  5. Cap nhat vao CSDL
+end note
+
+note top of JWT_ACC
+  JWT Access Token:
+  - Thoi han: 15 phut
+  - Dung de goi API
+end note
+
+note top of JWT_REF
+  Refresh Token:
+  - Thoi han: 7 ngay
+  - Dung de lay Access Token moi
+end note
+
+note top of BCRYPT
+  BCrypt Password:
+  - Thuong toan hash mat khau
+  - Khong the dao nguoc
+end note
+
+@enduml

@@ -95,6 +95,13 @@ export const API_ENDPOINTS = {
   PROMOTIONS: {
     LIST: "/promotions",
   },
+
+  // Pricing
+  PRICING: {
+    CALC_TOUR: "/pricing/calculate/tour",
+    CALC_HOTEL: "/pricing/calculate/hotel",
+    CALC_HOTEL_NIGHT: "/pricing/calculate/hotel",
+  },
 };
 
 // App Routes

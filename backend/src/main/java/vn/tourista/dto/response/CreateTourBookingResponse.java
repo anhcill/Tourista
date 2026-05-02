@@ -29,4 +29,8 @@ public class CreateTourBookingResponse {
     private Integer children;
 
     private LocalDateTime createdAt;
+
+    private BigDecimal subtotal;
+    private BigDecimal discountAmount;
+    private String promoCode;
 }

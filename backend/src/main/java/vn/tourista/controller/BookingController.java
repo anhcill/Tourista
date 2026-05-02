@@ -10,6 +10,7 @@ import vn.tourista.dto.request.CancelBookingRequest;
 import vn.tourista.dto.request.CreateBookingRequest;
 import vn.tourista.dto.request.CreateTourBookingRequest;
 import vn.tourista.dto.request.UpdateBookingRequest;
+import vn.tourista.dto.request.UpdateTourBookingRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.CreateBookingResponse;
 import vn.tourista.dto.response.CreateTourBookingResponse;
@@ -72,6 +73,16 @@ public class BookingController {
             Authentication authentication) {
 
         ApiResponse<?> data = bookingService.updateBooking(authentication.getName(), id, request);
+        return ResponseEntity.ok(data);
+    }
+
+    @PutMapping("/{id}/tour")
+    public ResponseEntity<ApiResponse<?>> updateTourBooking(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateTourBookingRequest request,
+            Authentication authentication) {
+
+        ApiResponse<?> data = bookingService.updateTourBooking(authentication.getName(), id, request);
         return ResponseEntity.ok(data);
     }
 }

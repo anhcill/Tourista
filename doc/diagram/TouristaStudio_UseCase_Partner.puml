@@ -1,0 +1,243 @@
+@startuml TouristaStudio_UseCase_Partner
+!theme plain
+scale 1.0
+
+title BIỂU ĐỒ USE CASE — SUBSYSTEM ĐỐI TÁC (PARTNER)
+
+' ============================================================
+' ACTORS
+' ============================================================
+actor "Đối tác (Partner)" as PARTNER
+actor "Khách hàng (Customer)" as CUSTOMER
+actor "Hệ thống (System)" as SYSTEM
+actor "Cloudinary" as CLOUD
+
+' ============================================================
+' SUBSYSTEM PARTNER
+' ============================================================
+rectangle "Subsystem Đối tác (Partner)" {
+
+    ' --- Nhóm Xác thực ---
+    package "Xác thực & Đăng nhập" {
+        usecase "UC01\nĐăng nhập (JWT)" as UC01
+        usecase "UC02\nXác thực email" as UC02
+        usecase "UC03\nQuên mật khẩu" as UC03
+        usecase "UC04\nĐăng xuất" as UC04
+    }
+
+    ' --- Nhóm Đăng ký Partner ---
+    package "Đăng ký Đối tác" {
+        usecase "UC05\nĐăng ký trở thành\nđối tác (Partner Registration)" as UC05
+        usecase "UC06\nXác thực danh tính\nđối tác (KYC)" as UC06
+        usecase "UC07\nChờ phê duyệt\ntừ Admin" as UC07
+        usecase "UC08\nNhận thông báo\nphê duyệt / từ chối" as UC08
+    }
+
+    ' --- Nhóm Dashboard ---
+    package "Dashboard Đối tác" {
+        usecase "UC10\nXem Dashboard\n(thống kê, biểu đồ)" as UC10
+        usecase "UC11\nXem tổng quan\ndoanh thu theo tháng" as UC11
+        usecase "UC12\nXem danh sách\nđơn đặt phòng mới" as UC12
+        usecase "UC13\nXem đánh giá\ntổng quan khách sạn" as UC13
+        usecase "UC14\nXem thông báo\nmới nhất" as UC14
+    }
+
+    ' --- Nhóm Khách sạn ---
+    package "Quản lý Khách sạn" {
+        usecase "UC20\nThêm mới khách sạn\n(Create Hotel)" as UC20
+        usecase "UC21\nChỉnh sửa thông tin\nkhách sạn" as UC21
+        usecase "UC22\nXóa / tạm ngưng\nkhách sạn" as UC22
+        usecase "UC23\nCập nhật địa chỉ,\nthành phố, mô tả" as UC23
+        usecase "UC24\nCập nhật thông tin\nliên hệ (email, điện thoại)" as UC24
+        usecase "UC25\nThêm tiện nghi\n(Amenities)" as UC25
+        usecase "UC26\nUpload hình ảnh\nkhách sạn (Cloudinary)" as UC26
+        usecase "UC27\nXem trạng thái\nkhách sạn (đã duyệt/chờ)" as UC27
+    }
+
+    ' --- Nhóm Loại phòng ---
+    package "Quản lý Loại Phòng" {
+        usecase "UC30\nThêm loại phòng mới\n(Room Type)" as UC30
+        usecase "UC31\nChỉnh sửa loại phòng\n(tên, giường, số người)" as UC31
+        usecase "UC32\nXóa loại phòng" as UC32
+        usecase "UC33\nCập nhật giá phòng\ntheo ngày (Pricing Rule)" as UC33
+        usecase "UC34\nCập nhật số lượng\nphòng hiện có" as UC34
+        usecase "UC35\nXem tình trạng\nphòng trống" as UC35
+    }
+
+    ' --- Nhóm Tour ---
+    package "Quản lý Tour Du lịch" {
+        usecase "UC40\nThêm tour mới\n(Create Tour)" as UC40
+        usecase "UC41\nChỉnh sửa thông tin tour\n(mô tả, lịch trình)" as UC41
+        usecase "UC42\nXóa / tạm ngưng tour" as UC42
+        usecase "UC43\nThêm lịch khởi hành\n(Tour Departure)" as UC43
+        usecase "UC44\nCập nhật ngày khởi hành,\ngiá, số chỗ (slots)" as UC44
+        usecase "UC45\nXóa lịch khởi hành" as UC45
+        usecase "UC46\nCập nhật giá tour\ntheo mùa / ngày" as UC46
+        usecase "UC47\nUpload hình ảnh tour\n(Cloudinary)" as UC47
+    }
+
+    ' --- Nhóm Combo ---
+    package "Quản lý Combo" {
+        usecase "UC50\nTạo gói Combo mới\n(Khách sạn + Tour)" as UC50
+        usecase "UC51\nChỉnh sửa gói Combo" as UC51
+        usecase "UC52\nXóa gói Combo" as UC52
+        usecase "UC53\nChọn khách sạn và tour\ncho Combo" as UC53
+        usecase "UC54\nCập nhật giá Combo\n(giảm so với đặt riêng)" as UC54
+    }
+
+    ' --- Nhóm Đơn đặt phòng ---
+    package "Quản lý Đơn Đặt" {
+        usecase "UC60\nXem danh sách đơn đặt\n(tất cả các loại)" as UC60
+        usecase "UC61\nXem chi tiết đơn đặt\n(thông tin khách, ngày)" as UC61
+        usecase "UC62\nXác nhận đơn đặt\n(Approve)" as UC62
+        usecase "UC63\nTừ chối / Hủy đơn\n(kèm lý do)" as UC63
+        usecase "UC64\nCập nhật trạng thái đơn\n(CONFIRMED, CANCELLED...)" as UC64
+        usecase "UC65\nXem lịch sử thay đổi\ntrạng thái đơn" as UC65
+    }
+
+    ' --- Nhóm Đánh giá ---
+    package "Quản lý Đánh giá" {
+        usecase "UC70\nXem danh sách đánh giá\nvề khách sạn/tour" as UC70
+        usecase "UC71\nPhản hồi đánh giá\ncủa khách hàng" as UC71
+        usecase "UC72\nẨn / xóa phản hồi" as UC72
+    }
+
+    ' --- Nhóm Chat ---
+    package "Chat với Khách hàng" {
+        usecase "UC75\nNhắn tin P2P\nvới khách hàng" as UC75
+        usecase "UC76\nNhận tin nhắn\nreal-time (WebSocket)" as UC76
+        usecase "UC77\nXem lịch sử cuộc trò\nchuyện với khách" as UC77
+        usecase "UC78\nNhận thông báo có\ntin nhắn mới" as UC78
+    }
+
+    ' --- Nhóm Báo cáo ---
+    package "Báo cáo & Thống kê" {
+        usecase "UC80\nXem báo cáo doanh thu\ntheo tháng / quý" as UC80
+        usecase "UC81\nXem biểu đồ tỷ lệ\nđặt phòng / hủy" as UC81
+        usecase "UC82\nXuất báo cáo\n(PDF / Excel)" as UC82
+    }
+
+    ' --- Nhóm Hồ sơ ---
+    package "Hồ sơ Đối tác" {
+        usecase "UC85\nXem / chỉnh sửa\nthông tin đối tác" as UC85
+        usecase "UC86\nThay đổi mật khẩu" as UC86
+        usecase "UC87\nCập nhật logo /\nhình ảnh đại diện" as UC87
+    }
+}
+
+' ============================================================
+' RELATIONSHIPS
+' ============================================================
+
+' --- Actor relationships ---
+PARTNER --> UC01
+PARTNER --> UC02
+PARTNER --> UC03
+PARTNER --> UC04
+PARTNER --> UC05
+PARTNER --> UC06
+PARTNER --> UC07
+PARTNER --> UC08
+PARTNER --> UC10
+PARTNER --> UC11
+PARTNER --> UC12
+PARTNER --> UC13
+PARTNER --> UC14
+PARTNER --> UC20
+PARTNER --> UC21
+PARTNER --> UC22
+PARTNER --> UC23
+PARTNER --> UC24
+PARTNER --> UC25
+PARTNER --> UC26
+PARTNER --> UC27
+PARTNER --> UC30
+PARTNER --> UC31
+PARTNER --> UC32
+PARTNER --> UC33
+PARTNER --> UC34
+PARTNER --> UC35
+PARTNER --> UC40
+PARTNER --> UC41
+PARTNER --> UC42
+PARTNER --> UC43
+PARTNER --> UC44
+PARTNER --> UC45
+PARTNER --> UC46
+PARTNER --> UC47
+PARTNER --> UC50
+PARTNER --> UC51
+PARTNER --> UC52
+PARTNER --> UC53
+PARTNER --> UC54
+PARTNER --> UC60
+PARTNER --> UC61
+PARTNER --> UC62
+PARTNER --> UC63
+PARTNER --> UC64
+PARTNER --> UC65
+PARTNER --> UC70
+PARTNER --> UC71
+PARTNER --> UC72
+PARTNER --> UC75
+PARTNER --> UC76
+PARTNER --> UC77
+PARTNER --> UC78
+PARTNER --> UC80
+PARTNER --> UC81
+PARTNER --> UC82
+PARTNER --> UC85
+PARTNER --> UC86
+PARTNER --> UC87
+
+CUSTOMER --> UC75
+CUSTOMER --> UC76
+
+CLOUD --> UC26
+CLOUD --> UC47
+
+SYSTEM --> UC08
+SYSTEM --> UC64
+
+' --- Include ---
+UC20 .down.> UC26 : <<include>>
+UC40 .down.> UC47 : <<include>>
+
+UC50 .down.> UC53 : <<include>>
+
+UC61 .right.> UC64 : <<include>>
+
+UC10 .down.> UC11 : <<include>>
+UC10 .down.> UC12 : <<include>>
+UC10 .down.> UC13 : <<include>>
+
+UC71 .right.> UC72 : <<extend>>
+
+UC60 .down.> UC61 : <<include>>
+UC61 .down.> UC62 : <<include>>
+UC61 .down.> UC63 : <<include>>
+
+UC75 .right.> UC76 : <<include>>
+UC76 .up.> UC77 : <<include>>
+UC76 .up.> UC78 : <<include>>
+
+' --- Notes ---
+note bottom of PARTNER
+  Actor: Đối tác / Chủ khách sạn
+  Có quyền quản lý khách sạn,
+  tour, combo của mình
+end note
+
+note bottom of CUSTOMER
+  Actor: Khách hàng
+  Chat với đối tác về
+  thông tin đặt phòng
+end note
+
+note bottom of CLOUD
+  Cloudinary CDN
+  Upload hình ảnh khách sạn,
+  tour lên đám mây
+end note
+
+@enduml

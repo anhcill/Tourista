@@ -1,187 +1,54 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
+import comboApi from '@/api/comboApi';
 
 /* ── Types ── */
 type Combo = {
   id: number;
   name: string;
-  tagline: string;
-  destination: string;
-  category: 'RESORT' | 'EXPLORE' | 'FAMILY' | 'HONEYMOON';
+  description: string;
+  imageUrl: string;
+  comboType: string;
+  hotelId: number;
   hotelName: string;
+  hotelImageUrl: string;
   hotelStars: number;
-  hotelImage: string;
+  tourId: number;
   tourName: string;
+  tourImageUrl: string;
   tourDays: number;
-  tourImage: string;
+  secondHotelId: number;
+  secondHotelName: string;
+  secondTourId: number;
+  secondTourName: string;
+  validFrom: string;
+  validUntil: string;
+  totalSlots: number;
+  remainingSlots: number;
   originalPrice: number;
   comboPrice: number;
+  savingsAmount: number;
   savingsPercent: number;
-  includes: string[];
-  duration: string;
-  highlight: string;
-  badge?: string;
+  isFeatured: boolean;
 };
-
-/* ── Mock Data ── */
-const COMBO_DATA: Combo[] = [
-  {
-    id: 1,
-    name: 'Phú Quốc Paradise',
-    tagline: 'Nghỉ dưỡng 5★ + Tour lặn biển',
-    destination: 'Phú Quốc',
-    category: 'RESORT',
-    hotelName: 'JW Marriott Phú Quốc',
-    hotelStars: 5,
-    hotelImage: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=700&q=80',
-    tourName: 'Lặn ngắm san hô Hòn Thơm',
-    tourDays: 1,
-    tourImage: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=700&q=80',
-    originalPrice: 12500000,
-    comboPrice: 8900000,
-    savingsPercent: 29,
-    includes: ['3 đêm khách sạn', 'Bữa sáng buffet', 'Tour lặn biển', 'Đón sân bay', 'Bảo hiểm du lịch'],
-    duration: '4N3Đ',
-    highlight: 'Ngắm san hô, tắm biển, nghỉ dưỡng xa xỉ',
-    badge: '🔥 Bán chạy nhất',
-  },
-  {
-    id: 2,
-    name: 'Đà Nẵng Discovery',
-    tagline: 'Khách sạn biển + Tour Sơn Trà & Hội An',
-    destination: 'Đà Nẵng',
-    category: 'EXPLORE',
-    hotelName: 'Hyatt Regency Đà Nẵng',
-    hotelStars: 5,
-    hotelImage: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=700&q=80',
-    tourName: 'Sơn Trà - Hội An - Bà Nà Hills',
-    tourDays: 2,
-    tourImage: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=700&q=80',
-    originalPrice: 9800000,
-    comboPrice: 6990000,
-    savingsPercent: 29,
-    includes: ['2 đêm khách sạn', 'Bữa sáng', 'Tour 2 ngày', 'Xe đưa đón', 'Vé tham quan'],
-    duration: '3N2Đ',
-    highlight: 'Khám phá phố cổ, núi Bà Nà huyền bí',
-    badge: '⭐ Phổ biến',
-  },
-  {
-    id: 3,
-    name: 'Sapa Honeymoon',
-    tagline: 'Bungalow mây + Trekking ruộng bậc thang',
-    destination: 'Sapa',
-    category: 'HONEYMOON',
-    hotelName: 'Topas Ecolodge Sapa',
-    hotelStars: 4,
-    hotelImage: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=700&q=80',
-    tourName: 'Trekking bản Cát Cát & Lao Chải',
-    tourDays: 2,
-    tourImage: 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?w=700&q=80',
-    originalPrice: 7200000,
-    comboPrice: 5100000,
-    savingsPercent: 29,
-    includes: ['2 đêm bungalow', 'Bữa sáng & tối', 'Trekking có hướng dẫn', 'Đón ga tàu', 'Bảo hiểm'],
-    duration: '3N2Đ',
-    highlight: 'Sương mù lãng mạn, ruộng bậc thang hùng vĩ',
-    badge: '💕 Lý tưởng đôi',
-  },
-  {
-    id: 4,
-    name: 'Hà Nội Family Fun',
-    tagline: 'Khách sạn trung tâm + Tour gia đình',
-    destination: 'Hà Nội',
-    category: 'FAMILY',
-    hotelName: 'Sofitel Legend Métropole',
-    hotelStars: 5,
-    hotelImage: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=700&q=80',
-    tourName: 'Hà Nội - Ninh Bình - Hạ Long 1 ngày',
-    tourDays: 1,
-    tourImage: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=700&q=80',
-    originalPrice: 11000000,
-    comboPrice: 7800000,
-    savingsPercent: 29,
-    includes: ['2 đêm khách sạn', 'Bữa sáng', 'Tour Hạ Long 1 ngày', 'Xe đưa đón sân bay', 'Bảo hiểm trẻ em'],
-    duration: '3N2Đ',
-    highlight: 'Khám phá thủ đô & vịnh kỳ quan thế giới',
-  },
-  {
-    id: 5,
-    name: 'Nha Trang Sun & Sea',
-    tagline: 'Resort biển + Tour 4 đảo huyền thoại',
-    destination: 'Nha Trang',
-    category: 'RESORT',
-    hotelName: 'Six Senses Ninh Van Bay',
-    hotelStars: 5,
-    hotelImage: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=700&q=80',
-    tourName: 'Tour 4 đảo Nha Trang',
-    tourDays: 1,
-    tourImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=700&q=80',
-    originalPrice: 13500000,
-    comboPrice: 9500000,
-    savingsPercent: 30,
-    includes: ['3 đêm resort 5★', 'Ăn sáng & trưa', 'Tour 4 đảo', 'Canoe kayak', 'Bảo hiểm cao cấp'],
-    duration: '4N3Đ',
-    highlight: 'Biển xanh, cát trắng, đảo hoang sơ tuyệt đẹp',
-    badge: '✨ Premium',
-  },
-  {
-    id: 6,
-    name: 'Đà Lạt Romantic Escape',
-    tagline: 'Villa thông ngàn + Tour cà phê & thác nước',
-    destination: 'Đà Lạt',
-    category: 'HONEYMOON',
-    hotelName: 'Dalat Palace Heritage Hotel',
-    hotelStars: 4,
-    hotelImage: 'https://images.unsplash.com/photo-1605538032404-d7f54b22a5e7?w=700&q=80',
-    tourName: 'Cáp treo Datanla - Thác Elephant',
-    tourDays: 1,
-    tourImage: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=700&q=80',
-    originalPrice: 6800000,
-    comboPrice: 4900000,
-    savingsPercent: 28,
-    includes: ['2 đêm villa', 'Bữa sáng', 'Tour thác nước', 'Thưởng thức cà phê Arabica', 'Đón sân bay'],
-    duration: '3N2Đ',
-    highlight: 'Sương khói, hoa dại, không gian lãng mạn nhất Việt Nam',
-  },
-];
 
 const FILTER_TABS = [
   { key: 'ALL', label: 'Tất cả', emoji: '🌟' },
-  { key: 'RESORT', label: 'Nghỉ dưỡng', emoji: '🏖️' },
-  { key: 'EXPLORE', label: 'Khám phá', emoji: '🗺️' },
-  { key: 'FAMILY', label: 'Gia đình', emoji: '👨‍👩‍👧' },
-  { key: 'HONEYMOON', label: 'Cặp đôi', emoji: '💕' },
+  { key: 'HOTEL_PLUS_TOUR', label: 'Khách sạn + Tour', emoji: '🏨' },
+  { key: 'MULTI_HOTEL', label: 'Nhiều Khách sạn', emoji: '🏨🏨' },
+  { key: 'MULTI_TOUR', label: 'Nhiều Tour', emoji: '🚌🚌' },
+  { key: 'TOUR_BUNDLE', label: 'Gói Tour', emoji: '📦' },
+  { key: 'HOTEL_AIRPORT_TRANSFER', label: 'Khách sạn + Đưa đón', emoji: '✈️' },
 ];
 
 const BENEFITS = [
-  {
-    icon: '💰',
-    title: 'Tiết kiệm đến 30%',
-    desc: 'Giá combo luôn thấp hơn đặt riêng lẻ. Đặt cùng nhau — trả ít hơn.',
-    color: '#059669',
-  },
-  {
-    icon: '📦',
-    title: 'Trọn gói tiện lợi',
-    desc: 'Một lần đặt, mọi thứ được sắp xếp: khách sạn, tour, đưa đón, bảo hiểm.',
-    color: '#0077b6',
-  },
-  {
-    icon: '🛡️',
-    title: 'Đảm bảo chất lượng',
-    desc: 'Tất cả khách sạn & tour trong combo đều được kiểm duyệt kỹ lưỡng.',
-    color: '#7c3aed',
-  },
-  {
-    icon: '📞',
-    title: 'Hỗ trợ 24/7',
-    desc: 'Đội ngũ tư vấn sẵn sàng giải quyết mọi vấn đề trong suốt chuyến đi.',
-    color: '#f59e0b',
-  },
+  { icon: '💰', title: 'Tiết kiệm đến 30%', desc: 'Giá combo luôn thấp hơn đặt riêng lẻ.', color: '#059669' },
+  { icon: '📦', title: 'Trọn gói tiện lợi', desc: 'Một lần đặt, mọi thứ được sắp xếp sẵn.', color: '#0077b6' },
+  { icon: '🛡️', title: 'Đảm bảo chất lượng', desc: 'Khách sạn & tour được kiểm duyệt kỹ lưỡng.', color: '#7c3aed' },
+  { icon: '📞', title: 'Hỗ trợ 24/7', desc: 'Đội ngũ tư vấn sẵn sàng giải quyết mọi vấn đề.', color: '#f59e0b' },
 ];
 
 const HERO_SLIDES = [
@@ -190,29 +57,83 @@ const HERO_SLIDES = [
   'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1600&q=85',
 ];
 
-/* ── Helpers ── */
+const DEFAULT_HOTEL_IMG = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=700&q=80';
+const DEFAULT_TOUR_IMG = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=700&q=80';
+
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 }
 
 function getStars(n: number) {
-  return '★'.repeat(n) + '☆'.repeat(5 - n);
+  return '★'.repeat(n || 0) + '☆'.repeat(5 - (n || 0));
 }
 
-/* ════════════════════════ COMPONENT ════════════════════════ */
+function getComboTypeLabel(type: string) {
+  const labels: Record<string, string> = {
+    HOTEL_PLUS_TOUR: 'Khách sạn + Tour',
+    MULTI_HOTEL: 'Nhiều Khách sạn',
+    MULTI_TOUR: 'Nhiều Tour',
+    HOTEL_AIRPORT_TRANSFER: 'Khách sạn + Đưa đón',
+    TOUR_BUNDLE: 'Gói Tour',
+  };
+  return labels[type] || type;
+}
+
+function getComboBadge(type: string) {
+  const badges: Record<string, string> = {
+    HOTEL_PLUS_TOUR: '🔥 Bán chạy',
+    MULTI_HOTEL: '🏨 Đa dạng',
+    MULTI_TOUR: '🚌 Khám phá',
+    HOTEL_AIRPORT_TRANSFER: '✈️ Tiện lợi',
+    TOUR_BUNDLE: '📦 Tiết kiệm',
+  };
+  return badges[type] || '🌟 Combo';
+}
+
+function getHotelIncludes(combo: Combo): string[] {
+  const items = ['Khách sạn cao cấp', 'Bữa sáng buffet', 'Wi-Fi miễn phí'];
+  if (combo.comboType === 'HOTEL_AIRPORT_TRANSFER') items.push('Đưa đón sân bay');
+  if (combo.comboType === 'HOTEL_PLUS_TOUR') items.push('Tour du lịch', 'Hướng dẫn viên');
+  return items;
+}
+
 export default function CombosPage() {
   const router = useRouter();
+  const [combos, setCombos] = useState<Combo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState('ALL');
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
+  const loadCombos = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await comboApi.getCombos();
+      const list = Array.isArray(data) ? data : (data?.data || []);
+      setCombos(list);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể tải danh sách combo.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCombos();
+  }, [loadCombos]);
+
   const filtered = filter === 'ALL'
-    ? COMBO_DATA
-    : COMBO_DATA.filter(c => c.category === filter);
+    ? combos
+    : combos.filter(c => c.comboType === filter);
+
+  const featuredCombos = combos.filter(c => c.isFeatured);
+  const heroImage = featuredCombos[0]?.imageUrl || HERO_SLIDES[0];
 
   return (
     <main className={styles.page}>
 
-      {/* ═══════════════ HERO ═══════════════ */}
+      {/* ── HERO ── */}
       <section className={styles.hero}>
         <div className={styles.heroSlideshow}>
           {HERO_SLIDES.map((src, i) => (
@@ -230,20 +151,17 @@ export default function CombosPage() {
             <br />Tiết Kiệm Đến 30% 🎒
           </h1>
           <p className={styles.heroSub}>
-            Gói du lịch trọn vẹn — khách sạn cao cấp kết hợp tour đặc sắc. Một lần đặt, tất cả đã lo. Giá combo luôn thấp hơn đặt riêng lẻ.
+            Gói du lịch trọn vẹn — khách sạn cao cấp kết hợp tour đặc sắc. Một lần đặt, tất cả đã lo.
           </p>
-
-          {/* Value proposition pills */}
           <div className={styles.heroPills}>
             <span className={styles.heroPill}>✅ Bao gồm đưa đón</span>
             <span className={styles.heroPill}>✅ Bảo hiểm du lịch</span>
             <span className={styles.heroPill}>✅ Hướng dẫn viên</span>
             <span className={styles.heroPill}>✅ Hoàn tiền nếu hủy</span>
           </div>
-
           <div className={styles.heroStats}>
             <div className={styles.heroStat}>
-              <span className={styles.heroStatNum}>{COMBO_DATA.length}+</span>
+              <span className={styles.heroStatNum}>{combos.length}+</span>
               <span className={styles.heroStatLabel}>Gói combo</span>
             </div>
             <div className={styles.heroDivider} />
@@ -260,38 +178,29 @@ export default function CombosPage() {
         </div>
       </section>
 
-      {/* ═══════════════ HOW COMBO WORKS ═══════════════ */}
+      {/* ── HOW COMBO WORKS ── */}
       <div className={styles.howComboWrap}>
         <div className={styles.container}>
           <div className={styles.howComboRow}>
             <div className={styles.howComboItem}>
               <span className={styles.howComboIcon}>🏨</span>
-              <div>
-                <strong>Khách sạn</strong>
-                <p>3-5★ được tuyển chọn</p>
-              </div>
+              <div><strong>Khách sạn</strong><p>3-5★ được tuyển chọn</p></div>
             </div>
             <div className={styles.howComboPlusBig}>+</div>
             <div className={styles.howComboItem}>
               <span className={styles.howComboIcon}>🗺️</span>
-              <div>
-                <strong>Tour du lịch</strong>
-                <p>Trải nghiệm địa phương</p>
-              </div>
+              <div><strong>Tour du lịch</strong><p>Trải nghiệm địa phương</p></div>
             </div>
             <div className={styles.howComboPlusBig}>=</div>
             <div className={`${styles.howComboItem} ${styles.howComboSaving}`}>
               <span className={styles.howComboIcon}>💰</span>
-              <div>
-                <strong>Tiết kiệm 30%</strong>
-                <p>So với đặt riêng lẻ</p>
-              </div>
+              <div><strong>Tiết kiệm 30%</strong><p>So với đặt riêng lẻ</p></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ═══════════════ FILTER ═══════════════ */}
+      {/* ── FILTER ── */}
       <div className={styles.filterWrap}>
         <div className={styles.filterInner}>
           <span className={styles.filterLabel}>Danh mục:</span>
@@ -310,127 +219,180 @@ export default function CombosPage() {
         </div>
       </div>
 
-      {/* ═══════════════ COMBO CARDS ═══════════════ */}
+      {/* ── COMBO CARDS ── */}
       <section className={styles.comboSection}>
         <div className={styles.container}>
-          {filtered.length === 0 && (
+          {loading && (
+            <div className={styles.loadingRow}>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className={styles.skeletonCard}>
+                  <div className={styles.skeletonImg} />
+                  <div className={styles.skeletonBody}>
+                    <div className={styles.skeletonLine} style={{ width: '60%' }} />
+                    <div className={styles.skeletonLine} style={{ width: '80%' }} />
+                    <div className={styles.skeletonLine} style={{ width: '40%' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {error && (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>📦</div>
-              <h3>Chưa có combo cho danh mục này</h3>
-              <button onClick={() => setFilter('ALL')} className={styles.emptyBtn}>
-                Xem tất cả combo
+              <div className={styles.emptyIcon}>⚠️</div>
+              <h3>Không thể tải combo</h3>
+              <p>{error}</p>
+              <button className={styles.emptyBtn} onClick={() => void loadCombos()}>
+                Thử lại
               </button>
             </div>
           )}
 
-          <div className={styles.comboGrid}>
-            {filtered.map(combo => {
-              const savings = combo.originalPrice - combo.comboPrice;
-              return (
-                <div
-                  key={combo.id}
-                  className={styles.comboCard}
-                  onMouseEnter={() => setHoveredCard(combo.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                >
-                  {/* Badge */}
-                  {combo.badge && (
-                    <div className={styles.comboBadge}>{combo.badge}</div>
-                  )}
+          {!loading && !error && filtered.length === 0 && (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>📦</div>
+              <h3>Chưa có combo nào</h3>
+              <p>Admin chưa tạo combo nào. Hãy quay lại sau.</p>
+              <button className={styles.emptyBtn} onClick={() => setFilter('ALL')}>
+                Xem tất cả
+              </button>
+            </div>
+          )}
 
-                  {/* Savings strip */}
-                  <div className={styles.comboSavingsStrip}>
-                    <span className={styles.savingsPct}>Tiết kiệm {combo.savingsPercent}%</span>
-                    <span className={styles.savingsAmt}>-{formatCurrency(savings)}</span>
-                  </div>
+          {!loading && !error && filtered.length > 0 && (
+            <div className={styles.comboGrid}>
+              {filtered.map(combo => {
+                const savings = (combo.originalPrice || 0) - (combo.comboPrice || 0);
+                const hotelImg = combo.hotelImageUrl || combo.imageUrl || DEFAULT_HOTEL_IMG;
+                const tourImg = combo.tourImageUrl || combo.imageUrl || DEFAULT_TOUR_IMG;
+                const nights = combo.tourDays ? `${combo.tourDays}N${Math.max(0, (combo.tourDays - 1))}Đ` : 'Combo';
 
-                  {/* Split image — Hotel + Tour */}
-                  <div className={styles.comboImages}>
-                    <div className={styles.comboImageHalf}>
-                      <img
-                        src={combo.hotelImage}
-                        alt={combo.hotelName}
-                        className={`${styles.comboImg} ${hoveredCard === combo.id ? styles.comboImgHovered : ''}`}
-                        loading="lazy"
-                      />
-                      <div className={styles.comboImageLabel}>🏨 Khách sạn</div>
-                    </div>
-                    <div className={styles.comboImageDivider}>
-                      <div className={styles.comboImageDividerLine} />
-                      <div className={styles.comboPlusBadge}>+</div>
-                      <div className={styles.comboImageDividerLine} />
-                    </div>
-                    <div className={styles.comboImageHalf}>
-                      <img
-                        src={combo.tourImage}
-                        alt={combo.tourName}
-                        className={`${styles.comboImg} ${hoveredCard === combo.id ? styles.comboImgHovered : ''}`}
-                        loading="lazy"
-                      />
-                      <div className={styles.comboImageLabel}>🗺️ Tour</div>
-                    </div>
-                  </div>
+                return (
+                  <div
+                    key={combo.id}
+                    className={styles.comboCard}
+                    onMouseEnter={() => setHoveredCard(combo.id)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                  >
+                    {combo.isFeatured && (
+                      <div className={styles.comboBadge}>{getComboBadge(combo.comboType)}</div>
+                    )}
 
-                  {/* Body */}
-                  <div className={styles.comboBody}>
-                    <div className={styles.comboDestination}>
-                      <span className={styles.comboDestPin}>📍</span>
-                      {combo.destination} · {combo.duration}
-                    </div>
-                    <h3 className={styles.comboName}>{combo.name}</h3>
-                    <p className={styles.comboTagline}>{combo.tagline}</p>
-
-                    {/* Hotel & Tour info */}
-                    <div className={styles.comboServices}>
-                      <div className={styles.comboServiceItem}>
-                        <span className={styles.comboServiceEmoji}>🏨</span>
-                        <div>
-                          <div className={styles.comboServiceName}>{combo.hotelName}</div>
-                          <div className={styles.comboServiceStars}>{getStars(combo.hotelStars)}</div>
-                        </div>
-                      </div>
-                      <div className={styles.comboServiceItem}>
-                        <span className={styles.comboServiceEmoji}>🗺️</span>
-                        <div>
-                          <div className={styles.comboServiceName}>{combo.tourName}</div>
-                          <div className={styles.comboServiceDuration}>{combo.tourDays} ngày khám phá</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Includes chips */}
-                    <div className={styles.includesWrap}>
-                      {combo.includes.slice(0, 4).map(item => (
-                        <span key={item} className={styles.includeChip}>✓ {item}</span>
-                      ))}
-                      {combo.includes.length > 4 && (
-                        <span className={styles.includeChipMore}>+{combo.includes.length - 4} nữa</span>
+                    <div className={styles.comboSavingsStrip}>
+                      <span className={styles.savingsPct}>
+                        Tiết kiệm {combo.savingsPercent ? `${combo.savingsPercent}%` : ''}
+                      </span>
+                      {savings > 0 && (
+                        <span className={styles.savingsAmt}>-{formatCurrency(savings)}</span>
                       )}
                     </div>
 
-                    {/* Pricing */}
-                    <div className={styles.comboPricing}>
-                      <div className={styles.comboPricingLeft}>
-                        <span className={styles.originalPrice}>{formatCurrency(combo.originalPrice)}</span>
-                        <span className={styles.comboPrice}>{formatCurrency(combo.comboPrice)}</span>
-                        <span className={styles.perPerson}>/ người</span>
+                    {/* Split images */}
+                    <div className={styles.comboImages}>
+                      <div className={styles.comboImageHalf}>
+                        <img
+                          src={hotelImg}
+                          alt={combo.hotelName || 'Khách sạn'}
+                          className={`${styles.comboImg} ${hoveredCard === combo.id ? styles.comboImgHovered : ''}`}
+                          loading="lazy"
+                        />
+                        <div className={styles.comboImageLabel}>🏨 {combo.hotelName || 'Khách sạn'}</div>
                       </div>
-                      <button
-                        className={styles.comboBookBtn}
-                        onClick={() => router.push(`/hotels?destination=${combo.destination}`)}
-                      >
-                        Đặt combo →
-                      </button>
+                      <div className={styles.comboImageDivider}>
+                        <div className={styles.comboImageDividerLine} />
+                        <div className={styles.comboPlusBadge}>+</div>
+                        <div className={styles.comboImageDividerLine} />
+                      </div>
+                      <div className={styles.comboImageHalf}>
+                        <img
+                          src={tourImg}
+                          alt={combo.tourName || 'Tour'}
+                          className={`${styles.comboImg} ${hoveredCard === combo.id ? styles.comboImgHovered : ''}`}
+                          loading="lazy"
+                        />
+                        <div className={styles.comboImageLabel}>🗺️ {combo.tourName || 'Tour'}</div>
+                      </div>
+                    </div>
+
+                    {/* Card body */}
+                    <div className={styles.comboBody}>
+                      <div className={styles.comboDestination}>
+                        <span className={styles.comboDestPin}>📍</span>
+                        {getComboTypeLabel(combo.comboType)} · {nights}
+                      </div>
+                      <h3 className={styles.comboName}>{combo.name}</h3>
+                      {combo.description && (
+                        <p className={styles.comboTagline}>{combo.description.slice(0, 120)}</p>
+                      )}
+
+                      {/* Services */}
+                      <div className={styles.comboServices}>
+                        <div className={styles.comboServiceItem}>
+                          <span className={styles.comboServiceEmoji}>🏨</span>
+                          <div>
+                            <div className={styles.comboServiceName}>{combo.hotelName || 'Khách sạn'}</div>
+                            {combo.hotelStars > 0 && (
+                              <div className={styles.comboServiceStars}>{getStars(combo.hotelStars)}</div>
+                            )}
+                          </div>
+                        </div>
+                        {combo.tourName && (
+                          <div className={styles.comboServiceItem}>
+                            <span className={styles.comboServiceEmoji}>🗺️</span>
+                            <div>
+                              <div className={styles.comboServiceName}>{combo.tourName}</div>
+                              {combo.tourDays && (
+                                <div className={styles.comboServiceDuration}>{combo.tourDays} ngày khám phá</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Includes chips */}
+                      <div className={styles.includesWrap}>
+                        {getHotelIncludes(combo).slice(0, 4).map(item => (
+                          <span key={item} className={styles.includeChip}>✓ {item}</span>
+                        ))}
+                      </div>
+
+                      {/* Pricing */}
+                      <div className={styles.comboPricing}>
+                        <div className={styles.comboPricingLeft}>
+                          {combo.originalPrice > 0 && (
+                            <span className={styles.originalPrice}>{formatCurrency(combo.originalPrice)}</span>
+                          )}
+                          <span className={styles.comboPrice}>{formatCurrency(combo.comboPrice)}</span>
+                          <span className={styles.perPerson}>/ người</span>
+                        </div>
+                        <button
+                          className={styles.comboBookBtn}
+                          onClick={() => router.push(`/combos/${combo.id}/book`)}
+                        >
+                          Đặt combo →
+                        </button>
+                      </div>
+
+                      {/* Slot indicator */}
+                      {combo.remainingSlots !== undefined && combo.remainingSlots !== null && (
+                        <div className={styles.slotIndicator}>
+                          <span className={combo.remainingSlots < 5 ? styles.slotLow : styles.slotOk}>
+                            {combo.remainingSlots < 5
+                              ? `⚠️ Chỉ còn ${combo.remainingSlots} slot!`
+                              : `📋 Còn ${combo.remainingSlots} slot`}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* ═══════════════ BENEFITS ═══════════════ */}
+      {/* ── BENEFITS ── */}
       <section className={styles.benefitsSection}>
         <div className={styles.container}>
           <div className={styles.sectionHead}>
@@ -457,7 +419,7 @@ export default function CombosPage() {
         </div>
       </section>
 
-      {/* ═══════════════ CTA ═══════════════ */}
+      {/* ── CTA ── */}
       <section className={styles.ctaSection}>
         <div className={styles.container}>
           <div className={styles.ctaBanner}>
@@ -465,11 +427,15 @@ export default function CombosPage() {
             <div className={styles.ctaFloatCircle2} />
             <div className={styles.ctaText}>
               <h2 className={styles.ctaH2}>Sẵn sàng cho chuyến đi tuyệt vời? 🌟</h2>
-              <p className={styles.ctaSub}>Đặt combo ngay hôm nay và tiết kiệm đến 30% so với đặt riêng lẻ.</p>
+              <p className={styles.ctaSub}>Đặt combo ngay hôm nay và tiết kiệm đến 30%.</p>
             </div>
             <div className={styles.ctaBtns}>
-              <Link href="/hotels" className={styles.ctaBtnPrimary}>🏨 Xem khách sạn</Link>
-              <Link href="/tours" className={styles.ctaBtnOutline}>🗺️ Xem tour</Link>
+              <button className={styles.ctaBtnPrimary} onClick={() => window.location.href = '/hotels'}>
+                🏨 Xem khách sạn
+              </button>
+              <button className={styles.ctaBtnOutline} onClick={() => window.location.href = '/tours'}>
+                🗺️ Xem tour
+              </button>
             </div>
           </div>
         </div>

@@ -1,0 +1,272 @@
+@startuml User_ERD
+!theme plain
+
+title ERD — Phân hệ Người dùng (User)
+
+package "users" {
+
+    class User {
+        Long id : PK
+        String email : UNIQUE, NOT NULL
+        String password : NOT NULL
+        String fullName : NOT NULL
+        String phoneNumber : UNIQUE
+        String avatar
+        LocalDate dateOfBirth
+        Gender gender
+        Boolean isActive : DEFAULT TRUE
+        Boolean isVerified : DEFAULT FALSE
+        String verificationToken
+        LocalDateTime tokenExpiresAt
+        String resetPasswordToken
+        LocalDateTime resetTokenExpiresAt
+        LocalDateTime lastLoginAt
+        Integer failedLoginAttempts : DEFAULT 0
+        LocalDateTime lockedUntil
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    enum Gender {
+        MALE
+        FEMALE
+        OTHER
+    }
+}
+
+package "roles" {
+
+    class Role {
+        Short id : PK
+        String name : UNIQUE, NOT NULL
+        String description
+    }
+
+    class UserRole {
+        Long userId : PK, FK
+        Short roleId : PK, FK
+        LocalDateTime assignedAt
+    }
+}
+
+package "reviews" {
+
+    class Review {
+        Long id : PK
+        Long userId : FK → users
+        Long bookingId : FK → bookings
+        TargetType targetType : NOT NULL
+        Long targetId : NOT NULL
+        Integer overallRating : NOT NULL
+        String title
+        String comment
+        Integer cleanliness
+        Integer location
+        Integer service
+        Integer valueForMoney
+        Integer guideQuality
+        Integer organization
+        Boolean isVerified : DEFAULT FALSE
+        Boolean isPublished : DEFAULT TRUE
+        ModerationStatus moderationStatus
+        AdminStatus adminStatus : NOT NULL
+        String rejectionReason
+        Integer helpfulCount : DEFAULT 0
+        String adminReply
+        LocalDateTime adminRepliedAt
+        Long partnerId : FK → users
+        String partnerReply
+        LocalDateTime partnerRepliedAt
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    enum TargetType {
+        HOTEL
+        TOUR
+    }
+
+    enum ModerationStatus {
+        PENDING
+        APPROVED
+        REJECTED
+    }
+
+    enum AdminStatus {
+        PENDING
+        APPROVED
+        REJECTED
+    }
+
+    class ReviewImage {
+        Long id : PK
+        Long reviewId : FK → reviews
+        String imageUrl
+        Integer displayOrder
+    }
+}
+
+package "reports" {
+
+    class Report {
+        Long id : PK
+        Long reporterId : FK → users
+        Long reviewId : FK → reviews
+        String reason
+        String description
+        ReportStatus status : DEFAULT PENDING
+        String adminNote
+        Long resolvedBy : FK → users
+        LocalDateTime resolvedAt
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    enum ReportStatus {
+        PENDING
+        RESOLVED
+        DISMISSED
+    }
+
+    class ReportReason {
+        Long id : PK
+        String code
+        String description
+        String actionRequired
+    }
+}
+
+package "bookings" {
+
+    class Booking {
+        Long id : PK
+        Long userId : FK → users
+        BookingType bookingType : NOT NULL
+        BigDecimal totalAmount : NOT NULL
+        BigDecimal discountAmount : DEFAULT 0
+        BigDecimal finalAmount : NOT NULL
+        PaymentMethod paymentMethod
+        PaymentStatus paymentStatus
+        BookingStatus bookingStatus
+        Long voucherId : FK → vouchers
+        String voucherCode
+        BigDecimal voucherDiscount
+        String adminNote
+        String cancellationReason
+        LocalDateTime cancellationDate
+        Long paymentId : FK → payments
+        String paymentUrl
+        LocalDateTime bookingDate : NOT NULL
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    enum BookingType {
+        TOUR
+        HOTEL
+        COMBO
+    }
+
+    enum PaymentMethod {
+        VNPAY
+        CASH
+        BANK_TRANSFER
+    }
+
+    enum PaymentStatus {
+        PENDING
+        PAID
+        REFUNDED
+    }
+
+    enum BookingStatus {
+        PENDING
+        CONFIRMED
+        CANCELLED
+        COMPLETED
+        REFUNDED
+    }
+}
+
+package "notifications" {
+
+    class Notification {
+        Long id : PK
+        Long userId : FK → users
+        Long typeId : FK → notification_types
+        String title
+        String message
+        String data
+        Boolean isRead : DEFAULT FALSE
+        LocalDateTime readAt
+        LocalDateTime createdAt
+    }
+
+    class NotificationType {
+        Long id : PK
+        String name
+        String channel
+        String template
+    }
+}
+
+package "user_addresses" {
+
+    class UserAddress {
+        Long id : PK
+        Long userId : FK → users
+        String recipientName
+        String phoneNumber
+        String province
+        String district
+        String ward
+        String addressLine
+        Boolean isDefault : DEFAULT FALSE
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+}
+
+package "employees" {
+
+    class Employee {
+        Long id : PK, FK → users
+        String department
+        String position
+        BigDecimal salary
+        LocalDate hireDate
+        Boolean isActive : DEFAULT TRUE
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+}
+
+' ─── RELATIONSHIPS ───────────────────────────────────
+
+User "1" o-- "N" UserRole : has >
+UserRole "N" --> "1" Role : assigned to >
+Role "1" o-- "N" UserRole : assigned to <
+
+User "1" o-- "N" Review : writes >
+Review "N" --> "1" User : written by >
+Review "N" --> "1" Booking : for booking >
+Review "1" o-- "N" ReviewImage : has >
+
+User "1" o-- "N" Report : files >
+Report "N" --> "1" Review : reports >
+Report "N" --> "1" User : reported by >
+Report "N" --> "1" User : resolved by >
+
+User "1" o-- "N" Booking : places >
+Booking "1" --> "1" User : booked by >
+
+User "1" o-- "N" Notification : receives >
+Notification "N" --> "1" NotificationType : of type >
+
+User "1" o-- "N" UserAddress : has >
+UserAddress "N" --> "1" User : of user >
+
+User "1" |o-- "1" Employee : is (extended by) >
+Employee "1" --> "1" User : for user >
+
+@enduml

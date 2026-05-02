@@ -14,6 +14,7 @@ import {
   FaArrowLeft,
   FaComments,
   FaFlag,
+  FaLayerGroup,
 } from 'react-icons/fa';
 import styles from './AdminSidebar.module.css';
 
@@ -27,6 +28,7 @@ const MENU_ITEMS = [
   { label: 'Báo cáo', href: '/admin/reports', icon: <FaFlag /> },
   { label: 'Đánh giá', href: '/admin/reviews', icon: <FaStar /> },
   { label: 'Khuyến mãi', href: '/admin/promotions', icon: <FaTags /> },
+  { label: 'Combo', href: '/admin/combos', icon: <FaLayerGroup /> },
   { label: 'Cài đặt Hệ thống', href: '/admin/settings', icon: <FaCog /> },
 ];
 

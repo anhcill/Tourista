@@ -1,0 +1,141 @@
+@startuml Hotel_ERD
+!theme plain
+
+title ERD — Phân hệ Khách sạn (Hotel)
+
+package "hotels" {
+
+    class Hotel {
+        Long id : PK
+        City city : FK → cities
+        User owner : FK → users
+        String name : NOT NULL
+        String slug : UNIQUE, NOT NULL
+        String description
+        String address : NOT NULL
+        BigDecimal latitude
+        BigDecimal longitude
+        Integer starRating : NOT NULL (1-5)
+        BigDecimal avgRating : DEFAULT 0
+        Integer reviewCount : DEFAULT 0
+        LocalTime checkInTime : DEFAULT 14:00
+        LocalTime checkOutTime : DEFAULT 12:00
+        Boolean isActive : DEFAULT TRUE
+        Boolean isFeatured : DEFAULT FALSE
+        Boolean isTrending : DEFAULT FALSE
+        String phone
+        String email
+        String website
+        AdminStatus adminStatus : DEFAULT PENDING
+        String adminNote
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    enum AdminStatus {
+        PENDING
+        APPROVED
+        REJECTED
+        SUSPENDED
+    }
+}
+
+package "room_types" {
+
+    class RoomType {
+        Long id : PK
+        Hotel hotel : FK → hotels
+        String name : NOT NULL
+        String description
+        Integer maxAdults : DEFAULT 2
+        Integer maxChildren : DEFAULT 0
+        String bedType
+        BigDecimal areaSqm
+        BigDecimal basePricePerNight : NOT NULL
+        Integer totalRooms : NOT NULL
+        Boolean isActive : DEFAULT TRUE
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+}
+
+package "amenities" {
+
+    class Amenity {
+        Integer id : PK
+        String code : UNIQUE, NOT NULL
+        String nameVi : NOT NULL
+        String nameEn : NOT NULL
+        String icon
+        Category category : NOT NULL
+    }
+
+    enum Category {
+        HOTEL
+        TOUR
+        BOTH
+    }
+
+    class HotelAmenity {
+        Long hotelId : PK, FK
+        Integer amenityId : PK, FK
+    }
+}
+
+package "images" {
+
+    class HotelImage {
+        Long id : PK
+        Long hotelId : FK → hotels
+        String imageUrl
+        Integer displayOrder
+        String caption
+    }
+}
+
+package "bookings" {
+
+    class BookingHotelDetail {
+        Long id : PK
+        Booking booking : FK → bookings (1:1, UNIQUE)
+        Hotel hotel : FK → hotels
+        RoomType roomType : FK → room_types
+        LocalDate checkInDate : NOT NULL
+        LocalDate checkOutDate : NOT NULL
+        Integer nights : NOT NULL
+        Integer numRooms : NOT NULL
+        Integer adults : NOT NULL
+        Integer children : NOT NULL
+        String hotelName : NOT NULL (denormalized)
+        String roomTypeName : NOT NULL (denormalized)
+        BigDecimal pricePerNight : NOT NULL
+    }
+}
+
+package "reference" {
+
+    class City {
+        Long id : PK
+        String name : NOT NULL
+        String slug : UNIQUE
+    }
+}
+
+' RELATIONSHIPS
+Hotel "1" o-- "N" RoomType : contains >
+RoomType "N" --> "1" Hotel : belongs to <
+
+Hotel "1" o-- "N" HotelImage : has >
+HotelImage "N" --> "1" Hotel : of hotel <
+
+Hotel "N" o-- "N" Amenity : offers >
+HotelAmenity "N" --> "1" Hotel : of hotel >
+HotelAmenity "N" --> "1" Amenity : has amenity >
+
+Hotel "1" o-- "N" BookingHotelDetail : booked in >
+BookingHotelDetail "1" --> "1" Booking : belongs to >
+BookingHotelDetail "N" --> "1" Hotel : at hotel >
+BookingHotelDetail "N" --> "1" RoomType : room type >
+
+Hotel "N" --> "1" City : located in >
+@enduml

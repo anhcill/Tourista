@@ -1564,39 +1564,309 @@
   }
 }
 @media (max-width: 640px) {
+  .page {
+    padding: 12px 16px 80px;
+  }
+  .backTopBtn {
+    font-size: 14px;
+    padding: 7px 12px;
+  }
+  /* Gallery: full width, hide grid thumbs */
   .gallery {
     grid-template-columns: 1fr;
     height: auto;
+    margin-bottom: 20px;
   }
   .galleryMain img {
-    height: 260px;
+    height: 240px;
   }
   .galleryGrid {
     display: none;
   }
+  /* Tabs: horizontal scroll */
   .tabs {
     overflow-x: auto;
     white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
   }
-  .nearbyTitle {
-    font-size: 26px;
+  .tab {
+    font-size: 14px;
+    padding: 8px 14px;
   }
-  .nearbyToursTitle {
-    font-size: 24px;
+  /* Description */
+  .descGrid {
+    grid-template-columns: 1fr;
+    font-size: 15px;
   }
-  .roomAlternativesTitle,
-  .hotelsRecommendTitle {
-    font-size: 24px;
-  }
-  .reviewsTitle {
-    font-size: 26px;
-  }
-  .reviewMetricRow {
-    grid-template-columns: 90px 1fr 40px;
+  /* Amenities */
+  .amenitiesGrid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
+  .amenityItem {
+    font-size: 14px;
+  }
+  /* Info table */
+  .infoRow {
+    font-size: 15px;
+  }
+  /* Room cards: stack vertically */
+  .roomCard {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .roomCardLeft {
+    width: 100%;
+  }
+  .roomPriceCol {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-width: unset;
+    text-align: left;
+  }
+  .roomPrice {
+    font-size: 20px;
+  }
+  .bookRoomBtn {
+    font-size: 15px;
+    padding: 8px 16px;
+  }
+  /* Offer cards */
+  .offerCard {
+    padding: 10px;
+  }
+  .offerName {
+    font-size: 15px;
+  }
+  .offerDetail {
+    font-size: 14px;
+  }
+  /* Right column booking card: fixed bottom */
+  .rightCol {
+    position: fixed;
+    bottom: 64px;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    padding: 0;
+  }
+  .bookingCard {
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hotelName {
+    font-size: 17px;
+    margin: 0;
+  }
+  .hotelAddr {
+    font-size: 13px;
+    margin: 0;
+  }
+  .ratingRow {
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ratingScore {
+    font-size: 15px;
+    padding: 3px 8px;
+  }
+  .ratingLabel {
+    font-size: 14px;
+  }
+  .reviewCount {
+    font-size: 13px;
+  }
+  .divider {
+    display: none;
+  }
+  .stayInfo {
+    font-size: 13px;
+    margin: 0;
+  }
+  .datesRow {
+    margin-bottom: 0;
+  }
+  .dateBox {
+    padding: 6px 10px;
+  }
+  .dateBox span {
+    font-size: 12px;
+  }
+  .dateBox strong {
+    font-size: 14px;
+  }
+  .selectedLabel {
+    font-size: 14px;
+    margin: 0;
+  }
+  .priceBlock {
+    margin: 0;
+  }
+  .totalPrice {
+    font-size: 22px;
+  }
+  .priceNote {
+    font-size: 12px;
+  }
+  .taxNote {
+    display: none;
+  }
+  .bookNowBtn {
+    font-size: 16px;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 0;
+  }
+  .switchRoomBtn {
+    font-size: 14px;
+    margin-bottom: 0;
+  }
+  .chatOwnerBtn {
+    font-size: 14px;
+    padding: 9px;
+    margin-bottom: 0;
+  }
+  .wishlistBtn {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .noRoom {
+    font-size: 14px;
+    padding: 12px 0;
+  }
+  /* Nearby sections */
+  .nearbyTitle {
+    font-size: 20px;
+  }
+  .nearbyToursTitle,
+  .roomAlternativesTitle,
+  .hotelsRecommendTitle {
+    font-size: 18px;
+  }
+  .nearbyToursSub,
+  .roomAlternativesSub,
+  .hotelsRecommendSub {
+    font-size: 14px;
+  }
+  .highlightChips {
+    gap: 6px;
+  }
+  .highlightChip {
+    font-size: 13px;
+    padding: 4px 8px;
+  }
   .mapFrameWrap {
-    height: 230px;
+    height: 200px;
+  }
+  .poiItem {
+    padding: 8px;
+  }
+  .poiName {
+    font-size: 15px;
+  }
+  .poiMetaRow {
+    font-size: 13px;
+  }
+  /* Tour cards */
+  .tourTitle {
+    font-size: 16px;
+  }
+  .tourCta {
+    font-size: 14px;
+    padding: 0 10px;
+    height: 32px;
+  }
+  /* Reviews */
+  .reviewsTitle {
+    font-size: 20px;
+  }
+  .reviewScoreValue {
+    font-size: 36px;
+  }
+  .reviewScoreLabel {
+    font-size: 18px;
+  }
+  .reviewMetricRow {
+    grid-template-columns: 80px 1fr 36px;
+    gap: 6px;
+  }
+  .reviewMetricLabel {
+    font-size: 14px;
+  }
+  .reviewMetricScore {
+    font-size: 14px;
+  }
+  .reviewComposeTextarea {
+    font-size: 15px;
+    min-height: 80px;
+  }
+  .reviewComposeBtn {
+    font-size: 15px;
+    width: 100%;
+    padding: 10px;
+  }
+  .reviewCard {
+    padding: 12px;
+    gap: 10px;
+  }
+  .reviewAvatar {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  .reviewUserName {
+    font-size: 18px;
+  }
+  .reviewComment {
+    font-size: 15px;
+  }
+  .loadMoreReviewsBtn {
+    width: 100%;
+    font-size: 15px;
+  }
+  /* FAQ */
+  .faqTitle {
+    font-size: 18px;
+  }
+  .faqQ {
+    font-size: 15px;
+  }
+  /* Section titles */
+  .sectionTitle {
+    font-size: 16px;
+  }
+  .faqSection {
+    margin-bottom: 80px;
+  }
+  .roomAlternativesSection,
+  .hotelsRecommendSection,
+  .nearbySection,
+  .nearbyToursSection,
+  .reviewsSection {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 10px 12px 72px;
+  }
+  .galleryMain img {
+    height: 200px;
+  }
+  .totalPrice {
+    font-size: 20px;
+  }
+  .bookNowBtn {
+    font-size: 15px;
+    padding: 10px;
   }
   .recommendedHotelsGrid {
     grid-template-columns: 1fr;

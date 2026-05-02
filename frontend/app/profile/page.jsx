@@ -41,7 +41,9 @@ export default function ProfilePage() {
     useEffect(() => {
         if (!mounted) return;
         if (!isAuthenticated) {
-            router.replace('/login');
+            const redirect = typeof window !== 'undefined'
+                ? `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}` : '';
+            router.replace(`/login${redirect}`);
             return;
         }
         setAuthChecked(true);

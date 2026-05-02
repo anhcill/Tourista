@@ -1,0 +1,61 @@
+@startuml Register_Sequence_Simplified
+!theme plain
+
+title Biểu đồ trình tự — Đăng ký hệ thống Tourista (Đơn giản)
+
+actor "Người dùng" as user
+participant "Frontend" as fe
+participant "AuthController" as controller
+participant "AuthService" as service
+participant "Database" as db
+participant "Email Service" as email
+
+== ĐĂNG KÝ ==
+
+user -> fe : Nhập thông tin đăng ký\n(Họ tên, email, mật khẩu)
+fe -> fe : Validate form
+fe -> controller : POST /api/auth/register\n{ "email": "...", "password": "...", "fullName": "..." }
+controller -> service : authService.register(request)
+
+service -> db : Kiểm tra email đã tồn tại?
+db --> service : Kết quả truy vấn
+
+alt Email đã tồn tại
+    service --> controller : EmailAlreadyExistsException
+    controller --> fe : 409 Conflict
+    fe -> user : "Email đã được sử dụng"
+else Email chưa tồn tại
+    service -> service : Hash password (BCrypt)
+    service -> db : Lưu user vào database\n(status = PENDING)
+    db --> service : User đã lưu
+
+    service -> email : Gửi email xác thực\n(với verification token JWT)
+    email -> user : Email: "Xác thực tài khoản"
+
+    service --> controller : Tạo tài khoản thành công
+    controller --> fe : 201 Created
+    fe -> user : "Đăng ký thành công!\nVui lòng kiểm tra email để xác thực"
+end
+
+== XÁC THỰC EMAIL ==
+
+user -> controller : GET /api/auth/verify-email?token=xxx
+controller -> service : authService.verifyEmail(token)
+
+service -> service : Verify JWT token
+service -> db : Tìm user theo email trong token
+
+alt Token không hợp lệ
+    service --> controller : InvalidTokenException
+    controller --> fe : 400 Bad Request
+    fe -> user : "Liên kết xác thực không hợp lệ"
+else Token hợp lệ
+    service -> db : Cập nhật status: PENDING → ACTIVE
+    db --> service : User đã kích hoạt
+
+    service --> controller : Xác thực thành công
+    controller --> fe : 200 OK
+    fe -> user : "Xác thực thành công!\nBạn có thể đăng nhập ngay"
+end
+
+@enduml

@@ -1,0 +1,266 @@
+@startuml TouristaStudio_UseCaseDiagram
+!theme plain
+scale 1.2
+
+title BIỂU ĐỒ USE CASE — HỆ THỐNG TOURISTA STUDIO
+
+' ============================================================
+' ACTORS
+' ============================================================
+
+actor "Khách (Guest)" as GUEST
+actor "Khách hàng (Customer)" as CUSTOMER
+actor "Đối tác (Partner)" as PARTNER
+actor "Quản trị viên (Admin)" as ADMIN
+
+actor "AI Chatbot" as AI_BOT
+actor "Cổng TT VNPay" as VNPAY
+actor "Hệ thống Email" as EMAIL
+
+' ============================================================
+' SYSTEM BOUNDARIES
+' ============================================================
+
+rectangle "HỆ THỐNG TOURISTA STUDIO" {
+    rectangle "Subsystem Khách hàng" {
+
+        ' ---- Authentication ----
+        usecase "UC01. Đăng ký tài khoản" as UC01
+        usecase "UC02. Đăng nhập (JWT)" as UC02
+        usecase "UC03. Đăng nhập OAuth2\n(Google, Facebook)" as UC03
+        usecase "UC04. Xác thực email" as UC04
+        usecase "UC05. Quên mật khẩu /\nĐặt lại mật khẩu" as UC05
+
+        ' ---- Hotel ----
+        usecase "UC10. Xem trang chủ" as UC10
+        usecase "UC11. Tìm kiếm khách sạn\n(theo thành phố, ngày, giá)" as UC11
+        usecase "UC12. Xem chi tiết khách sạn\n(phòng, tiện nghi, đánh giá)" as UC12
+        usecase "UC13. Đặt phòng khách sạn" as UC13
+
+        ' ---- Tour ----
+        usecase "UC20. Tìm kiếm tour du lịch\n(theo điểm đến, ngày, số người)" as UC20
+        usecase "UC21. Xem chi tiết tour\n(lịch trình, ngày khởi hành)" as UC21
+        usecase "UC22. Đặt tour du lịch" as UC22
+
+        ' ---- Combo ----
+        usecase "UC25. Xem danh sách Combo\n(Khách sạn + Tour)" as UC25
+        usecase "UC26. Đặt Combo tiết kiệm" as UC26
+
+        ' ---- Booking & Payment ----
+        usecase "UC30. Xem lịch sử đặt phòng\n/ tour / combo" as UC30
+        usecase "UC31. Hủy đặt phòng / tour" as UC31
+        usecase "UC32. Thanh toán trực tuyến\nqua VNPay" as UC32
+        usecase "UC33. Nhận thông báo\nthanh toán (IPN)" as UC33
+
+        ' ---- Review ----
+        usecase "UC35. Viết đánh giá\nkhách sạn / tour" as UC35
+        usecase "UC36. Xem đánh giá\nvà phản hồi" as UC36
+
+        ' ---- Favorites ----
+        usecase "UC40. Lưu / bỏ lưu\nyêu thích" as UC40
+
+        ' ---- Profile ----
+        usecase "UC45. Quản lý hồ sơ\nngười dùng" as UC45
+        usecase "UC46. Đổi mật khẩu" as UC46
+
+        ' ---- Promotion ----
+        usecase "UC50. Xem khuyến mãi\n& mã giảm giá" as UC50
+        usecase "UC51. Áp dụng mã\nkhuyến mãi" as UC51
+
+        ' ---- AI ----
+        usecase "UC55. Chat với AI Chatbot\n(tra cứu booking, FAQ)" as UC55
+        usecase "UC56. AI Travel Planner\n(lập lịch trình tự động)" as UC56
+
+        ' ---- Articles ----
+        usecase "UC60. Xem bài viết\ncẩm nang du lịch" as UC60
+
+        ' ---- Chat ----
+        usecase "UC65. Chat với\nchủ khách sạn/đối tác" as UC65
+        usecase "UC66. Nhận tin nhắn\nreal-time (WebSocket)" as UC66
+    }
+
+    rectangle "Subsystem Đối tác (Partner)" {
+        usecase "UC70. Đăng ký trở thành\nđối tác" as UC70
+        usecase "UC71. Dashboard Partner\n(thống kê, doanh thu)" as UC71
+        usecase "UC72. CRUD khách sạn\n(thêm, sửa, xóa, duyệt)" as UC72
+        usecase "UC73. CRUD loại phòng\n& tiện nghi" as UC73
+        usecase "UC74. CRUD tour du lịch\n(lịch khởi hành, slot)" as UC74
+        usecase "UC75. CRUD Combo\n(gói khách sạn + tour)" as UC75
+        usecase "UC76. Quản lý đơn đặt\n(duyệt, xác nhận, hủy)" as UC76
+        usecase "UC77. Phản hồi đánh giá\ncủa khách hàng" as UC77
+        usecase "UC78. Chat với khách hàng\n(real-time)" as UC78
+        usecase "UC79. Upload hình ảnh\n(Cloudinary)" as UC79
+    }
+
+    rectangle "Subsystem Quản trị (Admin)" {
+        usecase "UC80. Dashboard Admin\n(thống kê tổng quát)" as UC80
+        usecase "UC81. Quản lý người dùng\n(danh sách, vai trò, khóa)" as UC81
+        usecase "UC82. Duyệt / khóa / xóa\nkhách sạn" as UC82
+        usecase "UC83. Duyệt / khóa / xóa tour" as UC83
+        usecase "UC84. CRUD Combo\n(Admin quản lý)" as UC84
+        usecase "UC85. Quản lý đơn đặt\n(xem, duyệt, hủy, lý do)" as UC85
+        usecase "UC86. Quản lý khuyến mãi\n(tạo, sửa, xóa mã giảm giá)" as UC86
+        usecase "UC87. Duyệt đánh giá\n(Review Moderation)" as UC87
+        usecase "UC88. CRUD bài viết\ntin tức du lịch (Blog)" as UC88
+        usecase "UC89. Quản lý thông báo đẩy\n(Push Notification)" as UC89
+        usecase "UC90. Xem Audit Log\n(nhật ký hệ thống)" as UC90
+    }
+}
+
+' ============================================================
+' RELATIONSHIPS (Actor — Use Case)
+' ============================================================
+
+' --- Guest ---
+GUEST --> UC01
+GUEST --> UC02
+GUEST --> UC03
+GUEST --> UC04
+GUEST --> UC05
+GUEST --> UC10
+GUEST --> UC11
+GUEST --> UC12
+GUEST --> UC20
+GUEST --> UC21
+GUEST --> UC25
+GUEST --> UC50
+GUEST --> UC60
+GUEST --> UC55
+
+' --- Customer ---
+CUSTOMER --> UC10
+CUSTOMER --> UC11
+CUSTOMER --> UC12
+CUSTOMER --> UC13
+CUSTOMER --> UC20
+CUSTOMER --> UC21
+CUSTOMER --> UC22
+CUSTOMER --> UC25
+CUSTOMER --> UC26
+CUSTOMER --> UC30
+CUSTOMER --> UC31
+CUSTOMER --> UC32
+CUSTOMER --> UC35
+CUSTOMER --> UC36
+CUSTOMER --> UC40
+CUSTOMER --> UC45
+CUSTOMER --> UC46
+CUSTOMER --> UC50
+CUSTOMER --> UC51
+CUSTOMER --> UC55
+CUSTOMER --> UC56
+CUSTOMER --> UC60
+CUSTOMER --> UC65
+CUSTOMER --> UC66
+
+' --- Partner ---
+PARTNER --> UC10
+PARTNER --> UC71
+PARTNER --> UC72
+PARTNER --> UC73
+PARTNER --> UC74
+PARTNER --> UC75
+PARTNER --> UC76
+PARTNER --> UC77
+PARTNER --> UC78
+PARTNER --> UC79
+PARTNER --> UC30
+
+' --- Admin ---
+ADMIN --> UC10
+ADMIN --> UC80
+ADMIN --> UC81
+ADMIN --> UC82
+ADMIN --> UC83
+ADMIN --> UC84
+ADMIN --> UC85
+ADMIN --> UC86
+ADMIN --> UC87
+ADMIN --> UC88
+ADMIN --> UC89
+ADMIN --> UC90
+
+' --- System Actors ---
+AI_BOT --> UC55
+AI_BOT --> UC56
+VNPAY --> UC32
+VNPAY --> UC33
+EMAIL --> UC04
+
+' ============================================================
+' INCLUDE / EXTEND RELATIONSHIPS
+' ============================================================
+
+' Include: Authentication flows
+UC02 .left.> UC04 : <<include>>
+UC05 .up.> UC04 : <<include>>
+
+' Include: Payment in Booking
+UC13 .down.> UC32 : <<include>>
+UC22 .down.> UC32 : <<include>>
+UC26 .down.> UC32 : <<include>>
+
+' Include: Chat real-time
+UC65 .right.> UC66 : <<include>>
+UC78 .right.> UC66 : <<include>>
+
+' Extend: Review moderation from view
+UC36 .right.> UC87 : <<extend>>
+
+' Extend: AI responses
+UC55 .right.> UC56 : <<extend>>
+
+' Include: Cancel after booking
+UC31 .left.> UC30 : <<include>>
+
+' Include: Apply promo in booking
+UC13 .up.> UC51 : <<include>>
+UC22 .up.> UC51 : <<include>>
+UC26 .up.> UC51 : <<include>>
+
+' Extend: Upload images in CRUD
+UC72 .right.> UC79 : <<extend>>
+UC74 .right.> UC79 : <<extend>>
+
+' ============================================================
+' NOTE ANNOTATIONS
+' ============================================================
+
+note top of GUEST
+  Khách chưa đăng nhập
+  chỉ xem và tìm kiếm
+end note
+
+note right of CUSTOMER
+  Người dùng đã xác thực
+  có thể đặt phòng, tour,
+  chat, viết đánh giá
+end note
+
+note right of PARTNER
+  Chủ khách sạn / đối tác
+  quản lý tài sản của mình
+  trên nền tảng
+end note
+
+note top of ADMIN
+  Quản trị viên hệ thống
+  giám sát toàn bộ nền tảng
+end note
+
+note bottom of AI_BOT
+  Gemini API
+  AI chatbot + Travel Planner
+end note
+
+note bottom of VNPAY
+  Cổng thanh toán
+  VNPay (ATM, QR, Visa)
+end note
+
+note bottom of EMAIL
+  Spring Mail
+  Xác thực, thông báo
+end note
+
+@enduml

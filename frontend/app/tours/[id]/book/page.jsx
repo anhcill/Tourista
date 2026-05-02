@@ -164,7 +164,9 @@ function TourBookingInner() {
   const validate = () => {
     if (!isAuthenticated) {
       toast.error('Vui lòng đăng nhập trước khi đặt tour.');
-      router.push('/login');
+      const redirect = typeof window !== 'undefined'
+        ? `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}` : '';
+      router.push(`/login${redirect}`);
       return false;
     }
     if (!tour || !selectedDeparture) { toast.error('Không tìm thấy thông tin khởi hành.'); return false; }

@@ -1,0 +1,385 @@
+@startuml TouristaStudio_ERD
+!theme plain
+scale 1.2
+
+title BIỂU ĐỒ ERD — HỆ THỐNG TOURISTA STUDIO
+
+' ============================================================
+' TABLES — CORE ENTITIES
+' ============================================================
+
+entity "**users**\n(PK: id)" as users {
+  * id : BIGINT (PK)
+  --
+  email : VARCHAR(255) UNIQUE
+  password_hash : VARCHAR(255)
+  full_name : VARCHAR(255)
+  phone : VARCHAR(20)
+  avatar_url : VARCHAR(500)
+  role : ENUM('CUSTOMER','PARTNER','ADMIN')
+  status : ENUM('ACTIVE','INACTIVE','BANNED')
+  email_verified : BOOLEAN
+  provider : ENUM('LOCAL','GOOGLE','FACEBOOK')
+  provider_id : VARCHAR(255)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "**hotels**\n(PK: id)" as hotels {
+  * id : BIGINT (PK)
+  --
+  partner_id : BIGINT (FK → users)
+  name : VARCHAR(255)
+  address : VARCHAR(500)
+  city : VARCHAR(100)
+  description : TEXT
+  star_rating : INT
+  cover_image : VARCHAR(500)
+  status : ENUM('PENDING','APPROVED','REJECTED','BLOCKED')
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "**room_types**\n(PK: id)" as room_types {
+  * id : BIGINT (PK)
+  --
+  hotel_id : BIGINT (FK → hotels)
+  name : VARCHAR(255)
+  description : TEXT
+  capacity : INT
+  total_rooms : INT
+  base_price_per_night : DECIMAL(10,2)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "**amenities**\n(PK: id)" as amenities {
+  * id : BIGINT (PK)
+  --
+  name : VARCHAR(255)
+  icon : VARCHAR(100)
+}
+
+entity "**hotel_amenities**\n(PK: hotel_id, amenity_id)" as hotel_amenities {
+  * hotel_id : BIGINT (FK)
+  * amenity_id : BIGINT (FK)
+}
+
+entity "**tours**\n(PK: id)" as tours {
+  * id : BIGINT (PK)
+  --
+  partner_id : BIGINT (FK → users)
+  title : VARCHAR(255)
+  description : TEXT
+  city : VARCHAR(100)
+  duration_days : INT
+  duration_nights : INT
+  difficulty : ENUM('EASY','MEDIUM','HARD')
+  cover_image : VARCHAR(500)
+  status : ENUM('PENDING','APPROVED','REJECTED','BLOCKED')
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "**tour_categories**\n(PK: id)" as tour_categories {
+  * id : BIGINT (PK)
+  --
+  name : VARCHAR(255)
+  description : TEXT
+}
+
+entity "**tour_tour_categories**\n(PK: tour_id, category_id)" as tour_tour_categories {
+  * tour_id : BIGINT (FK)
+  * category_id : BIGINT (FK)
+}
+
+entity "**tour_departures**\n(PK: id)" as tour_departures {
+  * id : BIGINT (PK)
+  --
+  tour_id : BIGINT (FK → tours)
+  departure_date : DATE
+  available_slots : INT
+  price_per_adult : DECIMAL(10,2)
+  price_per_child : DECIMAL(10,2)
+  status : ENUM('ACTIVE','FULL','CANCELLED')
+}
+
+' ============================================================
+' TABLES — BOOKINGS
+' ============================================================
+
+entity "**bookings**\n(PK: id)" as bookings {
+  * id : BIGINT (PK)
+  --
+  user_id : BIGINT (FK → users)
+  booking_code : VARCHAR(50) UNIQUE
+  type : ENUM('HOTEL','TOUR','COMBO')
+  status : ENUM('PENDING','CONFIRMED','CANCELLED','COMPLETED','REFUNDED')
+  payment_status : ENUM('UNPAID','PAID','REFUNDED')
+  total_amount : DECIMAL(12,2)
+  discount_amount : DECIMAL(12,2)
+  final_amount : DECIMAL(12,2)
+  vnp_txn_ref : VARCHAR(100)
+  vnp_transaction_no : VARCHAR(100)
+  payment_date : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "**booking_hotel_details**\n(PK: id)" as booking_hotel_details {
+  * id : BIGINT (PK)
+  --
+  booking_id : BIGINT (FK → bookings)
+  hotel_id : BIGINT (FK → hotels)
+  room_type_id : BIGINT (FK → room_types)
+  check_in : DATE
+  check_out : DATE
+  rooms_count : INT
+  price_per_night : DECIMAL(10,2)
+  nights : INT
+  subtotal : DECIMAL(10,2)
+}
+
+entity "**booking_tour_details**\n(PK: id)" as booking_tour_details {
+  * id : BIGINT (PK)
+  --
+  booking_id : BIGINT (FK → bookings)
+  tour_id : BIGINT (FK → tours)
+  departure_id : BIGINT (FK → tour_departures)
+  departure_date : DATE
+  adults : INT
+  children : INT
+  price_per_adult : DECIMAL(10,2)
+  price_per_child : DECIMAL(10,2)
+  subtotal : DECIMAL(10,2)
+}
+
+' ============================================================
+' TABLES — OTHER ENTITIES
+' ============================================================
+
+entity "**promotions**\n(PK: id)" as promotions {
+  * id : BIGINT (PK)
+  --
+  code : VARCHAR(50) UNIQUE
+  title : VARCHAR(255)
+  description : TEXT
+  type : ENUM('PERCENTAGE','FIXED_AMOUNT')
+  discount_value : DECIMAL(10,2)
+  min_order_amount : DECIMAL(10,2)
+  max_uses : INT
+  used_count : INT
+  valid_from : TIMESTAMP
+  valid_to : TIMESTAMP
+  status : ENUM('ACTIVE','INACTIVE','EXPIRED')
+  created_at : TIMESTAMP
+}
+
+entity "**booking_promotions**\n(PK: id)" as booking_promotions {
+  * id : BIGINT (PK)
+  --
+  booking_id : BIGINT (FK → bookings)
+  promotion_id : BIGINT (FK → promotions)
+  discount_amount : DECIMAL(10,2)
+}
+
+entity "**combo_packages**\n(PK: id)" as combo_packages {
+  * id : BIGINT (PK)
+  --
+  partner_id : BIGINT (FK → users)
+  hotel_id : BIGINT (FK → hotels)
+  tour_id : BIGINT (FK → tours)
+  title : VARCHAR(255)
+  description : TEXT
+  combo_price : DECIMAL(12,2)
+  discount_percent : DECIMAL(5,2)
+  status : ENUM('ACTIVE','INACTIVE')
+  valid_from : DATE
+  valid_to : DATE
+  created_at : TIMESTAMP
+}
+
+entity "**reviews**\n(PK: id)" as reviews {
+  * id : BIGINT (PK)
+  --
+  user_id : BIGINT (FK → users)
+  target_type : ENUM('HOTEL','TOUR')
+  target_id : BIGINT
+  overall_rating : DECIMAL(3,1)
+  comment : TEXT
+  status : ENUM('PENDING','APPROVED','REJECTED')
+  verified_stay : BOOLEAN
+  helpful_count : INT DEFAULT 0
+  partner_reply : TEXT
+  replied_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "**review_media**\n(PK: id)" as review_media {
+  * id : BIGINT (PK)
+  --
+  review_id : BIGINT (FK → reviews)
+  media_type : ENUM('IMAGE','VIDEO')
+  media_url : VARCHAR(500)
+  created_at : TIMESTAMP
+}
+
+entity "**favorites**\n(PK: id)" as favorites {
+  * id : BIGINT (PK)
+  --
+  user_id : BIGINT (FK → users)
+  target_type : ENUM('HOTEL','TOUR')
+  target_id : BIGINT
+  created_at : TIMESTAMP
+}
+
+entity "**articles**\n(PK: id)" as articles {
+  * id : BIGINT (PK)
+  --
+  author_id : BIGINT (FK → users)
+  title : VARCHAR(500)
+  slug : VARCHAR(500) UNIQUE
+  content : TEXT
+  cover_image : VARCHAR(500)
+  status : ENUM('DRAFT','PUBLISHED')
+  published_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "**conversations**\n(PK: id)" as conversations {
+  * id : BIGINT (PK)
+  --
+  type : ENUM('P2P','BOT')
+  participant_one_id : BIGINT (FK → users)
+  participant_two_id : BIGINT (FK → users)
+  last_message_at : TIMESTAMP
+  created_at : TIMESTAMP
+}
+
+entity "**chat_messages**\n(PK: id)" as chat_messages {
+  * id : BIGINT (PK)
+  --
+  conversation_id : BIGINT (FK → conversations)
+  sender_id : BIGINT (FK → users)
+  sender_type : ENUM('USER','BOT','PARTNER')
+  content : TEXT
+  attachment_url : VARCHAR(500)
+  is_read : BOOLEAN DEFAULT FALSE
+  created_at : TIMESTAMP
+}
+
+entity "**notifications**\n(PK: id)" as notifications {
+  * id : BIGINT (PK)
+  --
+  user_id : BIGINT (FK → users)
+  type : VARCHAR(100)
+  title : VARCHAR(255)
+  message : TEXT
+  is_read : BOOLEAN DEFAULT FALSE
+  data : JSON
+  created_at : TIMESTAMP
+}
+
+entity "**audit_logs**\n(PK: id)" as audit_logs {
+  * id : BIGINT (PK)
+  --
+  user_id : BIGINT (FK → users)
+  action : VARCHAR(255)
+  entity_type : VARCHAR(100)
+  entity_id : BIGINT
+  old_value : JSON
+  new_value : JSON
+  ip_address : VARCHAR(45)
+  created_at : TIMESTAMP
+}
+
+entity "**reports**\n(PK: id)" as reports {
+  * id : BIGINT (PK)
+  --
+  reporter_id : BIGINT (FK → users)
+  target_type : ENUM('HOTEL','TOUR','REVIEW','USER')
+  target_id : BIGINT
+  reason : TEXT
+  status : ENUM('PENDING','RESOLVED','REJECTED')
+  created_at : TIMESTAMP
+}
+
+' ============================================================
+' RELATIONSHIPS
+' ============================================================
+
+' --- Users ---
+users ||--o{ hotels : "owns"
+users ||--o{ tours : "creates"
+users ||--o{ bookings : "places"
+users ||--o{ reviews : "writes"
+users ||--o{ favorites : "saves"
+users ||--o{ articles : "authors"
+users ||--o{ conversations : "participates"
+users ||--o{ chat_messages : "sends"
+users ||--o{ notifications : "receives"
+users ||--o{ audit_logs : "performs"
+
+' --- Hotels ---
+hotels ||--o{ room_types : "has"
+hotels ||--o{ reviews : "receives"
+hotels ||--o{ favorites : "saved_in"
+hotels ||--o{ combo_packages : "included_in"
+
+' --- Room Types ---
+room_types ||--o{ booking_hotel_details : "booked_in"
+
+' --- Tours ---
+tours ||--o{ tour_departures : "has"
+tours ||--o{ reviews : "receives"
+tours ||--o{ favorites : "saved_in"
+tours ||--o{ combo_packages : "included_in"
+
+' --- Tour Categories ---
+tour_categories ||--o{ tour_tour_categories : ""
+tour_tours_categories : tours
+tour_tour_categories ||--o{ tours : ""
+
+' --- Bookings ---
+bookings ||--o{ booking_hotel_details : "hotel_booking"
+bookings ||--o{ booking_tour_details : "tour_booking"
+bookings ||--o{ booking_promotions : "applies"
+bookings ||--|| bookings : "is_combo_of"
+
+' --- Promotions ---
+promotions ||--o{ booking_promotions : "applied_to"
+
+' --- Reviews ---
+reviews ||--o{ review_media : "has"
+reviews ||--o{ reviews : "replies_to"
+
+' --- Conversations ---
+conversations ||--o{ chat_messages : "contains"
+
+' ============================================================
+' NOTES
+' ============================================================
+note bottom of users
+  role: CUSTOMER | PARTNER | ADMIN\n
+  provider: LOCAL | GOOGLE | FACEBOOK
+end note
+
+note bottom of bookings
+  type: HOTEL | TOUR | COMBO\n
+  status: PENDING → CONFIRMED → COMPLETED\n
+  payment: UNPAID → PAID → REFUNDED
+end note
+
+note bottom of reviews
+  status: PENDING → APPROVED → REJECTED\n
+  Moderation by Admin before display
+end note
+
+note bottom of combo_packages
+  combo_price = hotel_room_price + tour_price - discount\n
+  Always cheaper than booking separately
+end note
+
+@enduml

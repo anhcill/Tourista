@@ -1,0 +1,34 @@
+@startuml TouristaStudio_UC_DatCombo
+!theme plain
+
+title ĐẶT COMBO (KHÁCH SẠN + TOUR)
+
+actor "Khách hàng" as KH
+actor "Đối tác" as DT
+actor "VNPay" as VP
+
+rectangle "Hệ thống Tourista" {
+    (Xem combo) as UC1
+    (Đặt combo) as UC2
+    (Thanh toán) as UC3
+    (Xác nhận) as UC4
+    (Hủy combo) as UC5
+    (Xem đơn combo) as UC6
+}
+
+KH --> UC1
+KH --> UC2
+KH --> UC3
+KH --> UC5
+KH --> UC6
+
+DT --> UC6
+
+VP --> UC3
+VP --> UC4
+
+UC2 .down.> UC3 : <<include>>
+UC3 .down.> UC4 : <<include>>
+UC5 .up.> UC6 : <<extend>>
+
+@enduml

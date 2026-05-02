@@ -1,9 +1,11 @@
 .homeMain {
   padding-top: 120px;
+  padding-bottom: 0;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .homeMain {
-    padding-top: 28px;
+    padding-top: 52px;
+    padding-bottom: 72px;
   }
 }

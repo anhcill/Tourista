@@ -1,0 +1,269 @@
+@startuml TouristaStudio_UseCase_Admin
+!theme plain
+scale 1.0
+
+title BIỂU ĐỒ USE CASE — SUBSYSTEM QUẢN TRỊ (ADMIN)
+
+' ============================================================
+' ACTORS
+' ============================================================
+actor "Quản trị viên (Admin)" as ADMIN
+actor "Hệ thống Tự động" as SYSTEM
+actor "Partner" as PARTNER
+
+' ============================================================
+' SUBSYSTEM ADMIN
+' ============================================================
+rectangle "Subsystem Quản trị (Admin)" {
+
+    ' --- Dashboard ---
+    package "Dashboard Quản trị" {
+        usecase "UC01\nXem Dashboard\n(Tổng quan hệ thống)" as UC01
+        usecase "UC02\nBiểu đồ thống kê\ndoanh thu (theo tháng)" as UC02
+        usecase "UC03\nBiểu đồ thống kê\nđơn đặt phòng / tour" as UC03
+        usecase "UC04\nBiểu đồ thống kê\nngười dùng mới" as UC04
+        usecase "UC05\nBiểu đồ thống kê\nkhách sạn / tour mới" as UC05
+        usecase "UC06\nXem thông báo\nhệ thống mới nhất" as UC06
+    }
+
+    ' --- Người dùng ---
+    package "Quản lý Người dùng" {
+        usecase "UC10\nXem danh sách\ntất cả người dùng" as UC10
+        usecase "UC11\nTìm kiếm người dùng\n(theo email, tên, vai trò)" as UC11
+        usecase "UC12\nXem chi tiết\nthông tin người dùng" as UC12
+        usecase "UC13\nPhân vai trò\n(Customer / Partner / Admin)" as UC13
+        usecase "UC14\nKhóa / Mở khóa\ntài khoản người dùng" as UC14
+        usecase "UC15\nXóa tài khoản\nngười dùng" as UC15
+        usecase "UC16\nGửi thông báo\ncho người dùng" as UC16
+    }
+
+    ' --- Khách sạn ---
+    package "Quản lý Khách sạn" {
+        usecase "UC20\nXem danh sách\ntất cả khách sạn" as UC20
+        usecase "UC21\nTìm kiếm khách sạn\n(theo tên, thành phố)" as UC21
+        usecase "UC22\nDuyệt khách sạn mới\n(Approve)" as UC22
+        usecase "UC23\nTừ chối / Yêu cầu\nchỉnh sửa khách sạn" as UC23
+        usecase "UC24\nKhóa / Ẩn khách sạn" as UC24
+        usecase "UC25\nXóa khách sạn" as UC25
+        usecase "UC26\nXem chi tiết khách sạn\n(phòng, tiện nghi)" as UC26
+        usecase "UC27\nXem danh sách phòng\ncủa khách sạn" as UC27
+    }
+
+    ' --- Tour ---
+    package "Quản lý Tour Du lịch" {
+        usecase "UC30\nXem danh sách\ntất cả tour" as UC30
+        usecase "UC31\nTìm kiếm tour\n(theo tên, thành phố)" as UC31
+        usecase "UC32\nDuyệt tour mới\n(Approve)" as UC32
+        usecase "UC33\nTừ chối / Yêu cầu\nchỉnh sửa tour" as UC33
+        usecase "UC34\nKhóa / Tạm ngưng tour" as UC34
+        usecase "UC35\nXóa tour" as UC35
+        usecase "UC36\nXem chi tiết tour\n(lịch trình, lịch khởi hành)" as UC36
+    }
+
+    ' --- Combo ---
+    package "Quản lý Combo" {
+        usecase "UC40\nXem danh sách Combo\nđang có" as UC40
+        usecase "UC41\nDuyệt Combo mới\ntừ Partner" as UC41
+        usecase "UC42\nTừ chối / Yêu cầu\nchỉnh sửa Combo" as UC42
+        usecase "UC43\nKhóa / Xóa Combo" as UC43
+        usecase "UC44\nTạo mới Combo\n(Admin)" as UC44
+        usecase "UC45\nChỉnh sửa thông tin\nCombo" as UC45
+    }
+
+    ' --- Đơn đặt phòng ---
+    package "Quản lý Đơn Đặt Phòng" {
+        usecase "UC50\nXem danh sách tất cả\nđơn đặt (hotel/tour/combo)" as UC50
+        usecase "UC51\nLọc đơn đặt\n(theo trạng thái, ngày,\nloại, đối tác)" as UC51
+        usecase "UC52\nXem chi tiết đơn đặt\n(booking details)" as UC52
+        usecase "UC53\nXử lý yêu cầu hủy\n(khách hàng gửi)" as UC53
+        usecase "UC54\nDuyệt / Từ chối hủy\n(kèm lý do)" as UC54
+        usecase "UC55\nHoàn tiền\n(Refund VNPay)" as UC55
+        usecase "UC56\nXuất báo cáo đơn đặt\n(PDF / Excel)" as UC56
+    }
+
+    ' --- Khuyến mãi ---
+    package "Quản lý Khuyến mãi" {
+        usecase "UC60\nXem danh sách\nkhuyến mãi" as UC60
+        usecase "UC61\nTạo mã khuyến mãi\nmới (Create Promo)" as UC61
+        usecase "UC62\nSửa thông tin\nkhuyến mãi" as UC62
+        usecase "UC63\nXóa / Vô hiệu hóa\nmã khuyến mãi" as UC63
+        usecase "UC64\nThiết lập điều kiện\náp dụng (min đơn hàng,\n% giảm, số lần dùng)" as UC64
+        usecase "UC65\nXem thống kê\nmã khuyến mãi đã dùng" as UC65
+    }
+
+    ' --- Đánh giá (Review Moderation) ---
+    package "Duyệt Đánh giá" {
+        usecase "UC70\nXem danh sách\nđánh giá chờ duyệt" as UC70
+        usecase "UC71\nDuyệt đánh giá\n(Approve)" as UC71
+        usecase "UC72\nTừ chối đánh giá\n(kèm lý do)" as UC72
+        usecase "UC73\nẨn / Xóa đánh giá\nđã đăng" as UC73
+        usecase "UC74\nXem nội dung đánh giá\nvà ảnh / video đính kèm" as UC74
+        usecase "UC75\nThống kê đánh giá\n(theo khách sạn / tour)" as UC75
+    }
+
+    ' --- Tin tức / Blog ---
+    package "Quản lý Tin tức (Blog)" {
+        usecase "UC80\nXem danh sách bài viết\n(cẩm nang du lịch)" as UC80
+        usecase "UC81\nTạo bài viết mới\n(Create Article)" as UC81
+        usecase "UC82\nChỉnh sửa bài viết" as UC82
+        usecase "UC83\nXóa / Ẩn bài viết" as UC83
+        usecase "UC84\nXuất bản / Bỏ xuất bản\nbài viết" as UC84
+        usecase "UC85\nUpload hình ảnh\ncho bài viết" as UC85
+    }
+
+    ' --- Báo cáo ---
+    package "Báo cáo & Doanh thu" {
+        usecase "UC90\nXem báo cáo tổng quan\ndoanh thu hệ thống" as UC90
+        usecase "UC91\nBáo cáo doanh thu\ntheo Partner / tháng" as UC91
+        usecase "UC92\nBáo cáo đơn hủy\n& hoàn tiền" as UC92
+        usecase "UC93\nXuất báo cáo\n(PDF / Excel)" as UC93
+    }
+
+    ' --- Thông báo ---
+    package "Thông báo Hệ thống" {
+        usecase "UC95\nGửi thông báo đẩy\n(Push Notification)" as UC95
+        usecase "UC96\nGửi email\nthông báo hàng loạt" as UC96
+        usecase "UC97\nQuản lý mẫu\nthông báo (template)" as UC97
+    }
+
+    ' --- Audit Log ---
+    package "Audit Log & Bảo mật" {
+        usecase "UC100\nXem nhật ký hành động\n(Audit Log)" as UC100
+        usecase "UC101\nXem lịch sử thay đổi\ntrạng thái đơn đặt" as UC101
+        usecase "UC102\nXem lịch sử thay đổi\ntrạng thái khách sạn/tour" as UC102
+        usecase "UC103\nXem nhật ký đăng nhập\n(Login History)" as UC103
+        usecase "UC104\nCảnh báo bảo mật\n(Brute force, suspicious activity)" as UC104
+    }
+}
+
+' ============================================================
+' RELATIONSHIPS
+' ============================================================
+
+' --- Actor relationships ---
+ADMIN --> UC01
+ADMIN --> UC02
+ADMIN --> UC03
+ADMIN --> UC04
+ADMIN --> UC05
+ADMIN --> UC06
+ADMIN --> UC10
+ADMIN --> UC11
+ADMIN --> UC12
+ADMIN --> UC13
+ADMIN --> UC14
+ADMIN --> UC15
+ADMIN --> UC16
+ADMIN --> UC20
+ADMIN --> UC21
+ADMIN --> UC22
+ADMIN --> UC23
+ADMIN --> UC24
+ADMIN --> UC25
+ADMIN --> UC26
+ADMIN --> UC27
+ADMIN --> UC30
+ADMIN --> UC31
+ADMIN --> UC32
+ADMIN --> UC33
+ADMIN --> UC34
+ADMIN --> UC35
+ADMIN --> UC36
+ADMIN --> UC40
+ADMIN --> UC41
+ADMIN --> UC42
+ADMIN --> UC43
+ADMIN --> UC44
+ADMIN --> UC45
+ADMIN --> UC50
+ADMIN --> UC51
+ADMIN --> UC52
+ADMIN --> UC53
+ADMIN --> UC54
+ADMIN --> UC55
+ADMIN --> UC56
+ADMIN --> UC60
+ADMIN --> UC61
+ADMIN --> UC62
+ADMIN --> UC63
+ADMIN --> UC64
+ADMIN --> UC65
+ADMIN --> UC70
+ADMIN --> UC71
+ADMIN --> UC72
+ADMIN --> UC73
+ADMIN --> UC74
+ADMIN --> UC75
+ADMIN --> UC80
+ADMIN --> UC81
+ADMIN --> UC82
+ADMIN --> UC83
+ADMIN --> UC84
+ADMIN --> UC85
+ADMIN --> UC90
+ADMIN --> UC91
+ADMIN --> UC92
+ADMIN --> UC93
+ADMIN --> UC95
+ADMIN --> UC96
+ADMIN --> UC97
+ADMIN --> UC100
+ADMIN --> UC101
+ADMIN --> UC102
+ADMIN --> UC103
+ADMIN --> UC104
+
+SYSTEM --> UC06
+SYSTEM --> UC55
+SYSTEM --> UC104
+
+PARTNER --> UC22
+PARTNER --> UC32
+PARTNER --> UC41
+
+' --- Include relationships ---
+UC01 .down.> UC02 : <<include>>
+UC01 .down.> UC03 : <<include>>
+UC01 .down.> UC04 : <<include>>
+UC01 .down.> UC05 : <<include>>
+
+UC20 .down.> UC21 : <<include>>
+UC20 .down.> UC26 : <<include>>
+UC26 .down.> UC27 : <<include>>
+
+UC50 .down.> UC51 : <<include>>
+UC50 .down.> UC52 : <<include>>
+
+UC52 .down.> UC53 : <<include>>
+UC53 .down.> UC54 : <<include>>
+UC54 .down.> UC55 : <<extend>>
+
+UC70 .down.> UC74 : <<include>>
+
+UC90 .down.> UC91 : <<include>>
+UC90 .down.> UC92 : <<include>>
+
+' --- Extend ---
+UC54 .right.> UC55 : <<extend>>
+UC71 .right.> UC73 : <<extend>>
+
+' --- Notes ---
+note bottom of ADMIN
+  Actor: Quản trị viên hệ thống
+  Toàn quyền quản lý hệ thống
+  Duyệt nội dung, quản lý người dùng,
+  xem báo cáo, bảo mật
+end note
+
+note bottom of SYSTEM
+  Hệ thống tự động:
+  Gửi cảnh báo bảo mật,
+  gửi email hoàn tiền
+end note
+
+note bottom of PARTNER
+  Đối tác gửi yêu cầu duyệt
+  khách sạn / tour / combo
+end note
+
+@enduml

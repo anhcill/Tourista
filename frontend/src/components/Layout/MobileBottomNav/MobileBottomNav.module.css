@@ -8,8 +8,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 66px;
-    background: var(--bottom-nav-bg, rgba(255, 255, 255, 0.96));
+    height: 64px;
+    background: var(--bottom-nav-bg, rgba(255, 255, 255, 0.97));
     border-top: 1.5px solid rgba(255, 107, 53, 0.12);
     box-shadow: 0 -4px 24px rgba(255, 107, 53, 0.08), 0 -2px 8px rgba(0, 0, 0, 0.04);
     z-index: var(--z-bottom-nav, 1040);
@@ -21,7 +21,7 @@
 }
 
 [data-theme="dark"] .bottomNav {
-    --bottom-nav-bg: rgba(18, 20, 28, 0.96);
+    --bottom-nav-bg: rgba(18, 20, 28, 0.97);
     border-top-color: rgba(255, 142, 83, 0.12);
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4), 0 -2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -31,13 +31,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
     flex: 1;
     height: 100%;
     text-decoration: none;
     color: var(--bottom-nav-inactive, #9aaabb);
     transition: color 0.2s ease, transform 0.15s ease;
-    padding: 8px 4px;
+    padding: 6px 4px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     position: relative;
@@ -52,16 +52,16 @@
 }
 
 .navItem.active .icon {
-    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.5));
-    transform: scale(1.1);
+    filter: drop-shadow(0 0 6px rgba(255, 107, 53, 0.45));
+    transform: scale(1.08);
 }
 
 .icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s ease;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     letter-spacing: 0.01em;
     white-space: nowrap;

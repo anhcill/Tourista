@@ -4,6 +4,7 @@ import vn.tourista.dto.request.CancelBookingRequest;
 import vn.tourista.dto.request.CreateBookingRequest;
 import vn.tourista.dto.request.CreateTourBookingRequest;
 import vn.tourista.dto.request.UpdateBookingRequest;
+import vn.tourista.dto.request.UpdateTourBookingRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.CreateBookingResponse;
 import vn.tourista.dto.response.CreateTourBookingResponse;
@@ -31,6 +32,12 @@ public interface BookingService {
      * Chỉ cho phép cập nhật booking ở trạng thái PENDING.
      */
     ApiResponse<?> updateBooking(String userEmail, Long bookingId, UpdateBookingRequest request);
+
+    /**
+     * User cập nhật booking tour (thay đổi số người lớn, trẻ em).
+     * Chỉ cho phép cập nhật booking ở trạng thái PENDING.
+     */
+    ApiResponse<?> updateTourBooking(String userEmail, Long bookingId, UpdateTourBookingRequest request);
 
     /**
      * Đánh dấu booking là COMPLETED và gửi email cảm ơn.

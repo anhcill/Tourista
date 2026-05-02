@@ -41,4 +41,13 @@ public class CreateTourBookingRequest {
 
     @Size(max = 1000, message = "Yeu cau dac biet khong qua 1000 ky tu")
     private String specialRequests;
+
+    @Size(max = 30, message = "Ma khuyen mai khong qua 30 ky tu")
+    private String promoCode;
+
+    /**
+     * Idempotency key (UUID) de chan double-submit khi user gui 2 request cung luc.
+     */
+    @Size(max = 64, message = "Idempotency key khong hop le")
+    private String idempotencyKey;
 }

@@ -1,0 +1,37 @@
+@startuml TouristaStudio_UC_DatTour
+!theme plain
+
+title DAT TOUR DU LICH
+
+actor "Khach hang" as KH
+actor "Doi tac" as DT
+actor "VNPay" as VP
+
+rectangle "He thong Tourista" {
+    (Tim kiem tour) as UC1
+    (Xem chi tiet tour) as UC2
+    (Dat tour) as UC3
+    (Thanh toan) as UC4
+    (Xac nhan) as UC5
+    (Huy tour) as UC6
+    (Xem don tour) as UC7
+}
+
+KH --> UC1
+KH --> UC2
+KH --> UC3
+KH --> UC5
+KH --> UC6
+KH --> UC7
+
+DT --> UC7
+
+VP --> UC4
+VP --> UC5
+
+UC2 .down.> UC1 : <<extend>>
+UC3 .down.> UC4 : <<include>>
+UC4 .down.> UC5 : <<include>>
+UC6 .up.> UC7 : <<extend>>
+
+@enduml

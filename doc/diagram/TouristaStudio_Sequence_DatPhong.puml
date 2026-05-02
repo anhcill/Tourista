@@ -1,0 +1,140 @@
+@startuml TouristaStudio_Sequence_DatPhong
+!theme plain
+
+title BIỂU ĐỒ TRÌNH TỰ — UC13. ĐẶT PHÒNG KHÁCH SẠN
+
+participant "Khách hàng\n(Customer)" as CUSTOMER
+participant "Frontend\n(Next.js)" as FE
+participant "Backend API\n(Spring Boot)" as API
+participant "HotelService" as HOTEL_SVC
+participant "BookingService" as BOOK_SVC
+participant "PromotionService" as PROMO_SVC
+participant "VNPayService" as VPN_SVC
+participant "MySQL\nDatabase" as DB
+participant "VNPay\n(Cổng TT)" as VPNPAY
+participant "EmailService" as EMAIL
+
+' === Bước 1: Đăng nhập / Xác thực ===
+CUSTOMER -> FE : 1. Đăng nhập (email, password)
+FE -> API : POST /api/auth/login\n{email, password}
+API -> API : 2. Validate credentials\n(BCrypt)
+API -> DB : 3. SELECT user WHERE email
+DB --> API : 4. User record
+API -> API : 5. Generate JWT Access Token\n+ Refresh Token
+API -> FE : 6. JWT Access Token\n+ Refresh Token\n+ User info
+FE -> FE : 7. Lưu token vào\nRedux / localStorage
+FE --> CUSTOMER : 8. Chuyển hướng\ntrang đặt phòng
+
+' === Bước 2: Tìm kiếm & Chọn phòng ===
+CUSTOMER -> FE : 9. Tìm kiếm khách sạn\n(thành phố, ngày, số người)
+FE -> API : GET /api/hotels/search\n{city, checkIn, checkOut, adults, rooms}
+API -> HOTEL_SVC : 10. searchHotels(params)
+HOTEL_SVC -> DB : 11. SELECT hotels\nJOIN room_types
+DB --> HOTEL_SVC : 12. Kết quả danh sách\nkhách sạn & phòng
+HOTEL_SVC --> API : 13. HotelSearchResponse
+API --> FE : 14. Danh sách khách sạn
+FE --> CUSTOMER : 15. Hiển thị kết quả\nvới bộ lọc
+
+CUSTOMER -> FE : 16. Chọn khách sạn
+FE -> API : GET /api/hotels/{id}
+API -> HOTEL_SVC : 17. getHotelDetail(id)
+HOTEL_SVC -> DB : 18. SELECT hotel, room_types\nJOIN amenities
+DB --> HOTEL_SVC : 19. Hotel detail + rooms
+HOTEL_SVC --> API : 20. HotelDetailResponse
+API --> FE : 21. Chi tiết khách sạn
+FE --> CUSTOMER : 22. Trang chi tiết\n(phòng, giá, tiện nghi)
+
+CUSTOMER -> FE : 23. Chọn loại phòng\n+ Ngày nhận/trả phòng
+FE -> API : 24. GET /api/hotels/{id}/availability\n{checkIn, checkOut, roomTypeId, rooms}
+API -> HOTEL_SVC : 25. checkAvailability(...)\n\nHOTEL_SVC -> DB : 26. SELECT room availability\nJOIN pricing_rules
+DB --> HOTEL_SVC : 27. Số phòng trống\n+ Giá theo ngày
+HOTEL_SVC --> API : 28. AvailabilityResponse
+API --> FE : 29. Giá & tình trạng phòng
+FE --> CUSTOMER : 30. Hiển thị giá\n+ Ưu đãi áp dụng
+
+' === Bước 3: Nhập thông tin & Áp mã KM ===
+CUSTOMER -> FE : 31. Nhập thông tin đặt phòng\n+ Mã khuyến mãi (tùy chọn)
+alt Có mã khuyến mãi
+    FE -> API : POST /api/promotions/validate\n{promoCode, amount}
+    API -> PROMO_SVC : 32. validatePromotion(code, amount)
+    PROMO_SVC -> DB : 33. SELECT promotion\nWHERE code = ?
+    DB --> PROMO_SVC : 34. Promotion record\n    PROMO_SVC -> PROMO_SVC : 35. Kiểm tra điều kiện\n(min amount, expiry, usage limit)
+    PROMO_SVC --> API : 36. Discount info\n(percentage or fixed amount)
+    API --> FE : 37. Giảm giá: X%
+end
+
+CUSTOMER -> FE : 38. Nhấn "Đặt phòng ngay"
+
+' === Bước 4: Tạo Booking ===
+FE -> API : 39. POST /api/bookings/hotel\n{hotelId, roomTypeId, checkIn,\ncheckOut, rooms, promoCode, userId}
+API -> BOOK_SVC : 40. createHotelBooking(request)
+BOOK_SVC -> DB : 41. BEGIN TRANSACTION\n\n' Tạo booking record
+BOOK_SVC -> DB : 42. INSERT INTO booking\n{status: PENDING, totalAmount, ...}
+DB --> BOOK_SVC : 43. bookingId
+
+alt Có mã khuyến mãi
+    BOOK_SVC -> DB : 44. INSERT INTO booking_promotion\n{bookingId, promoId, discount}
+    DB --> BOOK_SVC : 45. BookingPromotion record
+end
+
+BOOK_SVC -> DB : 46. UPDATE room_type availability\n(decrement available_rooms)
+DB --> BOOK_SVC : 47. Room availability updated
+
+BOOK_SVC -> DB : 48. COMMIT TRANSACTION
+BOOK_SVC --> API : 49. Booking created\n(bookingId, status: PENDING,\npaymentUrl: VNPay)
+API --> FE : 50. BookingResponse\n{paymentUrl: VNPay}
+
+' === Bước 5: Thanh toán VNPay ===
+FE --> CUSTOMER : 51. Chuyển hướng\ntrang thanh toán VNPay
+CUSTOMER -> VPNPAY : 52. Thanh toán qua\nATM / QR / Visa
+
+alt Thanh toán thành công
+    VPNPAY -> FE : 53. Redirect URL:\n?vnp_ResponseCode=00\n&vnp_TransactionNo=xxx
+    FE -> API : 54. GET /api/payments/vnpay/return\n{params from VNPay}
+    API -> VPN_SVC : 55. verifyPayment(params)
+    VPN_SVC -> VPNPAY : 56. Verify hash\n(vnp_SecureHash)
+    VPNPAY --> VPN_SVC : 57. Signature valid
+    VPN_SVC -> BOOK_SVC : 58. confirmBooking(bookingId)
+    BOOK_SVC -> DB : 59. UPDATE booking\n{status: CONFIRMED,\npaymentStatus: PAID}
+    BOOK_SVC -> DB : 60. INSERT audit_log\n{action: PAYMENT_CONFIRMED}
+
+    ' Thông báo email
+    BOOK_SVC -> EMAIL : 61. Gửi email\nxác nhận đặt phòng
+    EMAIL --> CUSTOMER : 62. Email xác nhận\n(kèm mã QR)
+
+    BOOK_SVC --> API : 63. Booking confirmed
+    API --> FE : 64. {status: CONFIRMED,\nbookingCode}
+    FE --> CUSTOMER : 65. Trang thành công\n+ Mã đặt phòng\n+ QR Code
+
+else Thanh toán thất bại
+    VPNPAY -> FE : 53b. Redirect:\n?vnp_ResponseCode!=00
+    FE -> API : 54b. GET /api/payments/vnpay/return
+    API -> BOOK_SVC : 55b. cancelBooking(bookingId)
+    BOOK_SVC -> DB : 56b. UPDATE booking\n{status: CANCELLED}
+    DB --> BOOK_SVC : 57b. Booking cancelled
+    BOOK_SVC --> API : 58b. Cancelled
+    API --> FE : 59b. {status: CANCELLED}
+    FE --> CUSTOMER : 60b. Thông báo\nthanh toán thất bại
+end
+
+' === Bước 6: IPN Callback (Background) ===
+VPNPAY -> API : 64. POST /api/payments/vnpay/ipn\n{vnp_ResponseCode, bookingId}
+API -> VPN_SVC : 65. processIPN(params)
+VPN_SVC -> VPNPAY : 66. Verify signature
+alt Signature valid & ResponseCode=00
+    VPN_SVC -> BOOK_SVC : 67. confirmBooking(bookingId)
+    BOOK_SVC -> DB : 68. UPDATE booking\n{status: CONFIRMED}
+    BOOK_SVC --> VPN_SVC : 69. Confirmed
+    VPN_SVC --> VPNPAY : 70. Return 200 OK
+else Signature invalid
+    VPN_SVC --> VPNPAY : 70b. Return 500
+end
+
+note right of CUSTOMER
+  66 Use Cases được mô tả chi tiết
+  trong biểu đồ này
+end note
+
+note across: \n**GHI CHÚ:**\n• Tất cả API calls đều kèm\n  JWT Access Token ở Header\n• Booking chỉ CONFIRMED khi\n  VNPay xác nhận thanh toán thành công\n• IPN Callback đảm bảo xác nhận\n  ngay cả khi user đóng trình duyệt\n
+
+@enduml

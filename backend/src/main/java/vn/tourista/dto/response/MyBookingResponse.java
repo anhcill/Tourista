@@ -44,4 +44,9 @@ public class MyBookingResponse {
     private LocalDate departureDate;
 
     private LocalDateTime createdAt;
+
+    private BigDecimal subtotal;
+    private BigDecimal discountAmount;
+    private String promoCode;
+    private String promoName;
 }

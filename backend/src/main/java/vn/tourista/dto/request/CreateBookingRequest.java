@@ -57,4 +57,14 @@ public class CreateBookingRequest {
 
     @Size(max = 1000, message = "Yêu cầu đặc biệt không quá 1000 ký tự")
     private String specialRequests;
+
+    @Size(max = 30, message = "Mã khuyến mãi không quá 30 ký tự")
+    private String promoCode;
+
+    /**
+     * Idempotency key (UUID) để ngăn double-submit khi user gửi 2 request cùng lúc.
+     * Nếu user gửi lại với cùng key, trả về booking đã tạo trước đó.
+     */
+    @Size(max = 64, message = "Idempotency key không hợp lệ")
+    private String idempotencyKey;
 }

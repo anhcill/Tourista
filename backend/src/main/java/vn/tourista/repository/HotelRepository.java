@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import vn.tourista.entity.Hotel;
 import vn.tourista.entity.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -125,4 +126,10 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     long countActiveHotels();
 
     boolean existsBySlug(String slug);
+
+    @Query(value = """
+        SELECT MIN(rt.base_price) FROM room_types rt
+        WHERE rt.hotel_id = :hotelId
+        """, nativeQuery = true)
+    BigDecimal findMinBasePriceByHotelId(@Param("hotelId") Long hotelId);
 }

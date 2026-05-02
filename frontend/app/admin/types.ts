@@ -188,6 +188,7 @@ export type AdminPromotionRow = {
   maxDiscountAmount: number | null;
   usageLimit: number;
   usedCount: number;
+  appliesTo: string | null;
   startAt: string | null;
   endAt: string | null;
   isActive: boolean;
@@ -228,4 +229,48 @@ export type AdminAuditLogsOverview = {
   };
   dataMode: 'live-or-partial' | 'mock';
   hasMockFallback: boolean;
+};
+
+// Combo types
+export type AdminComboType =
+  | 'HOTEL_PLUS_TOUR'
+  | 'MULTI_HOTEL'
+  | 'MULTI_TOUR'
+  | 'HOTEL_AIRPORT_TRANSFER'
+  | 'TOUR_BUNDLE';
+
+export type AdminComboRow = {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string | null;
+  comboType: AdminComboType;
+  hotelId: number | null;
+  hotelName: string | null;
+  tourId: number | null;
+  tourName: string | null;
+  secondHotelId: number | null;
+  secondHotelName: string | null;
+  secondTourId: number | null;
+  secondTourName: string | null;
+  validFrom: string;
+  validUntil: string;
+  totalSlots: number | null;
+  remainingSlots: number | null;
+  originalPrice: number | null;
+  comboPrice: number | null;
+  savingsAmount: number | null;
+  savingsPercent: number | null;
+  isFeatured: boolean | null;
+  isActive: boolean | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type AdminCombosOverview = {
+  items: AdminComboRow[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 };

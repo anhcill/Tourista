@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.tourista.entity.Tour;
 import vn.tourista.repository.TourRepository;
+import vn.tourista.service.AiService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Service gợi ý tour — kết hợp DB query + Gemini AI enrichment.
+ * Service gợi ý tour — kết hợp DB query + AI enrichment.
  *
  * Luồng:
  * 1. Query DB theo budget/travelers/city/duration → lấy danh sách tour phù hợp
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 public class TourRecommendationService {
 
     private final TourRepository tourRepository;
-    private final GeminiService geminiService;
+    private final AiService aiService;
 
     private static final int DEFAULT_LIMIT = 3;
     private static final BigDecimal MIN_PRICE_PER_PERSON = new BigDecimal("400000");
@@ -88,13 +89,13 @@ public class TourRecommendationService {
             Integer budgetVnd,
             Integer travelers) {
 
-        if (!geminiService.isEnabled()) {
+        if (!aiService.isEnabled()) {
             return buildDefaultAlternativeSuggestion(cityQuery);
         }
 
         try {
             String prompt = buildDestinationPrompt(cityQuery, budgetVnd, travelers);
-            String answer = geminiService.ask(prompt, null);
+            String answer = aiService.ask(prompt, null);
             if (answer != null && !answer.isBlank()) {
                 return "🔮 **Gợi ý điểm đến thay thế:**\n" + answer;
             }
@@ -110,7 +111,7 @@ public class TourRecommendationService {
      * Chỉ gọi khi có Gemini key và số lượng tour <= 5 để tránh rate limit.
      */
     public List<TourEnrichment> enrichToursWithAiTips(List<Long> tourIds) {
-        if (!geminiService.isEnabled() || tourIds == null || tourIds.isEmpty() || tourIds.size() > 5) {
+        if (!aiService.isEnabled() || tourIds == null || tourIds.isEmpty() || tourIds.size() > 5) {
             return List.of();
         }
 
@@ -135,7 +136,7 @@ public class TourRecommendationService {
      * Tạo enrichment cho một tour cụ thể.
      */
     private TourEnrichment generateTourEnrichment(Tour tour) {
-        if (!geminiService.isEnabled()) {
+        if (!aiService.isEnabled()) {
             return new TourEnrichment(tour.getId(), null, null, null);
         }
 
@@ -163,7 +164,7 @@ public class TourRecommendationService {
                     tour.getDurationDays() != null ? tour.getDurationDays() : 1,
                     tour.getDurationNights() != null ? tour.getDurationNights() : 0);
 
-            String answer = geminiService.ask(prompt, null);
+            String answer = aiService.ask(prompt, null);
             if (answer == null || answer.isBlank()) {
                 return new TourEnrichment(tour.getId(), null, null, null);
             }

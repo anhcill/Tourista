@@ -10,9 +10,15 @@ import vn.tourista.dto.response.VnpayReturnResponse;
 import vn.tourista.entity.Booking;
 import vn.tourista.entity.BookingHotelDetail;
 import vn.tourista.entity.BookingTourDetail;
+import vn.tourista.entity.BookingPromotion;
+import vn.tourista.entity.Promotion;
 import vn.tourista.repository.BookingHotelDetailRepository;
+import vn.tourista.repository.BookingPromotionRepository;
 import vn.tourista.repository.BookingRepository;
 import vn.tourista.repository.BookingTourDetailRepository;
+import vn.tourista.repository.PromotionRepository;
+import vn.tourista.repository.RoomTypeRepository;
+import vn.tourista.repository.TourDepartureRepository;
 import vn.tourista.service.BrevoEmailService;
 import vn.tourista.service.VnpayService;
 
@@ -46,6 +52,10 @@ public class VnpayServiceImpl implements VnpayService {
     private final BookingRepository bookingRepository;
     private final BookingHotelDetailRepository bookingHotelDetailRepository;
     private final BookingTourDetailRepository bookingTourDetailRepository;
+    private final TourDepartureRepository tourDepartureRepository;
+    private final RoomTypeRepository roomTypeRepository;
+    private final BookingPromotionRepository bookingPromotionRepository;
+    private final PromotionRepository promotionRepository;
     private final BrevoEmailService emailService;
 
     @Value("${app.vnpay.tmn-code:}")
@@ -69,10 +79,18 @@ public class VnpayServiceImpl implements VnpayService {
     public VnpayServiceImpl(BookingRepository bookingRepository,
             BookingHotelDetailRepository bookingHotelDetailRepository,
             BookingTourDetailRepository bookingTourDetailRepository,
+            TourDepartureRepository tourDepartureRepository,
+            RoomTypeRepository roomTypeRepository,
+            BookingPromotionRepository bookingPromotionRepository,
+            PromotionRepository promotionRepository,
             BrevoEmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.bookingHotelDetailRepository = bookingHotelDetailRepository;
         this.bookingTourDetailRepository = bookingTourDetailRepository;
+        this.tourDepartureRepository = tourDepartureRepository;
+        this.roomTypeRepository = roomTypeRepository;
+        this.bookingPromotionRepository = bookingPromotionRepository;
+        this.promotionRepository = promotionRepository;
         this.emailService = emailService;
     }
 
@@ -177,10 +195,52 @@ public class VnpayServiceImpl implements VnpayService {
             return response("00", "Confirm Success");
         }
 
+        // ===== PAYMENT FAILED — ROLLBACK ALLOCATED SLOTS/ROOMS =====
+        rollbackBookingResources(booking, responseCode);
         return response("00", "Received but payment failed");
     }
 
+    /**
+     * Rollback all resources allocated for a booking when payment fails.
+     * Restores tour slots, hotel rooms, and promo usage count.
+     */
+    private void rollbackBookingResources(Booking booking, String responseCode) {
+        if (booking.getBookingType() == Booking.BookingType.TOUR) {
+            bookingTourDetailRepository.findByBooking(booking).ifPresent(tourDetail -> {
+                if (tourDetail.getDeparture() != null) {
+                    int guests = tourDetail.getNumAdults() + tourDetail.getNumChildren();
+                    tourDepartureRepository.incrementAvailableSlots(tourDetail.getDeparture().getId(), guests);
+                }
+            });
+        } else if (booking.getBookingType() == Booking.BookingType.HOTEL) {
+            bookingHotelDetailRepository.findByBooking(booking).ifPresent(hotelDetail -> {
+                if (hotelDetail.getRoomType() != null) {
+                    roomTypeRepository.incrementRoomsAvailable(
+                            hotelDetail.getRoomType().getId(),
+                            hotelDetail.getNumRooms());
+                }
+            });
+        }
+
+        // Rollback promo usage count
+        bookingPromotionRepository.findByBooking(booking).ifPresent(bp -> {
+            if (bp.getPromotion() != null) {
+                Promotion promo = bp.getPromotion();
+                promo.setUsedCount(Math.max(0, promo.getUsedCount() - 1));
+                promotionRepository.save(promo);
+            }
+            bookingPromotionRepository.delete(bp);
+        });
+
+        // Mark booking as cancelled
+        booking.setStatus(Booking.BookingStatus.CANCELLED);
+        booking.setCancelReason("Thanh toan VNPay that bai (responseCode: " + responseCode + ")");
+        booking.setCancelledAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+    }
+
     @Override
+    @Transactional
     public VnpayReturnResponse parseReturn(Map<String, String> vnpParams) {
         boolean valid = isValidSignature(vnpParams);
         String bookingCode = valueOrDefault(vnpParams.get("vnp_TxnRef"), "");
@@ -194,6 +254,18 @@ public class VnpayServiceImpl implements VnpayService {
         Booking booking = null;
         if (!bookingCode.isBlank()) {
             booking = bookingRepository.findByBookingCode(bookingCode).orElse(null);
+        }
+
+        // Only update booking status if signature is valid AND payment succeeded AND booking is not yet confirmed
+        if (valid && success && booking != null) {
+            Booking.BookingStatus currentStatus = booking.getStatus();
+            if (currentStatus != Booking.BookingStatus.CONFIRMED
+                    && currentStatus != Booking.BookingStatus.COMPLETED
+                    && currentStatus != Booking.BookingStatus.CHECKED_IN) {
+                booking.setStatus(Booking.BookingStatus.CONFIRMED);
+                booking.setConfirmedAt(LocalDateTime.now());
+                bookingRepository.save(booking);
+            }
         }
 
         return VnpayReturnResponse.builder()

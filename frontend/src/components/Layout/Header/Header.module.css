@@ -941,10 +941,14 @@
     .navTab { padding: 5px 10px; font-size: 11px; }
     .navTabIcon { display: none; }
     .navTabIconBus { display: none; }
+    .topBarInner { padding: 10px 0 6px; gap: 8px; }
+    .actions { margin-left: auto; }
+    .mobileMenuBtn { display: flex !important; }
 }
 
 @media (max-width: 576px) {
     .utilityButtons .iconBtn:nth-child(n+4) { display: none; }
+    .topBarInner { padding: 8px 0 4px; }
 }
 
 /* =====================================================
@@ -1023,21 +1027,22 @@
 
 .mobileMenu {
     display: none;
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 0;
     left: 0;
     right: 0;
+    bottom: 0;
     background: var(--h-dropdown-bg);
-    border-bottom: 1px solid var(--h-dropdown-border);
     box-shadow: 0 12px 32px rgba(255, 107, 53, 0.08);
-    z-index: calc(var(--z-dropdown, 1100) - 1);
-    animation: slideDown 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    z-index: calc(var(--z-dropdown, 1100) + 10);
+    animation: slideIn 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    padding-top: 60px;
 }
 
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 [data-theme="dark"] .mobileMenu {
@@ -1048,6 +1053,29 @@
     padding: 16px;
     border-bottom: 1px solid var(--h-dropdown-border);
     background: linear-gradient(135deg, rgba(255, 107, 53, 0.04), rgba(0, 180, 216, 0.04));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mobileMenuCloseBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1.5px solid var(--h-dropdown-border);
+    background: transparent;
+    color: var(--h-text-secondary);
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+    flex-shrink: 0;
+}
+
+.mobileMenuCloseBtn:hover {
+    background: rgba(255, 107, 53, 0.08);
+    color: #FF6B35;
 }
 
 .mobileUserInfo {

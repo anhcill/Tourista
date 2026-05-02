@@ -7,24 +7,63 @@ import {
   setRefreshToken,
 } from "../../utils/authStorage";
 
-// Get initial user from localStorage
-const getUserFromStorage = () => {
-  if (typeof window !== "undefined") {
-    const user = localStorage.getItem(STORAGE_KEYS.USER);
-    return user ? JSON.parse(user) : null;
+const hasWindow = () => typeof window !== "undefined";
+
+const readUserWithMigration = () => {
+  if (!hasWindow()) return null;
+  try {
+    // Try sessionStorage first (new location)
+    const sessionUser = window.sessionStorage.getItem(STORAGE_KEYS.USER);
+    if (sessionUser) return JSON.parse(sessionUser);
+
+    // Fallback: localStorage (legacy location) — migrate to sessionStorage
+    const legacyUser = window.localStorage.getItem(STORAGE_KEYS.USER);
+    if (legacyUser) {
+      const parsed = JSON.parse(legacyUser);
+      window.sessionStorage.setItem(STORAGE_KEYS.USER, legacyUser);
+      window.localStorage.removeItem(STORAGE_KEYS.USER);
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
   }
-  return null;
+};
+
+const writeUser = (user) => {
+  if (!hasWindow()) return;
+  try {
+    if (user) {
+      window.sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      window.localStorage.removeItem(STORAGE_KEYS.USER);
+    } else {
+      window.sessionStorage.removeItem(STORAGE_KEYS.USER);
+      window.localStorage.removeItem(STORAGE_KEYS.USER);
+    }
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+const clearUser = () => {
+  if (!hasWindow()) return;
+  try {
+    window.sessionStorage.removeItem(STORAGE_KEYS.USER);
+    window.localStorage.removeItem(STORAGE_KEYS.USER);
+  } catch {
+    // Ignore storage errors
+  }
 };
 
 const getTokenFromStorage = () => {
-  if (typeof window !== "undefined") {
+  if (hasWindow()) {
     return getAccessToken();
   }
   return null;
 };
 
 const initialState = {
-  user: getUserFromStorage(),
+  user: readUserWithMigration(),
   token: getTokenFromStorage(),
   isAuthenticated: !!getTokenFromStorage(),
   loading: false,
@@ -46,16 +85,11 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.error = null;
 
-      // Save to localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem(
-          STORAGE_KEYS.USER,
-          JSON.stringify(action.payload.user),
-        );
-        setAccessToken(action.payload.token);
-        if (action.payload.refreshToken) {
-          setRefreshToken(action.payload.refreshToken);
-        }
+      // Save user to sessionStorage (secure, not persisted across tabs)
+      writeUser(action.payload.user);
+      setAccessToken(action.payload.token);
+      if (action.payload.refreshToken) {
+        setRefreshToken(action.payload.refreshToken);
       }
     },
     loginFailure: (state, action) => {
@@ -72,19 +106,13 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
 
-      // Clear localStorage
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(STORAGE_KEYS.USER);
-        clearAuthTokens();
-      }
+      // Clear all storage
+      clearUser();
+      clearAuthTokens();
     },
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
-
-      // Update localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(state.user));
-      }
+      writeUser(state.user);
     },
     clearError: (state) => {
       state.error = null;

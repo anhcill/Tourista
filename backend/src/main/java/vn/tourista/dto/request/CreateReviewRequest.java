@@ -31,8 +31,35 @@ public class CreateReviewRequest {
     @Max(value = 5, message = "So sao phai tu 1 den 5")
     private Integer overallRating;
 
+    @Size(max = 200, message = "Tieu de danh gia khong qua 200 ky tu")
+    private String title;
+
     @Size(max = 2000, message = "Noi dung danh gia khong qua 2000 ky tu")
     private String comment;
+
+    @Min(value = 1, message = "Diem phu: tu 1 den 5")
+    @Max(value = 5, message = "Diem phu: tu 1 den 5")
+    private Integer cleanliness;
+
+    @Min(value = 1, message = "Diem phu: tu 1 den 5")
+    @Max(value = 5, message = "Diem phu: tu 1 den 5")
+    private Integer location;
+
+    @Min(value = 1, message = "Diem phu: tu 1 den 5")
+    @Max(value = 5, message = "Diem phu: tu 1 den 5")
+    private Integer service;
+
+    @Min(value = 1, message = "Diem phu: tu 1 den 5")
+    @Max(value = 5, message = "Diem phu: tu 1 den 5")
+    private Integer valueForMoney;
+
+    @Min(value = 1, message = "Diem phu: tu 1 den 5")
+    @Max(value = 5, message = "Diem phu: tu 1 den 5")
+    private Integer guideQuality;
+
+    @Min(value = 1, message = "Diem phu: tu 1 den 5")
+    @Max(value = 5, message = "Diem phu: tu 1 den 5")
+    private Integer organization;
 
     @Size(max = 8, message = "Toi da 8 file media cho moi danh gia")
     private List<@Size(max = 500, message = "Media URL khong qua 500 ky tu") String> mediaUrls;

@@ -1,0 +1,45 @@
+@startuml Search_Sequence_Simplified
+!theme plain
+
+title Biểu đồ trình tự — Tìm kiếm Tour/Khách sạn (Đơn giản)
+
+actor "Người dùng" as user
+participant "Frontend" as fe
+participant "SearchController" as controller
+participant "TourService\n/ HotelService" as service
+participant "TourRepository\n/ HotelRepository" as db
+
+== TÌM KIẾM ==
+
+user -> fe : Nhập từ khóa tìm kiếm\n(Điểm đến, ngày đi, số người)
+fe -> fe : Validate thông tin tìm kiếm
+fe -> controller : GET /api/tours/search\n?keyword=...&city=...&date=...&guests=...
+controller -> service : Xử lý tìm kiếm
+
+service -> db : Truy vấn danh sách tour\ntheo điều kiện lọc
+db --> service : Danh sách tour phù hợp
+
+alt Không có kết quả
+    service --> controller : Danh sách rỗng
+    controller --> fe : 200 OK (data = [])
+    fe -> user : "Không tìm thấy tour nào\nphù hợp với tìm kiếm của bạn"
+else Có kết quả
+    service --> controller : Danh sách tour\n(đã sắp xếp theo giá/đánh giá)
+    controller --> fe : 200 OK + Pagination
+    fe -> user : Hiển thị danh sách tour\nvới phân trang
+end
+
+== CHI TIẾT TOUR ==
+
+user -> fe : Chọn tour muốn xem
+fe -> controller : GET /api/tours/{id}
+controller -> service : Lấy thông tin chi tiết tour
+
+service -> db : Truy vấn tour + lịch trình\n+ hình ảnh + đánh giá
+db --> service : Chi tiết tour đầy đủ
+
+service --> controller : Tour chi tiết
+controller --> fe : 200 OK
+fe -> user : Hiển thị trang chi tiết tour\n(Lịch trình, hình ảnh, đánh giá,\nngày khởi hành, giá)
+
+@enduml

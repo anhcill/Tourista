@@ -67,12 +67,13 @@ export default function AppShellClient({ children }: AppShellClientProps) {
     (prefix) => pathname === prefix || (pathname || '').startsWith(`${prefix}/`),
   );
   const isAdminRoute = (pathname || '').startsWith('/admin');
+  const isPartnerRoute = (pathname || '').startsWith('/partner');
   const isHotelDetailPage = /^\/hotels\/\d+$/.test(pathname || '');
 
   return (
     <ThemeProvider>
       <ReduxProvider>
-        {isAuthPage || isAdminRoute ? (
+        {isAuthPage || isAdminRoute || isPartnerRoute ? (
           <>
             {children}
             <Toast />

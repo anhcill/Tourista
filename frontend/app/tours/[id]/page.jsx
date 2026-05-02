@@ -222,10 +222,9 @@ function TourDetailInner() {
     if (id) fetchAll();
   }, [id]);
 
-  // Check if this tour is favorited by the user
+  // Check if this tour is favorited by the user (only when authenticated)
   useEffect(() => {
     if (!tour?.id || !isAuthenticated) {
-      setIsFavorite(false);
       return;
     }
 
@@ -261,7 +260,9 @@ function TourDetailInner() {
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
       toast.info('Vui lòng đăng nhập để lưu vào danh sách yêu thích.');
-      router.push('/login');
+      const redirect = typeof window !== 'undefined'
+        ? `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}` : '';
+      router.push(`/login${redirect}`);
       return;
     }
     if (favoriteLoading || !tour?.id) return;
@@ -810,7 +811,9 @@ function TourDetailInner() {
                     onClick={async () => {
                       if (!isAuthenticated) {
                         toast.info('Vui lòng đăng nhập để đánh dấu hữu ích.');
-                        router.push('/login');
+                        const redirect = typeof window !== 'undefined'
+                          ? `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}` : '';
+                        router.push(`/login${redirect}`);
                         return;
                       }
                       const wasVoted = helpfulMap[rv.id];

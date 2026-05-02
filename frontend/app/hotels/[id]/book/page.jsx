@@ -207,7 +207,9 @@ function HotelBookingInner() {
   const validateBeforeSubmit = () => {
     if (!isAuthenticated) {
       toast.error('Vui lòng đăng nhập trước khi đặt phòng.');
-      router.push('/login');
+      const redirect = typeof window !== 'undefined'
+        ? `?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}` : '';
+      router.push(`/login${redirect}`);
       return false;
     }
 

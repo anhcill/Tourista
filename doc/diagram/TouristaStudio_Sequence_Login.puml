@@ -1,0 +1,153 @@
+@startuml TouristaStudio_Sequence_Login
+!theme plain
+
+title BIỂU ĐỒ TRÌNH TỰ — UC02. ĐĂNG NHẬP (JWT + OAuth2)
+
+participant "Người dùng" as USER
+participant "Frontend\n(Next.js)" as FE
+participant "Backend API\n(Spring Boot)" as API
+participant "AuthService" as AUTH
+participant "JWTProvider" as JWT
+participant "MySQL\nDatabase" as DB
+participant "Google OAuth" as GOOGLE
+participant "Facebook OAuth" as FACEBOOK
+participant "EmailService" as EMAIL
+
+' ============================================================
+' BRANCH 1: Đăng nhập LOCAL (email + password)
+' ============================================================
+group Đăng nhập LOCAL (Email + Password)
+
+    USER -> FE : 1. Nhập email & password
+    FE -> FE : 2. Validate form\n(email format, password not empty)
+
+    alt Form hợp lệ
+        FE -> API : 3. POST /api/auth/login\n{email, password}
+        API -> AUTH : 4. authenticate(email, password)
+        AUTH -> DB : 5. SELECT * FROM users\nWHERE email = ?
+        DB --> AUTH : 6. User record found
+
+        AUTH -> AUTH : 7. BCryptPasswordEncoder\n.verify(password, hash)
+        alt Password đúng
+            AUTH -> JWT : 8. Generate tokens\n• Access Token (15 phút)\n• Refresh Token (7 ngày)
+            JWT --> AUTH : 9. Tokens generated
+            JWT --> AUTH : 10. Store Refresh Token\n(Redis / DB)
+            AUTH --> API : 11. AuthenticationResult\n(accessToken, refreshToken, user)
+            API --> FE : 12. 200 OK\n{accessToken, userInfo}
+            FE -> FE : 13. Lưu tokens:\n• Access → memory / state\n• Refresh → httpOnly cookie\n hoặc localStorage (tùy cấu hình)
+            FE -> FE : 14. Dispatch Redux action:\nsetAuth(user, tokens)
+            FE --> USER : 15. ✅ Đăng nhập thành công\nChuyển hướng Dashboard
+        else Password sai
+            AUTH --> API : 7b. BadCredentialsException
+            API --> FE : 12b. 401 Unauthorized\n{error: "Sai email hoặc mật khẩu"}
+            FE --> USER : 15b. ❌ Thông báo lỗi
+        end
+    else Form không hợp lệ
+        FE --> USER : 2b. Hiển thị lỗi validate phía client
+    end
+end
+
+' ============================================================
+' BRANCH 2: Đăng nhập GOOGLE OAuth2
+' ============================================================
+group Đăng nhập Google OAuth2
+    USER -> FE : "Nhấn nút Đăng nhập Google"
+    FE -> FE : 16. Mở popup\nOAuth2 authorization
+    FE -> GOOGLE : 17. Redirect: /oauth2/authorization/google\n(NextAuth.js / Spring Security)
+
+    GOOGLE -> USER : 18. Giao diện Google\nYêu cầu quyền truy cập
+    USER -> GOOGLE : 19. Chọn tài khoản Google\n& Xác nhận cho phép
+
+    GOOGLE -> FE : 20. Redirect: /api/auth/callback/google\n?code=xxx&state=xxx
+    FE -> API : 21. POST /api/auth/oauth2/callback\n{code, provider: GOOGLE}
+    API -> GOOGLE : 22. Exchange code → Access Token\nPOST https://oauth2.googleapis.com/token
+    GOOGLE --> API : 23. Access Token + ID Token
+    API -> GOOGLE : 24. Get user info:\nGET https://www.googleapis.com/oauth2/v3/userinfo
+    GOOGLE --> API : 25. User profile:\n{email, name, picture, sub}
+
+    API -> AUTH : 26. processOAuth2User\n(provider: GOOGLE, profile)
+    AUTH -> DB : 27. SELECT * FROM users\nWHERE provider=GOOGLE AND provider_id=?
+    DB --> AUTH : 28. User record
+
+    alt User đã tồn tại (đăng nhập lần 2+)
+        AUTH -> AUTH : 29. Update last_login_at
+        AUTH --> API : 30. Existing user
+    else User chưa tồn tại (đăng nhập lần đầu)
+        AUTH -> DB : 29b. INSERT INTO users\n{email, full_name, avatar_url,\nprovider: GOOGLE, provider_id}
+        DB --> AUTH : 30b. New user created
+        AUTH -> EMAIL : 30c. Gửi email chào mừng
+        EMAIL --> USER : 30d. Email chào mừng
+    end
+
+    AUTH -> JWT : 31. Generate Access Token\n+ Refresh Token
+    JWT --> AUTH : 32. Tokens
+    AUTH --> API : 33. AuthResult (tokens + user)
+    API --> FE : 34. 200 OK {tokens, user}
+    FE -> FE : 35. Lưu tokens\nDispatch Redux setAuth
+    FE --> USER : 36. ✅ Đăng nhập thành công
+end
+
+' ============================================================
+' BRANCH 3: Đăng nhập FACEBOOK OAuth2
+' ============================================================
+group Đăng nhập Facebook OAuth2
+    USER -> FE : "Nhấn Đăng nhập Facebook"
+    FE -> FACEBOOK : 37. Redirect OAuth2 Facebook
+    FACEBOOK -> USER : 38. Facebook login dialog
+    USER -> FACEBOOK : 39. Cho phép
+    FACEBOOK -> FE : 40. Redirect: /api/auth/callback/facebook\n?code=xxx
+    FE -> API : 41. POST /api/auth/oauth2/callback\n{code, provider: FACEBOOK}
+    API -> FACEBOOK : 42. Exchange code → Access Token
+    API -> FACEBOOK : 43. Get user profile\nGET graph.facebook.com/me
+    FACEBOOK --> API : 44. {id, name, email, picture}
+    API -> AUTH : 45. processOAuth2User\n(provider: FACEBOOK, profile)
+    AUTH -> DB : 46. SELECT users WHERE provider_id = ?
+    alt User tồn tại
+        AUTH --> API : 47. Existing user
+    else User mới
+        AUTH -> DB : 47b. INSERT new user
+    end
+    AUTH -> JWT : 48. Generate tokens
+    JWT --> AUTH : 49. Tokens
+    AUTH --> API : 50. AuthResult
+    API --> FE : 51. 200 OK
+    FE --> USER : 52. ✅ Đăng nhập thành công
+end
+
+' ============================================================
+' BRANCH 4: Làm mới Access Token (Refresh)
+' ============================================================
+group Làm mới Access Token (Refresh)
+    FE -> API : 53. POST /api/auth/refresh\n{refreshToken}
+    API -> JWT : 54. Validate Refresh Token\n+ Check not expired\n+ Check not revoked
+    JWT --> API : 55. Token valid
+
+    alt Token còn hạn & hợp lệ
+        JWT -> JWT : 56. Generate new Access Token
+        JWT --> API : 57. New Access Token
+        API --> FE : 58. 200 OK {accessToken}
+        FE -> FE : 59. Cập nhật token mới\nvào state
+    else Token hết hạn / đã thu hồi
+        API --> FE : 58b. 401 Unauthorized\n{error: "Token expired"}
+        FE -> USER : 59b. Thông báo:\n"Phiên đăng nhập hết hạn\nVui lòng đăng nhập lại"
+        FE -> FE : 60b. Xóa tokens\nDispatch logout()
+        FE --> USER : 61b. Chuyển trang Login
+    end
+end
+
+' ============================================================
+' BRANCH 5: Đăng xuất
+' ============================================================
+group Đăng xuất (Logout)
+    USER -> FE : 62. Nhấn "Đăng xuất"
+    FE -> API : 63. POST /api/auth/logout\n{refreshToken}
+    API -> JWT : 64. Revoke Refresh Token\n(Xóa khỏi blacklist / DB)
+    JWT --> API : 65. Token revoked
+    API --> FE : 66. 200 OK
+    FE -> FE : 67. Xóa:\n• Access Token\n• Refresh Token\n• Redux state
+    FE --> USER : 68. Chuyển trang Login
+end
+
+note across: \n**BẢO MẬT:**\n• Access Token (15 phút) → Lưu trong bộ nhớ (memory), KHÔNG localStorage\n• Refresh Token (7 ngày) → Lưu httpOnly cookie hoặc localStorage\n• Token blacklist: Refresh token bị thu hồi khi đăng xuất\n• Password được hash bằng BCrypt (cost factor = 12)\n• OAuth2 state parameter được verify để tránh CSRF\n
+
+@enduml

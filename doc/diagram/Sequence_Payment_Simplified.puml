@@ -1,0 +1,175 @@
+@startuml Payment_Sequence_Simplified
+!theme plain
+
+title Biểu đồ trình tự — Thanh toán qua VNPay
+
+actor "Người dùng" as user
+participant "Frontend" as fe
+participant "BookingController" as controller
+participant "VnpayController" as vnpay_controller
+participant "VnpayService" as vnpay
+participant "Database" as db
+
+== KHỞI TẠO THANH TOÁN ==
+
+user -> fe : Xác nhận đặt tour/phòng\nNhấn "Thanh toán"
+fe -> controller : POST /api/payments/vnpay/create\n{ bookingId, amount, bankCode }
+controller -> vnpay : Tạo yêu cầu thanh toán
+activate vnpay
+
+vnpay -> vnpay : Build payment params\n(vnp_Version, vnp_Command,\nvnp_TxnRef, vnp_Amount,\nvnp_CurrCode, vnp_Locale,\nvnp_ReturnUrl)
+
+vnpay -> vnpay : Tạo HMAC-SHA256 signature\nvới secret key
+
+vnpay --> controller : paymentUrl\n(https://sandbox.vnpayment.vn/...\n?vnp_Amount=...&vnp_TxnRef=...&vnp_SecureHash=...)
+deactivate vnpay
+
+controller --> fe : 200 OK + paymentUrl
+fe -> user : Redirect đến trang VNPay
+
+== NGƯỜI DÙNG CHỌN THẺ NGÂN HÀNG ==
+
+user -> vnpay : Chọn "Thanh toán bằng thẻ ATM"
+vnpay -> vnpay : Hiển thị danh sách ngân hàng\nliên kết VNPay
+
+user -> vnpay : Chọn ngân hàng phát hành\n(Vietcombank, VietinBank, BIDV, ...)
+vnpay -> vnpay : Chuyển hướng đến\ntrang đăng nhập ngân hàng
+
+user -> vnpay : Nhập thông tin thẻ ATM\n(Số thẻ, tên chủ thẻ, ngày hết hạn,\nCVV/CVC)
+
+vnpay -> vnpay : Validate thông tin thẻ\n(format, checksum)
+
+alt Thông tin thẻ không hợp lệ
+    vnpay -> user : "Thông tin thẻ không hợp lệ.\nVui lòng kiểm tra lại"
+    vnpay -> user : Quay lại form nhập thẻ
+end
+
+vnpay -> vnpay : Hiển thị trang OTP\n(Xác thực giao dịch)
+
+vnpay -> user : Gửi mã OTP qua SMS\nđến số điện thoại đăng ký thẻ
+
+user -> vnpay : Nhập mã OTP\nNhấn "Xác nhận"
+
+vnpay -> vnpay : Gửi OTP đến hệ thống\nngân hàng để xác thực
+
+alt OTP không đúng / Hết hạn
+    vnpay -> user : "Mã OTP không đúng.\nVui lòng nhập lại"
+    note right: Tối đa 3 lần thử
+    vnpay -> user : Yêu cầu nhập lại OTP
+end
+
+alt Tài khoản không đủ số dư
+    vnpay -> vnpay : Nhận phản hồi từ ngân hàng\n(vnp_ResponseCode = 51)
+    vnpay -> user : "Tài khoản không đủ số dư"
+    vnpay -> user : Chuyển hướng về trang thất bại
+else Thẻ chưa đăng ký Internet Banking
+    vnpay -> vnpay : Nhận phản hồi\n(vnp_ResponseCode = 75)
+    vnpay -> user : "Thẻ chưa đăng ký Internet Banking"
+    vnpay -> user : Hướng dẫn đăng ký / thử lại
+else Thẻ hết hạn / bị khóa
+    vnpay -> vnpay : Nhận phản hồi từ ngân hàng
+    vnpay -> user : "Thẻ không hợp lệ hoặc đã bị khóa"
+    vnpay -> user : Chuyển hướng về trang thất bại
+else Giao dịch thành công
+    vnpay -> vnpay : Nhận phản hồi thành công\n(vnp_ResponseCode = 00,\nvnp_TransactionNo, vnp_PayDate)
+
+    vnpay -> vnpay : Ghi nhận kết quả giao dịch\nvào hệ thống VNPay
+
+    vnpay -> user : Hiển thị trang\n"Thanh toán thành công"
+    vnpay -> user : Chuyển hướng về returnUrl\n?code=00&txnRef=BK-12345&...\n&vnp_TransactionNo=...&vnp_Amount=...
+end
+
+== CALLBACK RETURN (Sau khi thanh toán) ==
+
+vnpay -> fe : Redirect về returnUrl\n?code=00&txnRef=BK-12345&...\nvnpay -> controller : Gọi returnUrl
+activate controller
+
+controller -> vnpay : Xử lý return callback
+activate vnpay
+
+vnpay -> vnpay : Verify HMAC-SHA256\ntừ VNPay response
+
+alt Chữ ký không hợp lệ
+    vnpay --> controller : throw InvalidSignatureException
+    controller --> fe : 400 Bad Request
+    fe -> user : "Lỗi xác thực giao dịch"
+end
+
+vnpay --> controller : Return URL result
+deactivate vnpay
+
+alt code = 00 (Thành công)
+    controller -> vpay_controller : Cập nhật booking\nstatus: PENDING → CONFIRMED
+    activate vpay_controller
+
+    vpay_controller -> db : UPDATE bookings\nSET status = 'CONFIRMED',\nvnp_transaction_no = '...'
+    db --> vpay_controller : OK
+
+    vpay_controller -> db : Gửi email xác nhận\ncho khách hàng
+    db --> vpay_controller : Email đã gửi
+
+    vpay_controller --> controller : Thành công
+    deactivate vpay_controller
+
+    controller --> fe : 200 OK\n(Trang thành công)
+    fe -> user : "Thanh toán thành công!\nMã giao dịch: VNPay-XXXXX\nMã booking: BK-XXXXX"
+else code != 00 (Thất bại)
+    controller -> db : Cập nhật booking\nstatus: PENDING → CANCELLED
+    controller --> fe : 400 Bad Request\n(Trang thất bại)
+    fe -> user : "Thanh toán thất bại.\nMã lỗi: VNPay-XXX\nVui lòng thử lại"
+end
+
+== CALLBACK IPN (Server-to-Server) ==
+
+note over vnpay, db #LightBlue
+VNPay gọi IPN URL để xác nhận\nserver-to-server (đảm bảo order\nđược cập nhật dù user đóng trình\nduyệt giữa chừng)
+end note
+
+vnpay -> vnpay_controller : POST /api/payments/vnpay/ipn\n(vnp_TxnRef, vnp_ResponseCode,\nvnp_SecureHash, ...)
+activate vnpay_controller
+
+vnpay_controller -> vnpay : Verify secure hash
+activate vnpay
+vnpay --> vnpay_controller : Hash OK / Hash lỗi
+deactivate vnpay
+
+alt Hash không hợp lệ
+    vnpay_controller --> vnpay : 97 – Invalid signature
+end
+
+alt code = 00
+    vnpay_controller -> db : Kiểm tra order đã được\ncập nhật chưa (idempotent)
+    db --> vnpay_controller : Order chưa update
+
+    alt Order tồn tại
+        vnpay_controller -> db : UPDATE booking\nstatus = CONFIRMED
+        vnpay_controller -> db : Gửi email xác nhận
+        vnpay_controller --> vnpay : 00 – Xác nhận thành công
+    else Order không tồn tại
+        vnpay_controller --> vnpay : 99 – Order not found
+    end
+else
+    vnpay_controller --> vnpay : Thông báo lỗi\n(01 – Transaction failed)
+end
+
+deactivate vnpay_controller
+
+legend right
+|= Mã VNPay =|
+| 00 | Giao dịch thành công |
+| 07 | Trừ tiền thành công (ánh xạ OTP) |
+| 09 | Thẻ chưa đăng ký dịch vụ Internet Banking |
+| 10 | Xác thực khách hàng thất bại (sai OTP > 3 lần) |
+| 11 | Đã hết hạn thời gian thanh toán |
+| 12 | Thẻ hết hạn |
+| 13 | Sai mật khẩu thanh toán (OTP) |
+| 24 | Khách hàng hủy giao dịch |
+| 51 | Tài khoản không đủ số dư |
+| 65 | Tài khoản đã vượt quá giới hạn giao dịch trong ngày |
+| 75 | Ngân hàng đang bảo trì |
+| 79 | Sai mật khẩu giao dịch (sai OTP) |
+| 97 | Chữ ký không hợp lệ |
+| 99 | Lỗi không xác định |
+endlegend
+
+@enduml

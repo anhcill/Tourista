@@ -4,19 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './MobileBottomNav.module.css';
 
-const BusIcon = () => (
-    <svg width="22" height="22" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="6" y="18" width="52" height="28" rx="8" fill="currentColor" opacity="0.9"/>
-        <rect x="10" y="22" width="16" height="12" rx="4" fill="rgba(255,255,255,0.5)"/>
-        <rect x="30" y="22" width="12" height="12" rx="3" fill="rgba(255,255,255,0.35)"/>
-        <rect x="44" y="22" width="10" height="18" rx="3" fill="rgba(255,255,255,0.3)"/>
-        <circle cx="20" cy="50" r="6" fill="#2D3748"/>
-        <circle cx="44" cy="50" r="6" fill="#2D3748"/>
-        <rect x="6" y="34" width="4" height="6" rx="2" fill="#FFD700" opacity="0.9"/>
-        <rect x="54" y="34" width="4" height="6" rx="2" fill="#FF4444" opacity="0.8"/>
-    </svg>
-);
-
 const NAV_ITEMS = [
     {
         href: '/',
@@ -43,19 +30,25 @@ const NAV_ITEMS = [
         ),
     },
     {
-        href: '/bus',
-        label: 'Vé xe',
-        icon: <BusIcon />,
-        isBus: true,
-    },
-    {
-        href: '/tours',
-        label: 'Tours',
+        href: '/combos',
+        label: 'Combo',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-                <path d="M2 12h20"/>
+                <path d="M20 7h-3a2 2 0 0 1-2-2V2"/>
+                <path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v10a2 2 0 0 1-2 2H9Z"/>
+                <path d="M3 7v12a2 2 0 0 0 2 2h5"/>
+                <path d="m15 15 2 2 4-4"/>
+            </svg>
+        ),
+    },
+    {
+        href: '/promotions',
+        label: 'Khuyến mãi',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/>
+                <path d="M7 7h.01"/>
+                <path d="m9 15 2 2 4-4"/>
             </svg>
         ),
     },
@@ -67,6 +60,18 @@ const NAV_ITEMS = [
                 <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
                 <circle cx="12" cy="12" r="4"/>
                 <path d="M12 8v4l3 3"/>
+            </svg>
+        ),
+    },
+    {
+        href: '/articles',
+        label: 'Cẩm nang',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                <path d="M8 7h8"/>
+                <path d="M8 11h6"/>
             </svg>
         ),
     },

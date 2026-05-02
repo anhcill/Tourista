@@ -47,7 +47,7 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:schema-chat.sql,classpath:schema-articles.sql
+      schema-locations: classpath:schema-chat.sql,classpath:schema-articles.sql,classpath:schema-combo.sql
 
   # ===== EMAIL (SMTP Gmail - local only) =====
   # Railway uses Brevo API instead (see app.email.* below)
@@ -110,10 +110,10 @@ app:
     from: ${BREVO_FROM_EMAIL:ducanhle28072003@gmail.com}
     from-name: ${BREVO_FROM_NAME:Tourista Studio}
 
-# ===== GEMINI AI =====
-gemini:
-  api-key: ${GEMINI_API_KEY:}
-  model: gemini-2.0-flash
-  api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
-  timeout-seconds: 5
-  max-output-tokens: 400
+# ===== BEEKNOEE AI (OpenAI-compatible, powered by Zhipu GLM-4.7-flash) =====
+beeknoee:
+  api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff84f0df7dc5edb4e8ebd1b849e4e8395b8}
+  model: glm-4-7-flash
+  api-url: https://platform.beeknoee.com/api/v1/chat/completions
+  timeout-seconds: 10
+  max-tokens: 500

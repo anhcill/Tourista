@@ -471,79 +471,151 @@
   }
 }
 
-@media (max-width: 576px) {
-  .searchBox {
-    transform: translateY(0);
-    margin-top: 16px;
-    padding: 20px;
-  }
-
-  .searchForm {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .heroBanner {
+    min-height: 480px;
   }
 
   .heroContent {
-    padding: 40px 0 44px;
+    min-height: 480px;
   }
 
-  .heroSubtitle {
-    font-size: 28px;
+  .heroContent {
+    padding: 32px 0 48px;
+  }
+
+  .heroEyebrow {
+    font-size: 0.7rem;
+    padding: 5px 12px;
+    margin-bottom: 12px;
   }
 
   .heroDesc {
-    font-size: 15px;
+    font-size: 14px;
+    margin-bottom: 20px;
   }
 
   .heroStats {
-    gap: 16px;
+    gap: 20px;
     margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .heroStat {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .heroStatNum {
+    font-size: 1.2rem;
+  }
+
+  .searchBox {
+    transform: translateY(30%);
+    padding: 20px;
   }
 
   .arrow {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     font-size: 13px;
   }
+
   .dots {
-    bottom: 70px;
+    bottom: 180px;
   }
 }
 
 @media (max-width: 576px) {
   .searchBox {
     transform: translateY(0);
-    margin-top: 8px;
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .searchForm {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .searchButton {
+    grid-column: 1;
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .heroBanner {
+    min-height: 420px;
+  }
+
+  .heroContent {
+    min-height: 420px;
+    padding: 24px 0 40px;
   }
 
   .heroSubtitle {
-    font-size: 22px;
-  }
-  .heroContent {
-    padding: 40px 0 44px;
-  }
-  .searchField {
-    flex: 1 1 100%;
-  }
-  .arrow {
-    width: 36px;
-    height: 36px;
-    font-size: 13px;
-  }
-  .dots {
-    bottom: 70px;
+    font-size: 1.5rem;
   }
 
-  /* Mobile: date row stacks, guest selects stack */
+  .heroDesc {
+    font-size: 13px;
+  }
+
+  .heroStats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .heroStat {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .heroStatNum {
+    font-size: 1.1rem;
+  }
+
+  .heroStatLabel {
+    font-size: 0.7rem;
+  }
+
+  .arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .arrowLeft {
+    left: 12px;
+  }
+
+  .arrowRight {
+    right: 12px;
+  }
+
+  .dots {
+    bottom: 160px;
+  }
+
   .dateRow {
     flex-direction: column;
     gap: 6px;
   }
+
   .dateSep {
     display: none;
   }
+
   .guestRow {
     grid-template-columns: 1fr 1fr;
   }
+
   .guestRow .guestSelect:last-child {
     grid-column: 1 / -1;
   }

@@ -47,4 +47,10 @@ public class TravelPlanResponse {
     private List<String> packingList;
     private String weatherNote;
     private String localTips;
+
+    /** Văn phong tự nhiên do AI viết lại từ lịch trình CORE. */
+    private String rewrittenProse;
+
+    /** Gợi ý câu hỏi tiếp theo từ AI. */
+    private List<String> aiSuggestions;
 }

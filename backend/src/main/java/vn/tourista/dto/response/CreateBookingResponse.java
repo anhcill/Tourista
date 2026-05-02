@@ -27,4 +27,8 @@ public class CreateBookingResponse {
     private String hotelName;
     private String roomTypeName;
     private LocalDateTime createdAt;
+
+    private BigDecimal subtotal;
+    private BigDecimal discountAmount;
+    private String promoCode;
 }

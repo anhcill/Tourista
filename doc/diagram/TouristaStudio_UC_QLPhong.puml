@@ -1,0 +1,27 @@
+@startuml TouristaStudio_UC_QLPhong
+!theme plain
+
+title QUẢN LÝ PHÒNG
+
+actor "Quản trị viên" as QTV
+actor "Đối tác" as DT
+
+rectangle "Hệ thống Tourista" {
+    (Xem danh sách phòng) as UC1
+    (Thêm phòng mới) as UC2
+    (Chỉnh sửa phòng) as UC3
+    (Xóa phòng) as UC4
+    (Cập nhật giá phòng) as UC5
+}
+
+QTV --> UC1
+QTV --> UC2
+QTV --> UC3
+QTV --> UC4
+QTV --> UC5
+
+DT --> UC1
+DT --> UC3
+DT --> UC5
+
+@enduml

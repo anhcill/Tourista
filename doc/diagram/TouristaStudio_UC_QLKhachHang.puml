@@ -1,0 +1,33 @@
+@startuml TouristaStudio_UC_QLKhachHang
+!theme plain
+
+title QUẢN LÝ KHÁCH HÀNG
+
+rectangle "Hệ thống Tourista" {
+    actor "Khách hàng" as KH #blue
+    actor "Quản trị viên" as QTV #red
+
+    (Đăng ký tài khoản) as UC1
+    (Đăng nhập) as UC2
+    (Xem thông tin\ncá nhân) as UC3
+    (Cập nhật thông tin\ncá nhân) as UC4
+    (Đổi mật khẩu) as UC5
+    (Xem lịch sử\nđặt tour) as UC6
+    (Xem lịch sử\nđặt phòng) as UC7
+    (Xem lịch sử\nđặt combo) as UC8
+    (Xóa tài khoản) as UC9
+
+    KH -up-> UC1
+    KH -up-> UC2
+    KH -up-> UC3
+    KH -up-> UC4
+    KH -up-> UC5
+    KH -up-> UC6
+    KH -up-> UC7
+    KH -up-> UC8
+
+    QTV -down-> UC3
+    QTV -down-> UC9
+}
+
+@enduml

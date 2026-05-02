@@ -613,6 +613,7 @@ export default function AdminPromotionsPage() {
                 <th>Mã</th>
                 <th>Loại</th>
                 <th>Giảm giá</th>
+                <th>Áp dụng</th>
                 <th>Thời hạn</th>
                 <th>Sử dụng</th>
                 <th>Trạng thái</th>
@@ -623,7 +624,7 @@ export default function AdminPromotionsPage() {
             <tbody>
               {overview.promotions.length === 0 ? (
                 <tr>
-                  <td className={styles.emptyCell} colSpan={8}>
+                  <td className={styles.emptyCell} colSpan={9}>
                     <FaTicketAlt />
                     <span>Không có khuyến mãi phù hợp với bộ lọc hiện tại.</span>
                   </td>
@@ -642,6 +643,7 @@ export default function AdminPromotionsPage() {
                       </td>
                       <td>{promotion.type}</td>
                       <td>{discountLabel(promotion)}</td>
+                      <td>{promotion.appliesTo || '-'}</td>
                       <td>
                         <div className={styles.metaCell}>
                           <span>{formatDateTime(promotion.startAt)}</span>

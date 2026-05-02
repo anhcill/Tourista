@@ -284,7 +284,7 @@ public class BrevoEmailService {
             BigDecimal totalAmount,
             String currency) {
 
-        String subject = String.format("Tourista Studio — Xác nhận yêu cầu đặt %s #%s",
+        String subject = String.format("Tourista Studio — Yêu cầu đặt %s #%s (Chờ thanh toán)",
                 "HOTEL".equals(bookingType) ? "khách sạn" : "tour", bookingCode);
 
         String guestInfo = adults + " người lớn" + (children > 0 ? ", " + children + " trẻ em" : "");
@@ -308,7 +308,10 @@ public class BrevoEmailService {
             %s
             %s
             <p style="margin: 25px 0 0; color: #e74c3c; font-size: 14px; line-height: 1.7; background: #fff3f3; border-left: 4px solid #e74c3c; padding: 15px 20px; border-radius: 6px;">
-                ⏰ <strong>Lưu ý quan trọng:</strong> Vui lòng thanh toán trong vòng <strong>30 phút</strong> để xác nhận đặt phòng. Quá thời hạn, hệ thống sẽ tự động hủy đơn.
+                ⏰ <strong>Lưu ý:</strong> Vui lòng thanh toán trong vòng <strong>15 phút</strong> để xác nhận đặt phòng. Quá thời hạn, hệ thống sẽ tự động hủy đơn.
+            </p>
+            <p style="margin: 15px 0 0; color: #666; font-size: 13px; line-height: 1.7;">
+                Hiện tại đơn của bạn đang ở trạng thái <strong style="color:#f59e0b">CHỜ THANH TOÁN</strong>. Đơn sẽ được xác nhận ngay khi thanh toán thành công qua VNPay.
             </p>
             """,
             serviceLabel,
@@ -380,6 +383,63 @@ public class BrevoEmailService {
             highlightBox("💰 Đã thanh toán",
                 "<p style=\"margin:0; font-size:22px; font-weight:700; color:#27ae60;\">" + totalAmount.toPlainString() + " " + currency + "</p>", "#F0FFF4"),
             bookingCode, transactionNo
+        );
+
+        sendHtmlEmail(toEmail, subject, baseTemplate(subject, content, frontendUrl + "/profile/bookings", "Xem chi tiết booking"));
+    }
+
+    // ==================== 5b. EMAIL CẬP NHẬT BOOKING ====================
+
+    @Async("emailExecutor")
+    public void sendBookingUpdatedEmail(
+            String toEmail,
+            String bookingCode,
+            String bookingType,
+            String serviceName,
+            String serviceSubtitle,
+            String checkIn,
+            String checkOut,
+            int adults,
+            int children,
+            int roomsOrSlots,
+            BigDecimal totalAmount,
+            String currency) {
+
+        String subject = String.format("Tourista Studio — Thông tin booking #%s đã được cập nhật", bookingCode);
+        String guestInfo = adults + " người lớn" + (children > 0 ? ", " + children + " trẻ em" : "");
+        String dateInfo = "HOTEL".equals(bookingType)
+                ? ("<strong>Nhận phòng:</strong> " + checkIn + "<br><strong>Trả phòng:</strong> " + checkOut)
+                : ("<strong>Khởi hành:</strong> " + checkIn);
+        String roomInfo = "HOTEL".equals(bookingType)
+                ? ("<strong>Phòng:</strong> " + serviceSubtitle + "<br><strong>Số phòng:</strong> " + roomsOrSlots)
+                : ("<strong>Số chỗ:</strong> " + roomsOrSlots);
+        String serviceLabel = "HOTEL".equals(bookingType) ? "khách sạn" : "tour";
+
+        String content = String.format("""
+            <h2 style="margin: 0 0 20px; color: #333; font-size: 24px;">Thông tin booking đã được cập nhật</h2>
+            <p style="margin: 0 0 20px; color: #555; font-size: 15px; line-height: 1.7;">
+                Thông tin đặt %s <strong>#%s</strong> của bạn đã được cập nhật. Vui lòng kiểm tra lại các thông tin bên dưới.
+            </p>
+            %s
+            %s
+            %s
+            %s
+            %s
+            %s
+            <p style="margin: 25px 0 0; color: #0f7fb6; font-size: 14px; line-height: 1.7; background: #f0f9ff; border-left: 4px solid #0f7fb6; padding: 15px 20px; border-radius: 6px;">
+                ℹ️ <strong>Đã cập nhật:</strong> Nếu có thay đổi về giá, tổng số tiền đã được điều chỉnh tự động.
+            </p>
+            """,
+            serviceLabel, bookingCode,
+            highlightBox("📋 Mã booking", "<p style=\"margin:0; font-size:20px; font-weight:700; color:#0f7fb6; letter-spacing:1px;\">" + bookingCode + "</p>", "#f0f9ff"),
+            highlightBox("🏨 " + ("HOTEL".equals(bookingType) ? "Khách sạn" : "Tour"),
+                "<p style=\"margin:0; color:#333; font-size:15px; font-weight:600;\">" + serviceName + "</p><p style=\"margin:4px 0 0; color:#777; font-size:13px;\">" + serviceSubtitle + "</p>", "#f9f9f9"),
+            highlightBox("📅 Thông tin ngày", "<p style=\"margin:0; color:#333; font-size:14px; line-height:1.8;\">" + dateInfo + "</p>", "#f9f9f9"),
+            highlightBox("👥 Số khách", "<p style=\"margin:0; color:#333; font-size:14px;\">" + guestInfo + "</p>", "#f9f9f9"),
+            highlightBox("🚪 " + ("HOTEL".equals(bookingType) ? "Phòng" : "Chỗ"),
+                "<p style=\"margin:0; color:#333; font-size:14px; line-height:1.8;\">" + roomInfo + "</p>", "#f9f9f9"),
+            highlightBox("💰 Tổng cộng",
+                "<p style=\"margin:0; font-size:22px; font-weight:700; color:#0f7fb6;\">" + totalAmount.toPlainString() + " " + currency + "</p><p style=\"margin:4px 0 0; color:#888; font-size:12px;\">Đã cập nhật theo thông tin mới</p>", "#f0f9ff")
         );
 
         sendHtmlEmail(toEmail, subject, baseTemplate(subject, content, frontendUrl + "/profile/bookings", "Xem chi tiết booking"));

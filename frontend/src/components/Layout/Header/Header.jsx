@@ -631,6 +631,13 @@ const Header = () => {
                                         </Link>
                                     </div>
                                 )}
+                                <button
+                                    className={styles.mobileMenuCloseBtn}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    aria-label="Đóng menu"
+                                >
+                                    <FaTimes size={18} />
+                                </button>
                             </div>
                             <nav className={styles.mobileNav}>
                                 {navigationTabs.map((tab) => (

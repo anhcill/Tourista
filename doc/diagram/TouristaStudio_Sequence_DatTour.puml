@@ -1,0 +1,124 @@
+@startuml TouristaStudio_Sequence_DatTour
+!theme plain
+
+title BIỂU ĐỒ TRÌNH TỰ — UC22. ĐẶT TOUR DU LỊCH
+
+participant "Khách hàng\n(Customer)" as CUSTOMER
+participant "Frontend\n(Next.js)" as FE
+participant "Backend API\n(Spring Boot)" as API
+participant "TourService" as TOUR_SVC
+participant "BookingService" as BOOK_SVC
+participant "PromotionService" as PROMO_SVC
+participant "VNPayService" as VPN_SVC
+participant "MySQL\nDatabase" as DB
+participant "VNPay" as VPNPAY
+
+' === Bước 1: Tìm kiếm Tour ===
+CUSTOMER -> FE : 1. Tìm kiếm tour\n(city, departureDate, adults, children)
+FE -> API : GET /api/tours/search\n{city, departureDate, adults, children}
+API -> TOUR_SVC : 2. searchTours(params)
+TOUR_SVC -> DB : 3. SELECT tours\nJOIN tour_departures\nWHERE city AND availableSlots > 0
+DB --> TOUR_SVC : 4. List of matching tours
+TOUR_SVC --> API : 5. TourSearchResponse
+API --> FE : 6. Danh sách tour
+FE --> CUSTOMER : 7. Hiển thị kết quả\n(ảnh, giá, ngày khởi hành)
+
+CUSTOMER -> FE : 8. Chọn tour
+FE -> API : GET /api/tours/{id}
+API -> TOUR_SVC : 9. getTourDetail(id)
+TOUR_SVC -> DB : 10. SELECT tour\nJOIN tour_departures, reviews
+DB --> TOUR_SVC : 11. Tour detail\n+ lịch khởi hành sắp tới
+TOUR_SVC --> API : 12. TourDetailResponse
+API --> FE : 13. Chi tiết tour
+FE --> CUSTOMER : 14. Trang chi tiết tour\n(lịch trình, ngày, giá)
+
+' === Bước 2: Chọn ngày & Tính giá ===
+CUSTOMER -> FE : 15. Chọn ngày khởi hành\n+ Số người lớn, trẻ em
+FE -> API : 16. GET /api/tours/{id}/departures\n{departureDate}
+API -> TOUR_SVC : 17. getDepartures(tourId, date)
+TOUR_SVC -> DB : 18. SELECT departure\nWHERE date = ?
+DB --> TOUR_SVC : 19. Departure info\n(slots, price per adult/child)
+TOUR_SVC --> API : 20. DepartureResponse
+API --> FE : 21. Ngày khả dụng + giá
+FE -> FE : 22. Tính tổng giá\n(adults × price + children × childPrice)
+FE --> CUSTOMER : 23. Hiển thị tổng giá\n+ Số chỗ còn
+
+CUSTOMER -> FE : 24. Nhấn "Đặt tour"
+
+' === Bước 3: Nhập thông tin ===
+FE -> FE : 25. Form: thông tin hành khách\n(danh sách người đi)
+CUSTOMER -> FE : 26. Điền thông tin\n+ Mã khuyến mãi (tùy chọn)
+alt Có mã KM
+    FE -> API : 27. POST /api/promotions/validate
+    API -> PROMO_SVC : 28. validatePromotion(code)
+    PROMO_SVC -> DB : 29. SELECT promotion
+    DB --> PROMO_SVC : 30. Promo info
+    PROMO_SVC --> API : 31. Discount applied
+    API --> FE : 32. Giá sau giảm
+end
+
+' === Bước 4: Tạo Booking Tour ===
+FE -> API : 33. POST /api/bookings/tour\n{tourId, departureDate,\nadults, children,\npromoCode}
+API -> BOOK_SVC : 34. createTourBooking(request)
+BOOK_SVC -> TOUR_SVC : 35. getDepartureDetail\n(tourId, departureDate)
+TOUR_SVC -> DB : 36. SELECT departure\nWHERE id = ?
+DB --> TOUR_SVC : 37. Departure info
+TOUR_SVC --> BOOK_SVC : 38. Departure detail
+
+BOOK_SVC -> BOOK_SVC : 39. Kiểm tra:\n• availableSlots >= passengers\n• departureDate >= today
+
+alt Đủ điều kiện
+    BOOK_SVC -> DB : 40. BEGIN TRANSACTION
+
+    BOOK_SVC -> DB : 41. INSERT INTO booking\n{status: PENDING,\ntype: TOUR, totalAmount}
+    DB --> BOOK_SVC : 42. bookingId
+
+    BOOK_SVC -> DB : 43. INSERT INTO booking_tour_detail\n{tourId, departureDate, adults, children}
+    DB --> BOOK_SVC : 44. bookingTourDetailId
+
+    BOOK_SVC -> DB : 45. UPDATE tour_departure\nSET available_slots =\navailable_slots - passengers
+    DB --> BOOK_SVC : 46. Slots updated
+
+    alt Có mã KM
+        BOOK_SVC -> DB : 47. INSERT booking_promotion
+    end
+
+    BOOK_SVC -> DB : 48. COMMIT
+    BOOK_SVC --> API : 49. Booking created\n(bookingId, paymentUrl)
+
+else Không đủ chỗ
+    BOOK_SVC --> API : 39b. throw InsufficientSlotsException
+    API --> FE : 40b. Error: "Không đủ chỗ\ncho ngày này"
+    FE --> CUSTOMER : 41b. Thông báo lỗi
+end
+
+API --> FE : 50. BookingResponse\n{paymentUrl: VNPay}
+FE --> CUSTOMER : 51. Chuyển trang\nthanh toán VNPay
+
+' === Bước 5: Thanh toán VNPay ===
+CUSTOMER -> VPNPAY : 52. Thanh toán\nATM / QR / Visa
+alt Thành công
+    VPNPAY -> FE : 53. Redirect: ?vnp_ResponseCode=00
+    FE -> API : 54. GET /api/payments/vnpay/return
+    API -> VPN_SVC : 55. verifyPayment(params)
+    VPN_SVC -> BOOK_SVC : 56. confirmBooking(bookingId)
+    BOOK_SVC -> DB : 57. UPDATE booking\n{status: CONFIRMED,\npaymentStatus: PAID}
+    BOOK_SVC --> VPN_SVC : 58. Confirmed
+    VPN_SVC --> VPNPAY : 59. Return OK
+    BOOK_SVC --> API : 60. Confirmed
+    API --> FE : 61. {status: CONFIRMED}
+    FE --> CUSTOMER : 62. Trang thành công\n+ Mã booking\n+ QR Code đặt tour
+else Thất bại
+    VPNPAY -> FE : 53b. Redirect: ?vnp_ResponseCode!=00
+    FE -> API : 54b. GET /api/payments/vnpay/return
+    API -> BOOK_SVC : 55b. cancelBooking(bookingId)
+    BOOK_SVC -> DB : 56b. UPDATE status: CANCELLED\n+ ROLLBACK slots
+    DB --> BOOK_SVC : 57b. Cancelled + slots restored
+    BOOK_SVC --> API : 58b. Cancelled
+    API --> FE : 59b. {status: CANCELLED}
+    FE --> CUSTOMER : 60b. Thông báo thất bại
+end
+
+note across: \n**GHI CHÚ QUAN TRỌNG:**\n• Số chỗ (slots) được GIẢM ngay khi tạo booking PENDING\n• Nếu thanh toán THẤT BẠI → slots được HOÀN LẠI (rollback)\n• Điều này tránh overselling (bán quá số chỗ)\n
+
+@enduml

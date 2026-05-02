@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { FaChevronLeft, FaChevronRight, FaCalendarAlt } from 'react-icons/fa';
 import styles from './PriceCalendar.module.css';
+import pricingApi from '@/api/pricingApi';
 
 const MONTHS_VI = [
   'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
@@ -20,7 +21,7 @@ function getDaysInMonth(year, month) {
 
 function getFirstDayOfMonth(year, month) {
   const day = new Date(year, month, 1).getDay();
-  return day === 0 ? 6 : day - 1; // Monday-based
+  return day === 0 ? 6 : day - 1;
 }
 
 function addMonths(date, n) {
@@ -50,12 +51,15 @@ function formatDateStr(date) {
 }
 
 export default function PriceCalendar({
+  hotelId,
+  roomTypeId,
   basePricePerNight = 1000000,
   pricingRules = [],
   selectedCheckIn,
   selectedCheckOut,
   onSelectDates,
   minDate = new Date(),
+  adults = 2,
 }) {
   const today = useMemo(() => {
     const d = new Date();
@@ -63,82 +67,142 @@ export default function PriceCalendar({
     return d;
   }, []);
 
+  // Price cache: keyed by "YYYY-MM-DD" → { price, loading }
+  const [priceCache, setPriceCache] = useState({});
+  const [fetchingMonths, setFetchingMonths] = useState(new Set());
+  const fetchedMonthsRef = useRef(new Set()); // prevent duplicate fetches
+
+  // Fetch price for a single date from backend
+  const fetchPrice = useCallback(async (dateStr, date) => {
+    if (!hotelId || priceCache[dateStr]?.price != null || priceCache[dateStr]?.loading) return;
+    if (date < today) return; // no need to fetch past dates
+
+    setPriceCache((prev) => ({ ...prev, [dateStr]: { price: null, loading: true } }));
+
+    try {
+      const res = await pricingApi.calculateHotelNightPrice(hotelId, dateStr, adults);
+      const finalPrice = res?.data?.data?.finalPrice ?? res?.data?.finalPrice;
+      setPriceCache((prev) => ({
+        ...prev,
+        [dateStr]: { price: Number(finalPrice) || basePricePerNight, loading: false },
+      }));
+    } catch {
+      setPriceCache((prev) => ({
+        ...prev,
+        [dateStr]: { price: basePricePerNight, loading: false },
+      }));
+    }
+  }, [hotelId, priceCache, basePricePerNight, adults, today]);
+
+  // When view month changes, prefetch prices for visible dates
   const [viewDate, setViewDate] = useState(() => {
     if (selectedCheckIn) return new Date(selectedCheckIn);
     return today;
   });
-
   const [hoverDate, setHoverDate] = useState(null);
 
   const viewYear = viewDate.getFullYear();
   const viewMonth = viewDate.getMonth();
 
+  useEffect(() => {
+    const monthKey = `${viewYear}-${viewMonth}`;
+    if (fetchedMonthsRef.current.has(monthKey)) return;
+    fetchedMonthsRef.current.add(monthKey);
+
+    const daysInView = getDaysInMonth(viewYear, viewMonth);
+    setFetchingMonths((prev) => new Set([...prev, monthKey]));
+
+    // Fetch prices for all dates in this month in parallel
+    const fetchPromises = [];
+    for (let day = 1; day <= daysInView; day++) {
+      const d = new Date(viewYear, viewMonth, day);
+      if (d < today) continue;
+      const dateStr = formatDateStr(d);
+      fetchPromises.push(fetchPrice(dateStr, d));
+    }
+
+    Promise.allSettled(fetchPromises).then(() => {
+      setFetchingMonths((prev) => {
+        const next = new Set(prev);
+        next.delete(monthKey);
+        return next;
+      });
+    });
+  }, [viewYear, viewMonth, today, fetchPrice]);
+
+  // Also prefetch next month when current month changes
+  const nextMonth = addMonths(viewDate, 1);
+  useEffect(() => {
+    const monthKey = `${nextMonth.getFullYear()}-${nextMonth.getMonth()}`;
+    if (fetchedMonthsRef.current.has(monthKey)) return;
+
+    const daysInNext = getDaysInMonth(nextMonth.getFullYear(), nextMonth.getMonth());
+    for (let day = 1; day <= daysInNext; day++) {
+      const d = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), day);
+      if (d < today) continue;
+      const dateStr = formatDateStr(d);
+      fetchPrice(dateStr, d);
+    }
+  }, [viewDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstDayOffset = getFirstDayOfMonth(viewYear, viewMonth);
 
   const prevMonth = addMonths(viewDate, -1);
-  const nextMonth = addMonths(viewDate, 1);
-
-  // Build price map: date string -> price
-  const priceMap = useMemo(() => {
-    const map = {};
-    // Default price
-    const start = new Date(today);
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      const key = formatDateStr(d);
-      let price = basePricePerNight;
-
-      // Apply pricing rules
-      pricingRules.forEach((rule) => {
-        const ruleDate = new Date(rule.date || rule.startDate);
-        if (isSameDay(d, ruleDate)) {
-          if (rule.type === 'PERCENTAGE') {
-            price = Math.round(price * (1 - (rule.value || 0) / 100));
-          } else if (rule.type === 'FIXED') {
-            price = rule.value || price;
-          } else if (rule.type === 'SEASON') {
-            price = Math.round(price * (1 + (rule.adjustment || 0) / 100));
-          }
-        }
-      });
-
-      // Weekend pricing
-      const dayOfWeek = d.getDay();
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        price = Math.round(price * 1.15);
-      }
-
-      map[key] = price;
-    }
-    return map;
-  }, [basePricePerNight, pricingRules, today]);
+  const monthLabel = `${viewYear}-${viewMonth}`;
+  const isLoadingMonth = fetchingMonths.has(monthLabel);
 
   const checkInDate = selectedCheckIn ? new Date(selectedCheckIn) : null;
   const checkOutDate = selectedCheckOut ? new Date(selectedCheckOut) : null;
 
+  const getDayPrice = (dateStr, date) => {
+    // 1. Check API cache first (dynamic pricing from backend)
+    if (priceCache[dateStr]?.price != null) {
+      return priceCache[dateStr].price;
+    }
+    // 2. Fallback to local pricingRules prop (legacy/admin overrides)
+    let price = basePricePerNight;
+    pricingRules.forEach((rule) => {
+      const ruleDate = new Date(rule.date || rule.startDate);
+      if (isSameDay(date, ruleDate)) {
+        if (rule.type === 'PERCENTAGE') {
+          price = Math.round(price * (1 - (rule.value || 0) / 100));
+        } else if (rule.type === 'FIXED') {
+          price = rule.value || price;
+        } else if (rule.type === 'SEASON') {
+          price = Math.round(price * (1 + (rule.adjustment || 0) / 100));
+        }
+      }
+    });
+    // 3. Weekend markup (only if no backend rule applied)
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      if (!pricingRules.find((r) => isSameDay(date, new Date(r.date || r.startDate)))) {
+        price = Math.round(price * 1.15);
+      }
+    }
+    return price;
+  };
+
   const cells = useMemo(() => {
     const result = [];
 
-    // Empty cells before first day
     for (let i = 0; i < firstDayOffset; i++) {
       result.push({ type: 'empty' });
     }
 
-    // Day cells
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(viewYear, viewMonth, day);
       const dateStr = formatDateStr(date);
-      const price = priceMap[dateStr] || basePricePerNight;
+      const price = getDayPrice(dateStr, date);
       const isPast = date < today;
       const isToday = isSameDay(date, today);
       const isCheckIn = isSameDay(date, checkInDate);
       const isCheckOut = isSameDay(date, checkOutDate);
       const isRange = isInRange(date, checkInDate, checkOutDate);
       const isHover = !checkInDate && hoverDate && date > today && date <= hoverDate;
+      const isLoading = priceCache[dateStr]?.loading;
 
-      // Calculate price tier
       const priceRatio = price / basePricePerNight;
       let priceTier = 'normal';
       if (priceRatio > 1.2) priceTier = 'high';
@@ -151,6 +215,7 @@ export default function PriceCalendar({
         date,
         dateStr,
         price,
+        isLoading,
         isPast,
         isToday,
         isCheckIn,
@@ -162,16 +227,14 @@ export default function PriceCalendar({
     }
 
     return result;
-  }, [viewYear, viewMonth, daysInMonth, firstDayOffset, priceMap, basePricePerNight, today, checkInDate, checkOutDate, hoverDate]);
+  }, [viewYear, viewMonth, daysInMonth, firstDayOffset, priceCache, basePricePerNight, today, checkInDate, checkOutDate, hoverDate]);
 
   const handleCellClick = (cell) => {
     if (cell.isPast || cell.type === 'empty') return;
 
     if (!checkInDate || (checkInDate && checkOutDate)) {
-      // Start new selection: set check-in
       onSelectDates(cell.dateStr, null);
     } else {
-      // Set check-out
       if (cell.date <= checkInDate) {
         onSelectDates(cell.dateStr, null);
       } else {
@@ -198,7 +261,7 @@ export default function PriceCalendar({
     ? Array.from({ length: selectedNights }, (_, i) => {
         const d = new Date(checkInDate);
         d.setDate(d.getDate() + i);
-        return priceMap[formatDateStr(d)] || basePricePerNight;
+        return getDayPrice(formatDateStr(d), d);
       }).reduce((sum, p) => sum + p, 0)
     : 0;
 
@@ -294,7 +357,7 @@ export default function PriceCalendar({
               <span className={styles.dayNum}>{cell.day}</span>
               {!cell.isPast && (
                 <span className={styles.dayPrice}>
-                  {formatVND(cell.price).replace('₫', '').trim()}
+                  {cell.isLoading ? '...' : formatVND(cell.price).replace('₫', '').trim()}
                 </span>
               )}
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { useHydrated } from '@/hooks/useHydrated';
@@ -89,6 +89,9 @@ export default function PartnerRouteGuard({ children }) {
   const { isAuthenticated, user, token } = useSelector((state) => state.auth);
   const mounted = useHydrated();
 
+  // Track auth state after mount to avoid SSR/client mismatch
+  const [authChecked, setAuthChecked] = useState(false);
+
   const hasPartnerRole = useMemo(() => {
     const roles = [
       ...collectRoles(user),
@@ -97,33 +100,51 @@ export default function PartnerRouteGuard({ children }) {
     return roles.some((roleName) => PARTNER_ROLE_SET.has(roleName));
   }, [token, user]);
 
+  // Only run redirect logic AFTER mount to prevent SSR flicker
   useEffect(() => {
     if (!mounted) return;
-    
+    setAuthChecked(true);
+
     if (!isAuthenticated) {
       router.replace('/login?redirect=/partner');
       return;
     }
 
     if (!hasPartnerRole) {
-      router.replace('/');
+      router.replace('/?error=not_partner');
     }
-  }, [hasPartnerRole, isAuthenticated, mounted, router]);
+  }, [mounted, isAuthenticated, hasPartnerRole, router]);
 
-  if (!mounted) {
+  // Loading state — before mount or during auth check
+  if (!mounted || !authChecked) {
     return (
       <div className={styles.guardState}>
         <div className={styles.spinner} />
-        <p>Đang kiểm tra quyền truy cập Partner...</p>
+        <p>Đang kiểm tra quyền truy cập...</p>
       </div>
     );
   }
 
-  if (!isAuthenticated || !hasPartnerRole) {
+  // Not authenticated — show brief message before redirect
+  if (!isAuthenticated) {
     return (
       <div className={styles.guardState}>
         <div className={styles.spinner} />
-        <p>Đang xử lý quyền truy cập Partner...</p>
+        <p>Đang chuyển hướng đến trang đăng nhập...</p>
+      </div>
+    );
+  }
+
+  // Not a partner — show message before redirect
+  if (!hasPartnerRole) {
+    return (
+      <div className={styles.guardState}>
+        <div className={styles.noAccessIcon}>🔒</div>
+        <h3>Bạn không có quyền truy cập Partner Dashboard</h3>
+        <p>Tài khoản của bạn không có quyền Partner. Vui lòng liên hệ quản trị viên nếu bạn cho rằng đây là lỗi.</p>
+        <button className={styles.backBtn} onClick={() => router.push('/')}>
+          Quay về trang chủ
+        </button>
       </div>
     );
   }

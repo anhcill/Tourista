@@ -29,6 +29,7 @@ public class ReviewModerationResponse {
     private String comment;
     private Boolean isVerified;
     private Boolean isPublished;
+    private Review.ModerationStatus moderationStatus;
     private Review.AdminStatus adminStatus;
     private String adminReply;
     private LocalDateTime adminRepliedAt;

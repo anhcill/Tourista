@@ -54,13 +54,66 @@ public class PricingService {
 
     /**
      * Calculate dynamic price for a Hotel room type.
+     * Applies hotel-specific pricing rules, weekend markup, and seasonal adjustments.
      */
     public PricingCalculationResponse calculateHotelPrice(Long hotelId, Integer nights, Integer rooms) {
-        return PricingCalculationResponse.builder()
-                .entityId(hotelId)
-                .entityType("HOTEL")
-                .hasDynamicPricing(false)
-                .build();
+        if (hotelId == null) {
+            return PricingCalculationResponse.builder()
+                    .entityId(hotelId)
+                    .entityType("HOTEL")
+                    .hasDynamicPricing(false)
+                    .build();
+        }
+
+        BigDecimal basePricePerNight = hotelRepository.findMinBasePriceByHotelId(hotelId);
+        if (basePricePerNight == null) {
+            return PricingCalculationResponse.builder()
+                    .entityId(hotelId)
+                    .entityType("HOTEL")
+                    .hasDynamicPricing(false)
+                    .build();
+        }
+
+        return calculatePrice(
+                hotelId,
+                PricingRule.TargetType.HOTEL,
+                basePricePerNight,
+                null,
+                null,
+                null
+        );
+    }
+
+    /**
+     * Calculate dynamic price for a specific check-in date.
+     * Used by the frontend PriceCalendar to show per-night prices.
+     */
+    public PricingCalculationResponse calculateHotelNightPrice(Long hotelId, LocalDate checkIn, Integer adults) {
+        if (hotelId == null || checkIn == null) {
+            return PricingCalculationResponse.builder()
+                    .entityId(hotelId)
+                    .entityType("HOTEL")
+                    .hasDynamicPricing(false)
+                    .build();
+        }
+
+        BigDecimal basePricePerNight = hotelRepository.findMinBasePriceByHotelId(hotelId);
+        if (basePricePerNight == null) {
+            return PricingCalculationResponse.builder()
+                    .entityId(hotelId)
+                    .entityType("HOTEL")
+                    .hasDynamicPricing(false)
+                    .build();
+        }
+
+        return calculatePrice(
+                hotelId,
+                PricingRule.TargetType.HOTEL,
+                basePricePerNight,
+                adults,
+                null,
+                checkIn
+        );
     }
 
     private PricingCalculationResponse calculatePrice(
@@ -125,6 +178,7 @@ public class PricingService {
     }
 
     private boolean matchesRule(PricingRule rule, Integer numPeople, Integer slotsRemaining, LocalDate checkInDate) {
+        // ── Day-of-week constraint ──
         if (rule.getRuleType() == PricingRule.RuleType.DAY_OF_WEEK && checkInDate != null) {
             int dayOfWeek = checkInDate.getDayOfWeek().getValue();
             if (rule.getDayOfWeek() != null && rule.getDayOfWeek() != dayOfWeek) {
@@ -132,14 +186,18 @@ public class PricingService {
             }
         }
 
-        if (rule.getRuleType() == PricingRule.RuleType.GROUP_SIZE && numPeople != null) {
+        // ── Group-size constraint (applies to ALL rule types, not just GROUP_SIZE) ──
+        if (numPeople != null) {
             Integer minPax = rule.getMinPax();
             Integer maxPax = rule.getMaxPax();
             if (minPax != null && numPeople < minPax) return false;
             if (maxPax != null && numPeople > maxPax) return false;
         }
 
-        if (rule.getRuleType() == PricingRule.RuleType.LAST_MINUTE && checkInDate != null) {
+        // ── Advance-booking window (LAST_MINUTE or EARLY_BIRD) ──
+        if ((rule.getRuleType() == PricingRule.RuleType.LAST_MINUTE
+                || rule.getRuleType() == PricingRule.RuleType.EARLY_BIRD)
+                && checkInDate != null) {
             long daysUntil = java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), checkInDate);
             Integer min = rule.getAdvanceDaysMin();
             Integer max = rule.getAdvanceDaysMax();
@@ -147,14 +205,7 @@ public class PricingService {
             if (max != null && daysUntil > max) return false;
         }
 
-        if (rule.getRuleType() == PricingRule.RuleType.EARLY_BIRD && checkInDate != null) {
-            long daysUntil = java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), checkInDate);
-            Integer min = rule.getAdvanceDaysMin();
-            Integer max = rule.getAdvanceDaysMax();
-            if (min != null && daysUntil < min) return false;
-            if (max != null && daysUntil > max) return false;
-        }
-
+        // ── Season constraint ──
         if (rule.getRuleType() == PricingRule.RuleType.SEASON && checkInDate != null) {
             if (rule.getSeason() != null) {
                 SeasonType currentSeason = getCurrentSeason(checkInDate);

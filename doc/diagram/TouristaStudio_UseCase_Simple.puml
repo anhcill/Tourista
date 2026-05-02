@@ -1,0 +1,166 @@
+@startuml TouristaStudio_UseCase_Simple
+!theme plain
+
+title BIỂU ĐỒ USE CASE — HỆ THỐNG TOURISTA STUDIO
+
+' ============================================================
+' ACTORS
+' ============================================================
+actor "Khách" as GUEST
+actor "Khách hàng" as CUSTOMER
+actor "Đối tác\n(Khách sạn)" as PARTNER
+actor "Quản trị viên" as ADMIN
+
+' ============================================================
+' SYSTEM
+' ============================================================
+rectangle "HỆ THỐNG TOURISTA STUDIO" {
+
+    ' --- Authentication ---
+    (Đăng ký tài khoản) as UC1
+    (Đăng nhập /\nĐăng nhập Google) as UC2
+    (Đăng xuất) as UC3
+
+    ' --- Khách sạn ---
+    (Tìm kiếm\nkhách sạn) as UC4
+    (Xem chi tiết\nkhách sạn) as UC5
+    (Đặt phòng\nkhách sạn) as UC6
+
+    ' --- Tour ---
+    (Tìm kiếm tour) as UC7
+    (Xem chi tiết tour) as UC8
+    (Đặt tour) as UC9
+
+    ' --- Combo ---
+    (Xem & đặt Combo\n(Khách sạn + Tour)) as UC10
+
+    ' --- Thanh toán ---
+    (Thanh toán\ntrực tuyến VNPay) as UC11
+    (Xác nhận\nthanh toán) as UC12
+
+    ' --- Quản lý đặt chỗ ---
+    (Xem lịch sử\nđặt phòng) as UC13
+    (Hủy đặt phòng) as UC14
+
+    ' --- Đánh giá ---
+    (Viết đánh giá) as UC15
+    (Xem đánh giá) as UC16
+
+    ' --- Yêu thích ---
+    (Lưu yêu thích) as UC17
+
+    ' --- AI ---
+    (Chat với AI\nChatbot) as UC18
+    (AI lập kế hoạch\ndu lịch) as UC19
+
+    ' --- Chat ---
+    (Chat với\nchủ khách sạn) as UC20
+
+    ' --- Tin tức ---
+    (Xem bài viết\ncẩm nang) as UC21
+
+    ' --- Đối tác ---
+    (CRUD khách sạn) as UC22
+    (CRUD tour) as UC23
+    (Quản lý đơn đặt) as UC24
+    (Phản hồi đánh giá) as UC25
+
+    ' --- Admin ---
+    (Dashboard\nthống kê) as UC26
+    (Quản lý người dùng) as UC27
+    (Duyệt khách sạn /\ntour) as UC28
+    (Quản lý khuyến mãi) as UC29
+    (Duyệt đánh giá) as UC30
+    (Quản lý tin tức) as UC31
+}
+
+' ============================================================
+' RELATIONSHIPS
+' ============================================================
+
+' --- Guest ---
+GUEST --> UC1
+GUEST --> UC2
+GUEST --> UC3
+GUEST --> UC4
+GUEST --> UC5
+GUEST --> UC7
+GUEST --> UC8
+GUEST --> UC10
+GUEST --> UC16
+GUEST --> UC18
+GUEST --> UC21
+
+' --- Customer ---
+CUSTOMER --> UC2
+CUSTOMER --> UC3
+CUSTOMER --> UC4
+CUSTOMER --> UC5
+CUSTOMER --> UC6
+CUSTOMER --> UC7
+CUSTOMER --> UC8
+CUSTOMER --> UC9
+CUSTOMER --> UC10
+CUSTOMER --> UC11
+CUSTOMER --> UC12
+CUSTOMER --> UC13
+CUSTOMER --> UC14
+CUSTOMER --> UC15
+CUSTOMER --> UC16
+CUSTOMER --> UC17
+CUSTOMER --> UC18
+CUSTOMER --> UC19
+CUSTOMER --> UC20
+CUSTOMER --> UC21
+
+' --- Partner ---
+PARTNER --> UC2
+PARTNER --> UC3
+PARTNER --> UC22
+PARTNER --> UC23
+PARTNER --> UC24
+PARTNER --> UC25
+PARTNER --> UC20
+
+' --- Admin ---
+ADMIN --> UC2
+ADMIN --> UC26
+ADMIN --> UC27
+ADMIN --> UC28
+ADMIN --> UC29
+ADMIN --> UC30
+ADMIN --> UC31
+
+' --- Include ---
+UC6 .down.> UC11 : <<bao gồm>>
+UC9 .down.> UC11 : <<bao gồm>>
+UC10 .down.> UC11 : <<bao gồm>>
+UC11 .down.> UC12 : <<bao gồm>>
+UC14 .up.> UC13 : <<mở rộng>>
+
+' ============================================================
+' NOTES
+' ============================================================
+note bottom of GUEST
+  Người dùng chưa đăng nhập
+  Chỉ xem, tìm kiếm, chat AI
+end note
+
+note right of CUSTOMER
+  Người dùng đã đăng nhập
+  Có thể đặt phòng, tour, thanh toán,
+  viết đánh giá, chat, sử dụng AI
+end note
+
+note right of PARTNER
+  Chủ khách sạn / Đối tác
+  Quản lý khách sạn, tour,
+  xem đơn đặt của mình
+end note
+
+note top of ADMIN
+  Quản trị viên
+  Giám sát toàn bộ hệ thống
+end note
+
+@enduml

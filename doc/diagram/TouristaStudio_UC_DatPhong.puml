@@ -1,0 +1,138 @@
+@startuml TouristaStudio_UC_DatPhong
+!theme plain
+
+title UC — TIM KIEM & DAT PHONG KHACH SAN
+
+' ============================================================
+' ACTORS
+' ============================================================
+actor "Khach hang" as CUSTOMER
+actor "Doi tac\n(Chu khach san)" as PARTNER
+actor "VNPay" as VNPAY
+actor "He thong\nEmail" as EMAIL
+
+' ============================================================
+' SYSTEM BOUNDARY
+' ============================================================
+rectangle "He thong Tourista Studio" {
+
+    ' --- UC Tim kiem ---
+    (Tim kiem khach san\n(thanh pho, ngay, gia)) as UC_SEARCH
+    (Xem chi tiet\nkhach san) as UC_DETAIL
+    (Xem loai phong\nva gia) as UC_ROOM
+    (Kiem tra phong\ntrong) as UC_AVAIL
+
+    ' --- UC Dat phong ---
+    (Nhap thong tin\ndat phong) as UC_FORM
+    (Ap dung ma\nkhuyen mai) as UC_PROMO
+    (Tao don dat phong\n(PENDING)) as UC_CREATE
+
+    ' --- UC Thanh toan ---
+    (Chon phuong thuc\nthanh toan) as UC_PAY_METHOD
+    (Thanh toan\nVNPay) as UC_PAY
+    (Xac nhan\nthanh toan) as UC_CONFIRM
+
+    ' --- UC Sau dat ---
+    (Huy don\ndat phong) as UC_CANCEL
+    (Xem don\ndat phong) as UC_VIEW
+    (Xem lich su\ndat phong) as UC_HISTORY
+
+    ' --- UC Partner ---
+    (Xac nhan don\ndat phong) as UC_PARTNER_CONFIRM
+    (Tu choi don\ndat phong) as UC_PARTNER_REJECT
+}
+
+' ============================================================
+' RELATIONSHIPS
+' ============================================================
+
+' --- Customer actions ---
+CUSTOMER --> UC_SEARCH
+CUSTOMER --> UC_DETAIL
+CUSTOMER --> UC_ROOM
+CUSTOMER --> UC_AVAIL
+CUSTOMER --> UC_FORM
+CUSTOMER --> UC_PROMO
+CUSTOMER --> UC_CREATE
+CUSTOMER --> UC_PAY_METHOD
+CUSTOMER --> UC_PAY
+CUSTOMER --> UC_CONFIRM
+CUSTOMER --> UC_CANCEL
+CUSTOMER --> UC_VIEW
+CUSTOMER --> UC_HISTORY
+
+' --- Partner actions ---
+PARTNER --> UC_PARTNER_CONFIRM
+PARTNER --> UC_PARTNER_REJECT
+
+' --- System actions ---
+VNPAY --> UC_PAY
+VNPAY --> UC_CONFIRM
+EMAIL --> UC_CONFIRM
+
+' --- Include ---
+UC_DETAIL .down.> UC_ROOM : <<include>>
+UC_ROOM .down.> UC_AVAIL : <<include>>
+UC_FORM .down.> UC_PROMO : <<include>>
+UC_CREATE .down.> UC_PAY_METHOD : <<include>>
+UC_PAY_METHOD .down.> UC_PAY : <<include>>
+UC_PAY .down.> UC_CONFIRM : <<include>>
+
+' --- Extend ---
+UC_CANCEL .up.> UC_VIEW : <<extend>>
+UC_HISTORY .left.> UC_VIEW : <<include>>
+
+' ============================================================
+' NOTES
+' ============================================================
+note bottom of UC_SEARCH
+  **Luong Tim kiem:**
+  - Nhap thanh pho, ngay nhan/phong, so nguoi
+  - Loc theo gia, tiem nghi, so sao
+  - Sap xep ket qua
+end note
+
+note bottom of UC_DETAIL
+  **Luong Xem chi tiet:**
+  - Hinh anh, mo ta, dia chi
+  - Danh gia tu khach truoc
+  - Bang gia theo ngay
+end note
+
+note bottom of UC_CREATE
+  **Luong Tao don dat:**
+  - Chon phong, nhap thong tin
+  - Tao don (trang thai PENDING)
+  - Giam so phong trong
+end note
+
+note bottom of UC_PAY
+  **Luong Thanh toan VNPay:**
+  - Chon ATM / QR / The
+  - Chuyen trang VNPay
+  - Thanh toan xong quay ve
+  - Cap nhat trang thai: PAID
+end note
+
+note bottom of UC_CONFIRM
+  **Luong Xac nhan:**
+  - Kiem tra thanh toan VNPay
+  - Cap nhat trang thai: CONFIRMED
+  - Gui email xac nhan cho khach
+end note
+
+note bottom of UC_CANCEL
+  **Luong Huy don:**
+  - Khach yeu cau huy
+  - Hoan tien qua VNPay
+  - Tra lai so phong trong
+end note
+
+note bottom of UC_PARTNER_CONFIRM
+  **Doi tac xac nhan:**
+  - Xem don dat moi
+  - Xac nhan hoac tu choi
+  - Cap nhat trang thai
+end note
+
+@enduml

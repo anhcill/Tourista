@@ -1,0 +1,293 @@
+@startuml Login_Sequence_Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam actorStyle awesome
+
+title Biểu đồ trình tự — Đăng nhập hệ thống Tourista
+
+actor "Người dùng" as user
+participant "Frontend\n(Next.js)" as fe
+participant "JWT Auth Filter" as jwt_filter
+participant "AuthController" as controller
+participant "AuthService" as service
+participant "UserRepository" as user_repo
+participant "JWT Util" as jwt_util
+participant "RefreshToken\nRepository" as refresh_repo
+participant "AuditLog\nRepository" as audit_repo
+participant "MySQL\nDatabase" as db
+
+== GIAI ĐOẠN 1: ĐĂNG NHẬP ==
+
+user -> fe : 1. Nhập email & password\n→ Click "Đăng nhập"
+activate user
+
+fe -> fe : 2. Validate form\n(email format, password not empty)
+
+fe -> controller : 3. POST /api/auth/login\n{ "email": "...", "password": "..." }
+activate controller
+
+controller -> service : 4. authService.login(email, password)
+activate service
+
+service -> user_repo : 5. findByEmail(email)
+activate user_repo
+user_repo -> db : 6. SELECT * FROM users WHERE email = ?
+db -> user_repo : 7. Kết quả User
+deactivate user_repo
+
+alt #LightYellow TÀI KHOẢN KHÔNG TỒN TẠI
+    service -> service : 8a. User == null
+    service --> controller : 8b. throw UnauthorizedException("Email hoặc mật khẩu không đúng")
+    controller --> fe : 8c. 401 Unauthorized\n{ "success": false, "message": "..." }
+    fe -> user : 8d. Hiển thị lỗi\n"Email hoặc mật khẩu không đúng"
+end
+
+alt #LightGreen TÀI KHOẢN TỒN TẠI
+    service -> service : 9. BCrypt.checkpw(password, user.passwordHash)
+
+    alt #Pink PASSWORD SAI
+        service -> service : 10a. BCrypt mismatch
+        service -> audit_repo : 10b. Ghi login thất bại\n(LoginAttemptRepository)
+        service --> controller : 10c. throw UnauthorizedException("Email hoặc mật khẩu không đúng")
+        controller --> fe : 10d. 401 Unauthorized
+        fe -> user : 10e. Hiển thị lỗi
+    end
+
+    alt #Pink TÀI KHOẢN CHƯA XÁC THỰC
+        service -> service : 11a. user.status == PENDING
+        service --> controller : 11b. throw UnauthorizedException("Tài khoản chưa xác thực email")
+        controller --> fe : 11c. 403 Forbidden
+        fe -> user : 11d. Hiển thị:\n"Vui lòng xác thực email trước"
+    end
+
+    alt #LightBlue TÀI KHOẢN BỊ KHÓA
+        service -> service : 12a. user.status == LOCKED\nhoặc exceeded login attempts
+        service --> controller : 12b. throw UnauthorizedException("Tài khoản bị tạm khóa")
+        controller --> fe : 12c. 403 Forbidden
+        fe -> user : 12d. Hiển thị:\n"Tài khoản bị khóa, thử lại sau 15 phút"
+    end
+
+    alt #LightGreen ĐĂNG NHẬP THÀNH CÔNG
+        service -> jwt_util : 13. Tạo JWT Access Token\n(15 phút, userId, role, email)
+        activate jwt_util
+        jwt_util -> jwt_util : 14. Sign với HMAC-SHA384\n+ secret key
+        jwt_util --> service : 15. accessToken (JWT string)
+        deactivate jwt_util
+
+        service -> service : 16. Tạo UUID Refresh Token\n(thời hạn 7 ngày)
+
+        service -> refresh_repo : 17. Lưu RefreshToken vào DB
+        activate refresh_repo
+        refresh_repo -> db : 18. INSERT refresh_tokens\n(user_id, token, expiry, revoked)
+        db -> refresh_repo : 19. OK
+        deactivate refresh_repo
+
+        service -> audit_repo : 20. Ghi AuditLog\n"USER_LOGIN"
+        activate audit_repo
+        audit_repo -> db : 21. INSERT audit_logs\n(admin_id, action, details, ip)
+        db -> audit_repo : 22. OK
+        deactivate audit_repo
+
+        service --> controller : 23. AuthResponse\n{ accessToken, refreshToken, user }
+        deactivate service
+
+        controller --> fe : 24. 200 OK\n{ "success": true, "data": {...} }
+        deactivate controller
+
+        fe -> fe : 25. Lưu accessToken vào memory\n(Lưu refreshToken vào httpOnly cookie)
+        fe -> fe : 26. Dispatch setAuth(response.data)
+        fe -> user : 27. Chuyển hướng → Trang chủ\n(Hiển thị avatar user)
+        deactivate fe
+    end
+end
+
+deactivate service
+deactivate user
+
+== GIAI ĐOẠN 2: GỌI API CÓ XÁC THỰC ==
+
+user -> fe : 28. Thực hiện thao tác\n(ví dụ: Xem danh sách booking)
+activate user
+
+fe -> fe : 29. Đọc accessToken từ memory\n(Lưu trong Redux store)
+
+fe -> controller #MediumPurple : 30. GET /api/bookings\nAuthorization: Bearer eyJhbGci...
+activate controller
+
+controller -> jwt_filter #MediumPurple : 31. JwtAuthenticationFilter\n(intercept request)
+activate jwt_filter
+
+jwt_filter -> jwt_filter : 32. Tách token từ header\n"Authorization: Bearer xxx"
+
+jwt_filter -> jwt_util : 33. jwtUtil.verify(token)
+activate jwt_util
+
+alt #Pink TOKEN HẾT HẠN HOẶC KHÔNG HỢP LỆ
+    jwt_util --> jwt_filter : 34a. throw ExpiredJwtException\nhoặc SignatureException
+    jwt_filter -> jwt_filter : 34b. Không tạo SecurityContext
+    jwt_filter --> controller : 34c. FilterChain tiếp tục\n→ Controller nhận request\n→ Kiểm tra @PreAuthorize\n→ Throw AccessDeniedException
+    controller --> fe : 34d. 401 Unauthorized\n{ "success": false, "message": "Token đã hết hạn" }
+    fe -> user : 34e. Redirect → Trang đăng nhập
+end
+
+alt #LightGreen TOKEN HỢP LỆ
+    jwt_util --> jwt_filter : 35. Claims (userId, role, email)
+    deactivate jwt_util
+
+    jwt_filter -> jwt_filter : 36. Tạo\nUsernamePasswordAuthenticationToken\nvới CustomUserDetails
+
+    jwt_filter -> jwt_filter : 37. SecurityContextHolder\n.setContext(authentication)
+
+    jwt_filter --> controller : 38. FilterChain.doFilter()\n→ Request được chuyển đến Controller
+    deactivate jwt_filter
+
+    controller -> service : 39. bookingService\n.getBookingsByUser(userId)
+    activate service
+
+    service -> user_repo : 40. userRepository.findById(userId)
+    activate user_repo
+    user_repo -> db : 41. SELECT * FROM users WHERE id = ?
+    db -> user_repo : 42. User entity
+    deactivate user_repo
+
+    service -> service : 43. Xử lý nghiệp vụ\n(Tìm booking, lọc, sắp xếp)
+
+    service --> controller : 44. List<BookingResponse>
+    deactivate service
+
+    controller --> fe : 45. 200 OK\n{ "success": true, "data": [...] }
+    deactivate controller
+
+    fe -> user : 46. Hiển thị danh sách booking\ncho người dùng
+    deactivate fe
+end
+
+deactivate user
+
+== GIAI ĐOẠN 3: REFRESH TOKEN ==
+
+note over user, fe #LightYellow
+KHI ACCESS TOKEN HẾT HẠN
+(15 phút sau đăng nhập)
+end note
+
+user -> fe : 47. Request mới\n(accessToken đã hết hạn)
+activate user
+
+fe -> fe : 48. Phát hiện 401 response\n(Response Interceptor)
+
+fe -> fe : 49. Đọc refreshToken\ntừ httpOnly cookie
+
+fe -> controller : 50. POST /api/auth/refresh\n{ "refreshToken": "uuid-xxx" }
+activate controller
+
+controller -> service : 51. authService.refreshToken(refreshToken)
+activate service
+
+service -> refresh_repo : 52. findByToken(refreshToken)
+activate refresh_repo
+refresh_repo -> db : 53. SELECT * FROM refresh_tokens\nWHERE token = ? AND revoked = false
+db -> refresh_repo : 54. RefreshToken entity
+deactivate refresh_repo
+
+alt #Pink REFRESH TOKEN KHÔNG HỢP LỆ / ĐÃ BỊ REVOKE
+    service --> controller : 55a. throw UnauthorizedException
+    controller --> fe : 55b. 401 Unauthorized
+    fe -> user : 55c. Redirect → Trang đăng nhập
+    deactivate fe
+end
+
+alt #LightGreen REFRESH THÀNH CÔNG
+    service -> service : 56. Kiểm tra:\n- Token chưa hết hạn?\n- Token chưa bị revoke?\n- User vẫn active?
+
+    service -> refresh_repo : 57. revokeOldToken(token cũ)\n(UPDATE revoked = true)
+    activate refresh_repo
+    refresh_repo -> db : 58. UPDATE refresh_tokens\nSET revoked = true
+    db -> refresh_repo : 59. OK
+    deactivate refresh_repo
+
+    service -> service : 60. Tạo accessToken mới\n(rotate)
+    activate jwt_util #MediumPurple
+    jwt_util --> service : 61. newAccessToken
+    deactivate jwt_util
+
+    service -> service : 62. Tạo refreshToken mới\n(rotation — revoke cũ, tạo mới)
+
+    service -> refresh_repo : 63. Lưu refreshToken mới
+    activate refresh_repo
+    refresh_repo -> db : 64. INSERT refresh_tokens\n(refreshToken mới)
+    db -> refresh_repo : 65. OK
+    deactivate refresh_repo
+
+    service --> controller : 66. { accessToken, refreshToken }
+    deactivate service
+
+    controller --> fe : 67. 200 OK
+    deactivate controller
+
+    fe -> fe : 68. Lưu tokens mới\n(Lưu accessToken vào memory,\nrefreshToken vào httpOnly cookie)
+
+    fe -> fe : 69. Retry request ban đầu\n(với accessToken mới)
+
+    fe -> controller : 70. GET /api/bookings\nAuthorization: Bearer newAccessToken
+    activate controller
+    controller --> fe : 71. 200 OK (thành công)
+    deactivate controller
+
+    fe -> user : 72. Hiển thị kết quả\n(Người dùng không nhận ra\ntoken đã được refresh)
+    deactivate fe
+end
+
+deactivate user
+
+== GIAI ĐOẠN 4: ĐĂNG XUẤT ==
+
+user -> fe : 73. Click "Đăng xuất"
+activate user
+
+fe -> controller : 74. POST /api/auth/logout\nAuthorization: Bearer accessToken\n{ "refreshToken": "uuid-xxx" }
+activate controller
+
+controller -> service : 75. authService.logout(accessToken, refreshToken)
+activate service
+
+service -> refresh_repo : 76. revokeToken(refreshToken)
+activate refresh_repo
+refresh_repo -> db : 77. UPDATE refresh_tokens\nSET revoked = true, logout_time = NOW()
+db -> refresh_repo : 78. OK
+deactivate refresh_repo
+
+service -> audit_repo : 79. Ghi AuditLog\n"USER_LOGOUT"
+activate audit_repo
+audit_repo -> db : 80. INSERT audit_logs
+db -> audit_repo : 81. OK
+deactivate audit_repo
+
+service --> controller : 82. "Đăng xuất thành công"
+deactivate service
+
+controller --> fe : 83. 200 OK
+deactivate controller
+
+fe -> fe : 84. Xóa accessToken\n(Xóa refreshToken cookie)\nXóa user từ localStorage\nDispatch logout()
+
+fe -> user : 85. Chuyển hướng → Trang đăng nhập\n(Xóa toàn bộ auth state)
+deactivate fe
+
+deactivate user
+
+legend right
+|= Màu sắc trong biểu đồ =|
+| <back:#LightGreen>    Xanh lá   </back> | Thành công — luồng chính |
+| <back:#LightYellow>   Vàng      </back> | Kiểm tra điều kiện |
+| <back:#LightBlue>     Xanh dương</back> | Tài khoản bị khóa |
+| <back:#Pink>          Hồng      </back> | Lỗi / Từ chối truy cập |
+| <back:#MediumPurple>  Tím       </back> | JWT Security Filter |
+endlegend
+
+footer
+Hệ thống Tourista — Biểu đồ trình tự đăng nhập (Sequence Diagram)
+Generated: 02/05/2026
+endfooter
+
+@enduml

@@ -32,6 +32,12 @@ public class Review {
         TOUR
     }
 
+    public enum ModerationStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,8 +58,29 @@ public class Review {
     @Column(name = "overall_rating", nullable = false)
     private Integer overallRating;
 
-    @Column(name = "comment")
+    @Column(name = "title", length = 200)
+    private String title;
+
+    @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
+
+    @Column(name = "cleanliness")
+    private Integer cleanliness;
+
+    @Column(name = "location")
+    private Integer location;
+
+    @Column(name = "service")
+    private Integer service;
+
+    @Column(name = "value_for_money")
+    private Integer valueForMoney;
+
+    @Column(name = "guide_quality")
+    private Integer guideQuality;
+
+    @Column(name = "organization")
+    private Integer organization;
 
     @Column(name = "is_verified", nullable = false)
     private Boolean isVerified;
@@ -62,8 +89,18 @@ public class Review {
     private Boolean isPublished;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "moderation_status", length = 20)
+    private ModerationStatus moderationStatus;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "admin_status", nullable = false, length = 20)
     private AdminStatus adminStatus;
+
+    @Column(name = "rejection_reason", length = 255)
+    private String rejectionReason;
+
+    @Column(name = "helpful_count", nullable = false)
+    private Integer helpfulCount;
 
     @Column(name = "admin_reply", columnDefinition = "TEXT")
     private String adminReply;
@@ -97,8 +134,10 @@ public class Review {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (adminStatus == null) adminStatus = AdminStatus.PENDING;
-        if (isPublished == null) isPublished = false;
+        if (moderationStatus == null) moderationStatus = ModerationStatus.PENDING;
+        if (isPublished == null) isPublished = true;
         if (isVerified == null) isVerified = false;
+        if (helpfulCount == null) helpfulCount = 0;
     }
 
     @PreUpdate

@@ -1217,6 +1217,7 @@ const normalizePromotions = (promotions) => {
           : Number(promotion?.maxDiscountAmount || promotion?.maxDiscount || 0),
       usageLimit: Number(promotion?.usageLimit || promotion?.quantity || 0),
       usedCount: Number(promotion?.usedCount || promotion?.used || 0),
+      appliesTo: promotion?.appliesTo != null ? String(promotion.appliesTo) : null,
       startAt:
         asDate(
           promotion?.startAt || promotion?.startDate || promotion?.validFrom,
@@ -1940,6 +1941,69 @@ const adminApi = {
     return safeRequest(
       () => axiosClient.get('/admin/hotels/map/cities'),
       "Khong the tai danh sach thanh pho.",
+    );
+  },
+
+  // ===================== COMBO CRUD =====================
+  getAdminCombos: async ({
+    search = '',
+    status = 'ALL',
+    type = 'ALL',
+    page = 1,
+    limit = 10,
+  } = {}) => {
+    const response = await safeRequest(
+      () =>
+        axiosClient.get('/admin/combos', {
+          params: { q: search, status, type, page, size: limit },
+        }),
+      'Khong the tai danh sach combos.',
+    );
+    return response?.data?.result || response?.data || response;
+  },
+
+  getComboById: async (comboId) => {
+    const response = await safeRequest(
+      () => axiosClient.get(`/admin/combos/${comboId}`),
+      'Khong the tai chi tiet combo.',
+    );
+    return response?.data?.result || response?.data || response;
+  },
+
+  createAdminCombo: async (payload) => {
+    return safeRequest(
+      () => axiosClient.post('/admin/combos', payload),
+      'Tao combo that bai.',
+    );
+  },
+
+  updateAdminCombo: async (comboId, payload) => {
+    return safeRequest(
+      () => axiosClient.put(`/admin/combos/${comboId}`, payload),
+      'Cap nhat combo that bai.',
+    );
+  },
+
+  updateAdminComboStatus: async (comboId, isActive, reason) => {
+    return safeRequest(
+      () =>
+        axiosClient.patch(`/admin/combos/${comboId}/status`, {
+          isActive: Boolean(isActive),
+          reason: String(reason || '').trim(),
+        }),
+      'Cap nhat trang thai combo that bai.',
+    );
+  },
+
+  deleteAdminCombo: async (comboId, reason) => {
+    return safeRequest(
+      () =>
+        axiosClient.delete(`/admin/combos/${comboId}`, {
+          data: {
+            reason: String(reason || '').trim(),
+          },
+        }),
+      'Xoa combo that bai.',
     );
   },
 };

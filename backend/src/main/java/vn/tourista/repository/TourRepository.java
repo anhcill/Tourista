@@ -173,4 +173,10 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
 
   @Query(value = "SELECT COUNT(*) FROM tours WHERE is_active = TRUE", nativeQuery = true)
   long countActiveTours();
+
+  @Query(value = "SELECT t.id, " +
+          "(SELECT url FROM tour_images WHERE tour_id = t.id AND is_cover = TRUE LIMIT 1) AS url " +
+          "FROM tours t WHERE t.id IN :tourIds",
+          nativeQuery = true)
+  List<Object[]> findCoverImagesByTourIds(@Param("tourIds") List<Long> tourIds);
 }

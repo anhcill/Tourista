@@ -1,0 +1,142 @@
+@startuml TouristaStudio_Sequence_DatCombo
+!theme plain
+
+title BIỂU ĐỒ TRÌNH TỰ — UC27. ĐẶT COMBO (Khách sạn + Tour)
+
+participant "Khách hàng\n(Customer)" as CUSTOMER
+participant "Frontend\n(Next.js)" as FE
+participant "Backend API\n(Spring Boot)" as API
+participant "ComboService" as COMBO_SVC
+participant "BookingService" as BOOK_SVC
+participant "HotelService" as HOTEL_SVC
+participant "TourService" as TOUR_SVC
+participant "VNPayService" as VPN_SVC
+participant "MySQL\nDatabase" as DB
+participant "VNPay" as VPNPAY
+
+' === Bước 1: Xem danh sách Combo ===
+CUSTOMER -> FE : 1. Truy cập /combos
+FE -> API : GET /api/combos\n{limit, page}
+API -> COMBO_SVC : 2. getActiveCombos()
+COMBO_SVC -> DB : 3. SELECT combo_packages\nJOIN hotels, tours\nWHERE status = ACTIVE\nAND expiryDate > NOW()
+DB --> COMBO_SVC : 4. List combos\n(giá gốc, giá combo, % tiết kiệm)
+COMBO_SVC --> API : 5. ComboListResponse
+API --> FE : 6. Danh sách Combo
+FE --> CUSTOMER : 7. Hiển thị combo cards\n(ảnh KS + tour, giá tiết kiệm)
+
+CUSTOMER -> FE : 8. Chọn Combo
+FE -> API : GET /api/combos/{id}
+API -> COMBO_SVC : 9. getComboDetail(id)
+COMBO_SVC -> DB : 10. SELECT combo\nJOIN hotel + room_type\nJOIN tour + departure
+DB --> COMBO_SVC : 11. Combo chi tiết\n+ Khách sạn đã chọn\n+ Tour đã chọn\n+ Ngày khả dụng
+COMBO_SVC --> API : 12. ComboDetailResponse
+API --> FE : 13. Chi tiết combo
+FE --> CUSTOMER : 14. Trang chi tiết Combo\n(Giá combo vs giá riêng, tiết kiệm X%)
+
+' === Bước 2: Chọn ngày ===
+CUSTOMER -> FE : 15. Chọn ngày nhận phòng\n& Ngày khởi hành tour
+FE -> API : 16. GET /api/combos/{id}/availability\n{checkIn, departureDate}
+API -> COMBO_SVC : 17. checkComboAvailability(...)
+
+' Kiểm tra cả KS và Tour
+COMBO_SVC -> HOTEL_SVC : 18. checkRoomAvailability\n(hotelId, roomTypeId, checkIn, checkOut)
+HOTEL_SVC -> DB : 19. SELECT room availability
+DB --> HOTEL_SVC : 20. Rooms available
+HOTEL_SVC --> COMBO_SVC : 21. OK / Not available
+
+COMBO_SVC -> TOUR_SVC : 22. checkDepartureAvailability\n(tourId, departureDate)
+TOUR_SVC -> DB : 23. SELECT departure\nWHERE date = ?
+DB --> TOUR_SVC : 24. Departure info\n(slots, price)
+TOUR_SVC --> COMBO_SVC : 25. OK / Not available
+
+alt Cả KS và Tour đều khả dụng
+    COMBO_SVC --> API : 26. AvailabilityResponse\n(pricing breakdown)
+    API --> FE : 27. Hiển thị giá\n(gốc vs combo)
+else Một trong hai không khả dụng
+    COMBO_SVC --> API : 26b. Error: NotAvailable
+    API --> FE : 27b. Error: "Combo\nkhông khả dụng\ncho ngày đã chọn"
+    FE --> CUSTOMER : 28b. Thông báo lỗi
+end
+
+CUSTOMER -> FE : 29. Nhấn "Đặt Combo ngay"
+
+' === Bước 3: Nhập thông tin hành khách ===
+FE -> FE : 30. Form thông tin\n(đặt phòng + tour)
+CUSTOMER -> FE : 31. Điền: ngày check-in/out,\nngười lớn, trẻ em,\nthông tin từng hành khách\n+ Mã KM (tùy chọn)
+alt Có mã KM
+    FE -> API : 32. POST /api/promotions/validate\n{promoCode, comboPrice}
+    API -> DB : 33. SELECT promotion\nWHERE code = ?
+    DB --> API : 34. Promo details
+    API --> FE : 35. Giảm giá X%
+end
+
+' === Bước 4: Tạo Booking Combo ===
+FE -> API : 36. POST /api/bookings/combo\n{comboId, checkIn, checkOut,\ndepartureDate, passengers,\npromoCode}
+
+API -> BOOK_SVC : 37. createComboBooking(request)
+BOOK_SVC -> COMBO_SVC : 38. getComboDetail(comboId)
+COMBO_SVC -> DB : 39. SELECT combo\n+ hotel + room_type\n+ tour + departure
+DB --> COMBO_SVC : 40. Combo info
+COMBO_SVC --> BOOK_SVC : 41. Combo detail
+
+BOOK_SVC -> BOOK_SVC : 42. Tính giá:\n• Hotel: basePrice × nights × rooms\n• Tour: adults × price + children × childPrice\n• Combo discount: comboPrice vs (hotel + tour)\n• Promo discount (if any)\n• Total = comboPrice - promoDiscount
+
+alt Combo còn hạn
+    BOOK_SVC -> DB : 43. BEGIN TRANSACTION
+
+    BOOK_SVC -> DB : 44. INSERT INTO booking\n{status: PENDING,\ntype: COMBO, totalAmount}
+    DB --> BOOK_SVC : 45. bookingId
+
+    BOOK_SVC -> DB : 46. INSERT INTO booking_hotel_detail\n{hotelId, roomTypeId, checkIn, checkOut}
+    DB --> BOOK_SVC : 47. hotelDetailId
+
+    BOOK_SVC -> DB : 48. INSERT INTO booking_tour_detail\n{tourId, departureDate, adults, children}
+    DB --> BOOK_SVC : 49. tourDetailId
+
+    ' Giảm availability cả KS và Tour
+    BOOK_SVC -> DB : 50. UPDATE hotel rooms\n(decrement)
+    DB --> BOOK_SVC : 51. Rooms updated
+
+    BOOK_SVC -> DB : 52. UPDATE tour_departure slots\n(decrement)
+    DB --> BOOK_SVC : 53. Slots updated
+
+    alt Có mã KM
+        BOOK_SVC -> DB : 54. INSERT booking_promotion
+    end
+
+    BOOK_SVC -> DB : 55. COMMIT
+    BOOK_SVC --> API : 56. Booking created\n{bookingId, paymentUrl}
+else Combo hết hạn
+    BOOK_SVC --> API : 42b. Error: ComboExpired
+    API --> FE : 43b. Error: Combo\nđã hết hạn
+    FE --> CUSTOMER : 44b. Thông báo
+end
+
+API --> FE : 57. BookingResponse\n{paymentUrl: VNPay}
+FE --> CUSTOMER : 58. Chuyển trang\nthanh toán VNPay
+
+' === Bước 5: Thanh toán ===
+CUSTOMER -> VPNPAY : 59. Thanh toán
+alt Thành công
+    VPNPAY -> FE : 60. Redirect: ?vnp_ResponseCode=00
+    FE -> API : 61. GET /api/payments/vnpay/return
+    API -> VPN_SVC : 62. verifyPayment
+    VPN_SVC -> BOOK_SVC : 63. confirmBooking(bookingId)
+    BOOK_SVC -> DB : 64. UPDATE booking\n{status: CONFIRMED}
+    BOOK_SVC --> VPN_SVC : 65. Confirmed
+    VPN_SVC --> VPNPAY : 66. Return OK
+    API --> FE : 67. {status: CONFIRMED}
+    FE --> CUSTOMER : 68. ✅ Đặt Combo thành công!\nMã booking + QR\n+ Thông tin KS + Tour\n+ Ngày khởi hành
+else Thất bại
+    VPNPAY -> FE : 60b. Redirect: ?vnp_ResponseCode!=00
+    FE -> API : 61b. GET /api/payments/vnpay/return
+    API -> BOOK_SVC : 62b. cancelBooking(bookingId)
+    BOOK_SVC -> DB : 63b. UPDATE: CANCELLED\n+ ROLLBACK: rooms + slots
+    BOOK_SVC --> API : 64b. Cancelled
+    API --> FE : 65b. {status: CANCELLED}
+    FE --> CUSTOMER : 66b. ❌ Thanh toán thất bại
+end
+
+note across: \n**ĐẶC ĐIỂM COMBO:**\n• Đặt ĐỒNG THỜI khách sạn + tour trong 1 transaction\n• Giá combo LUÔN rẻ hơn tổng giá đặt riêng (tiết kiệm 10-30%)\n• Nếu thanh toán thất bại → HOÀN LẠI cả KS và Tour\n• Kiểm tra availability CẢ HAI dịch vụ trước khi tạo booking\n
+
+@enduml
