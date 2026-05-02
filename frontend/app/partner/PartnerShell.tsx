@@ -25,7 +25,7 @@ type RootState = {
 
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-const PARTNER_ROLE_SET = new Set(['ROLE_PARTNER', 'PARTNER', 'ROLE_HOST', 'HOST', 'ROLE_ADMIN', 'ADMIN']);
+const PARTNER_ROLE_SET = new Set(['ROLE_PARTNER', 'PARTNER', 'ROLE_HOST', 'HOST', 'ROLE_ADMIN', 'ADMIN', 'ROLE_HOTEL_OWNER', 'HOTEL_OWNER']);
 
 const NAV_ITEMS = [
   { href: '/partner', label: 'Tổng quan', icon: '📊' },

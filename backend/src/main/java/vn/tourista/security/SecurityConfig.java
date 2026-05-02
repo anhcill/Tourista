@@ -10,8 +10,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-// import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -20,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.util.StringUtils;
+import vn.tourista.repository.UserRepository;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +36,9 @@ public class SecurityConfig {
 
         @Autowired
         private RateLimitFilter rateLimitFilter;
+
+        @Autowired
+        private UserRepository userRepository;
 
         @Value("${app.cors.allowed-origins:http://localhost:3000}")
         private String corsAllowedOrigins;
@@ -90,8 +92,8 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 // Admin APIs: chỉ cho role ADMIN
                                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                                // Partner APIs: cho PARTNER, HOST, hoặc ADMIN
-                                                .requestMatchers("/api/partner/**").hasAnyRole("PARTNER", "HOST", "ADMIN")
+                                                // Partner APIs: cho PARTNER, HOST, ADMIN, hoặc HOTEL_OWNER
+                                                .requestMatchers("/api/partner/**").hasAnyRole("PARTNER", "HOST", "ADMIN", "HOTEL_OWNER")
                                                 // Còn lại phải có JWT
                                                 .anyRequest().authenticated())
 
@@ -104,7 +106,7 @@ public class SecurityConfig {
                                                 UsernamePasswordAuthenticationFilter.class)
 
                                 // Thêm JWT filter chạy trước filter mặc định
-                                .addFilterBefore(new JwtAuthFilter(jwtUtil),
+                                .addFilterBefore(new JwtAuthFilter(jwtUtil, userRepository),
                                                 UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();

@@ -8,18 +8,23 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import vn.tourista.entity.User;
+import vn.tourista.repository.UserRepository;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 // Filter đọc JWT từ header Authorization, xác thực, set user vào SecurityContext
 // Không dùng @Component để tránh Spring tự đăng ký 2 lần
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    public JwtAuthFilter(JwtUtil jwtUtil) {
+    public JwtAuthFilter(JwtUtil jwtUtil, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -28,40 +33,40 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Bước 1: Lấy header Authorization
         String authHeader = request.getHeader("Authorization");
 
-        // Bước 2: Không có hoặc sai format → bỏ qua (request sẽ fail ở security rule)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Bước 3: Cắt lấy token (bỏ "Bearer ")
         String token = authHeader.substring(7);
 
-        // Bước 4: Validate token
         if (!jwtUtil.validateToken(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Bước 5: Lấy email và role từ token
         String email = jwtUtil.getEmailFromToken(token);
-        String role  = jwtUtil.getRoleFromToken(token);
 
-        // Bước 6: Tạo authentication với role (dạng ROLE_USER, ROLE_ADMIN...)
+        // Load user from DB to get the full role object
+        User user = userRepository.findByEmail(email).orElse(null);
+        List<SimpleGrantedAuthority> authorities;
+
+        if (user != null && user.getRole() != null) {
+            // Use the role from DB (authorities are already EAGER loaded)
+            authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+        } else {
+            // Fallback: use role from JWT token
+            String role = jwtUtil.getRoleFromToken(token);
+            authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        }
+
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        email,
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                );
+                new UsernamePasswordAuthenticationToken(email, null, authorities);
 
-        // Bước 7: Set vào SecurityContext → Spring Security nhận ra user đã login
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Bước 8: Cho request đi tiếp
         filterChain.doFilter(request, response);
     }
 }
