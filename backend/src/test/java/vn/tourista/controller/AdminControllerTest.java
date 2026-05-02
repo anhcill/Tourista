@@ -39,8 +39,7 @@ class AdminControllerTest {
 
     @BeforeEach
     void setUp() {
-        AdminController controller = new AdminController();
-        ReflectionTestUtils.setField(controller, "adminService", adminService);
+        AdminController controller = new AdminController(adminService);
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
