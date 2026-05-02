@@ -9,7 +9,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,14 +36,17 @@ public class AiService {
     @Value("${beeknoee.model:glm-4.7-flash}")
     private String model;
 
-    @Value("${beeknoee.timeout-seconds:10}")
+    @Value("${beeknoee.timeout-seconds:60}")
     private int timeoutSeconds;
 
     @Value("${beeknoee.max-tokens:500}")
     private int maxTokens;
 
+    // Semaphore to serialize AI requests (Beeknoee free tier allows only 1 concurrent request)
+    private final Semaphore aiSemaphore = new Semaphore(1);
+
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
+            .connectTimeout(Duration.ofSeconds(10))
             .build();
 
     /**
@@ -69,6 +72,17 @@ public class AiService {
             return null;
         }
 
+        // Serialize requests to avoid 429 rate limit errors
+        try {
+            if (!aiSemaphore.tryAcquire(timeoutSeconds + 5, TimeUnit.SECONDS)) {
+                log.warn("AiService: Could not acquire semaphore, skipping request");
+                return null;
+            }
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+
         try {
             String content = composeContent(userMessage, conversationContext);
             String requestBody = buildRequestBody(content);
@@ -82,9 +96,7 @@ public class AiService {
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
-            CompletableFuture<HttpResponse<String>> future =
-                    httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-            HttpResponse<String> response = future.get(timeoutSeconds + 1, TimeUnit.SECONDS);
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
                 return parseOpenAIResponse(response.body());
@@ -101,6 +113,8 @@ public class AiService {
         } catch (Exception ex) {
             log.warn("AiService: API call failed — {}", ex.getMessage());
             return null;
+        } finally {
+            aiSemaphore.release();
         }
     }
 
