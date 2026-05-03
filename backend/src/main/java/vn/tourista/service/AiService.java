@@ -319,7 +319,7 @@ public class AiService {
                   "messages": [
                     {
                       "role": "system",
-                      "content": "Bạn là Tourista Studio Travel Buddy — trợ lý du lịch AI thân thiện của nền tảng Tourista Studio. Tourista chuyên cung cấp dịch vụ đặt tour và khách sạn tại Việt Nam. Trả lời ngắn gọn, thân thiện, dùng emoji phù hợp. Chỉ trả lời về du lịch, tour, khách sạn, điểm đến Việt Nam."
+                      "content": "Ban la tro ly du lich AI cua nen tang Tourista Studio. Tra loi ngan gon, thân thiên, dung emoji phu hop. Chi tra loi ve du lich, tour, khach san, diem den Viet Nam."
                     },
                     {
                       "role": "user",
@@ -327,23 +327,51 @@ public class AiService {
                     }
                   ],
                   "max_tokens": %d,
-                  "temperature": 0.7
+                  "temperature": 0.5
                 }
                 """.formatted(model, escapeJson(content), maxTokens);
     }
 
     private String parseOpenAIResponse(String responseBody) {
         try {
-            com.fasterxml.jackson.databind.JsonNode root =
-                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(responseBody);
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(responseBody);
+
+            // Standard OpenAI format: choices[0].message.content
             com.fasterxml.jackson.databind.JsonNode choices = root.path("choices");
             if (choices.isArray() && !choices.isEmpty()) {
                 com.fasterxml.jackson.databind.JsonNode message = choices.get(0).path("message");
                 String content = message.path("content").asText("").trim();
-                return content.isBlank() ? null : content;
+                if (!content.isBlank()) return content;
+
+                // Gemini-style format: choices[0].text
+                String text = choices.get(0).path("text").asText("").trim();
+                if (!text.isBlank()) return text;
             }
-            log.warn("AiService: No choices in response. Body: {}",
-                    responseBody.length() > 200 ? responseBody.substring(0, 200) : responseBody);
+
+            // Alternative: choices[0].delta.content (streaming-like)
+            if (choices.isArray() && !choices.isEmpty()) {
+                String deltaContent = choices.get(0).path("delta").path("content").asText("").trim();
+                if (!deltaContent.isBlank()) return deltaContent;
+            }
+
+            // Beeknoee/Gemini alternative: root.text or root.output
+            String rootText = root.path("text").asText("").trim();
+            if (!rootText.isBlank()) return rootText;
+
+            String rootOutput = root.path("output").asText("").trim();
+            if (!rootOutput.isBlank()) return rootOutput;
+
+            // Beeknoee sometimes returns content in root.response or root.result
+            String rootResponse = root.path("response").asText("").trim();
+            if (!rootResponse.isBlank()) return rootResponse;
+
+            String rootResult = root.path("result").asText("").trim();
+            if (!rootResult.isBlank()) return rootResult;
+
+            // Log full response for debugging if all paths failed
+            log.warn("AiService: No content found in response. Body: {}",
+                    responseBody.length() > 500 ? responseBody.substring(0, 500) : responseBody);
             return null;
         } catch (Exception ex) {
             log.warn("AiService: Parse response failed — {}", ex.getMessage());
