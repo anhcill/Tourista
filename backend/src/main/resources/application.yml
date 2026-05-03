@@ -116,4 +116,4 @@ beeknoee:
   model: gemini-3.1-flash-lite-preview
   api-url: https://platform.beeknoee.com/api/v1/chat/completions
   timeout-seconds: 30
-  max-tokens: 800
+  max-tokens: 2000

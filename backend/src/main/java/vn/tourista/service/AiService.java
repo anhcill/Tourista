@@ -136,9 +136,9 @@ public class AiService {
             return null;
         }
 
-        String dateContext = java.time.LocalDate.now()
-                .format(java.time.format.DateTimeFormatter.ofPattern("'Ngày hiện tại:' dd/MM/yyyy — Mùa: "
-                        + getVietnameseSeason()));
+        String dateContext = "Ngày hiện tại: "
+            + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            + " - Mùa: " + getVietnameseSeason();
 
         String prompt = """
                 Bạn là một travel blogger Việt Nam nhiệt huyết. Viết lại lịch trình du lịch thành văn phong tự nhiên, thân thiện, hào hứng — như đang kể cho bạn bè nghe về chuyến đi sắp tới.

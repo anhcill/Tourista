@@ -64,6 +64,9 @@
     <!-- Statistics: keep WARN only -->
     <logger name="vn.tourista.service.StatisticsService" level="WARN"/>
 
+    <!-- AiService: DEBUG to see API calls and errors -->
+    <logger name="vn.tourista.service.AiService" level="DEBUG"/>
+
     <!-- Schedulers: INFO ok (runs infrequently) -->
     <logger name="vn.tourista.scheduler.CleanupScheduler" level="INFO"/>
 
