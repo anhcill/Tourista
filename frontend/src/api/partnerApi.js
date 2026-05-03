@@ -45,9 +45,9 @@ const partnerApi = {
     );
   },
 
-  getPartnerReviews: async () => {
+  getPartnerReviews: async ({ page = 0, size = 10 } = {}) => {
     return safeRequest(
-      () => axiosClient.get('/partner/reviews'),
+      () => axiosClient.get('/partner/reviews', { params: { page, size } }),
       'Không thể tải danh sách review.',
     );
   },

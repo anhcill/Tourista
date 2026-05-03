@@ -227,5 +227,20 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     long countByAdminStatusAndTargetType(Review.AdminStatus status, Review.TargetType targetType);
 
+    @Query(value = """
+            SELECT review_id FROM (
+                SELECT r.id AS review_id, r.created_at FROM reviews r
+                WHERE r.target_type = 'HOTEL' AND r.target_id IN (:hotelIds)
+                UNION ALL
+                SELECT r.id AS review_id, r.created_at FROM reviews r
+                WHERE r.target_type = 'TOUR' AND r.target_id IN (:tourIds)
+            ) AS combined
+            ORDER BY created_at DESC
+            """, nativeQuery = true)
+    List<Long> findIdsByPartnerHotelsAndTours(
+            @Param("hotelIds") List<Long> hotelIds,
+            @Param("tourIds") List<Long> tourIds,
+            Pageable pageable);
+
     List<Review> findByTargetTypeAndTargetIdIn(Review.TargetType targetType, List<Long> targetIds);
 }

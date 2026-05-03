@@ -2,6 +2,8 @@ package vn.tourista.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.tourista.dto.response.PartnerReviewResponse;
@@ -16,6 +18,7 @@ import vn.tourista.repository.UserRepository;
 import vn.tourista.service.PartnerReviewService;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -30,29 +33,36 @@ public class PartnerReviewServiceImpl implements PartnerReviewService {
     private final TourRepository tourRepository;
 
     @Override
-    public List<PartnerReviewResponse> getReviewsForPartner(String partnerEmail) {
+    public Page<PartnerReviewResponse> getReviewsForPartner(String partnerEmail, int page, int size) {
         User partner = userRepository.findByEmail(partnerEmail.trim().toLowerCase())
                 .orElseThrow(() -> new NoSuchElementException("Khong tim thay tai khoan"));
 
         Long partnerId = partner.getId();
 
-        List<Review> hotelReviews = reviewRepository.findByTargetTypeAndTargetIdIn(
-                Review.TargetType.HOTEL,
-                hotelRepository.findIdsByPartnerId(partnerId)
-        );
-        List<Review> tourReviews = reviewRepository.findByTargetTypeAndTargetIdIn(
-                Review.TargetType.TOUR,
-                tourRepository.findIdsByPartnerId(partnerId)
-        );
+        List<Long> hotelIds = hotelRepository.findIdsByPartnerId(partnerId);
+        List<Long> tourIds = tourRepository.findIdsByPartnerId(partnerId);
 
-        List<Review> allReviews = new java.util.ArrayList<>(hotelReviews);
-        allReviews.addAll(tourReviews);
+        if (hotelIds.isEmpty() && tourIds.isEmpty()) {
+            return Page.empty();
+        }
 
-        allReviews.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+        PageRequest pageable = PageRequest.of(page, size);
 
-        return allReviews.stream()
-                .map(this::toResponse)
-                .toList();
+        List<Long> allReviewIds = reviewRepository.findIdsByPartnerHotelsAndTours(hotelIds, tourIds, pageable);
+
+        if (allReviewIds.isEmpty()) {
+            return new org.springframework.data.domain.PageImpl<>(
+                    java.util.Collections.emptyList(), pageable, 0);
+        }
+
+        List<Review> reviews = reviewRepository.findAllById(allReviewIds);
+
+        reviews.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+        long total = reviewRepository.findIdsByPartnerHotelsAndTours(hotelIds, tourIds, PageRequest.of(0, Integer.MAX_VALUE)).size();
+
+        List<PartnerReviewResponse> content = reviews.stream().map(this::toResponse).toList();
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, total);
     }
 
     @Override

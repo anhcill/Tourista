@@ -72,9 +72,12 @@ public class PartnerController {
     }
 
     @GetMapping("/reviews")
-    public ResponseEntity<ApiResponse<List<PartnerReviewResponse>>> getPartnerReviews(Authentication authentication) {
+    public ResponseEntity<ApiResponse<Page<PartnerReviewResponse>>> getPartnerReviews(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
         return ResponseEntity.ok(ApiResponse.ok("Lay danh sach review thanh cong",
-                partnerReviewService.getReviewsForPartner(authentication.getName())));
+                partnerReviewService.getReviewsForPartner(authentication.getName(), page, size)));
     }
 
     @GetMapping("/reviews/{reviewId}")

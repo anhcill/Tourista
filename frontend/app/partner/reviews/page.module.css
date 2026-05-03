@@ -446,6 +446,66 @@
 [data-theme="dark"] .typeTour { background: rgba(21,128,61,0.2); color: #86efac; }
 [data-theme="dark"] .emptyState { background: rgba(15,127,182,0.05); border-color: rgba(59,130,246,0.3); color: #94a3b8; }
 [data-theme="dark"] .errorState { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.3); color: #fca5a5; }
+[data-theme="dark"] .pageBtn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
+[data-theme="dark"] .pageBtn:hover:not(:disabled) { background: rgba(15,127,182,0.15); border-color: #0f7fb6; color: #0f7fb6; }
+[data-theme="dark"] .pageBtnActive { background: #0f7fb6; border-color: #0f7fb6; color: #fff; }
+[data-theme="dark"] .pageInfo { color: #94a3b8; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 8px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #0f7fb6;
+  color: #0f7fb6;
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageBtnActive {
+  background: #0f7fb6;
+  border-color: #0f7fb6;
+  color: #fff;
+}
+
+.pageBtnActive:hover {
+  background: #0d6fa0;
+  border-color: #0d6fa0;
+  color: #fff;
+}
+
+.pageInfo {
+  font-size: 14px;
+  color: #557084;
+  margin-left: 8px;
+}
 
 /* Responsive */
 @media (max-width: 768px) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { FaStar, FaRegStar, FaSyncAlt, FaReply, FaCheckCircle } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaSyncAlt, FaReply, FaCheckCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import partnerApi from '@/api/partnerApi';
 import styles from './page.module.css';
@@ -30,6 +30,9 @@ export default function PartnerReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [replyModal, setReplyModal] = useState<{
     id: unknown;
     userName: unknown;
@@ -42,15 +45,22 @@ export default function PartnerReviewsPage() {
   const [replyText, setReplyText] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const loadReviews = useCallback(async ({ silent = false } = {}) => {
+  const PAGE_SIZE = 10;
+
+  const loadReviews = useCallback(async ({ silent = false, pageNum = 0 } = {}) => {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
       setError('');
 
-      const data = await partnerApi.getPartnerReviews();
+      const data = await partnerApi.getPartnerReviews({ page: pageNum, size: PAGE_SIZE });
       const list = Array.isArray(data) ? data : (data?.data || []);
-      setReviews(list);
+      const content = list.content || (Array.isArray(list) ? list : []);
+      const meta = list.content ? list : { totalPages: list.length > 0 ? 1 : 0, totalElements: list.length };
+      setReviews(Array.isArray(content) ? content : []);
+      setPage(typeof meta.number === 'number' ? meta.number : pageNum);
+      setTotalPages(typeof meta.totalPages === 'number' ? meta.totalPages : 0);
+      setTotalElements(typeof meta.totalElements === 'number' ? meta.totalElements : 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải danh sách review.');
     } finally {
@@ -60,8 +70,13 @@ export default function PartnerReviewsPage() {
   }, []);
 
   useEffect(() => {
-    void loadReviews();
+    void loadReviews({ pageNum: 0 });
   }, [loadReviews]);
+
+  const goToPage = (pageNum: number) => {
+    if (pageNum < 0) return;
+    void loadReviews({ pageNum });
+  };
 
   const openReplyModal = (review: Record<string, unknown>) => {
     setReplyModal({
@@ -102,7 +117,7 @@ export default function PartnerReviewsPage() {
   const tourReviews = reviews.filter((r) => r.targetType === 'TOUR');
 
   const stats = {
-    total: reviews.length,
+    total: totalElements,
     hotel: hotelReviews.length,
     tour: tourReviews.length,
     withReply: reviews.filter((r) => r.partnerReply).length,
@@ -111,6 +126,13 @@ export default function PartnerReviewsPage() {
         ? (reviews.reduce((sum, r) => sum + Number(r.overallRating || 0), 0) / reviews.length).toFixed(1)
         : '0.0',
   };
+
+  const pageNumbers: number[] = [];
+  const maxPages = 7;
+  const startPage = Math.max(0, page - 3);
+  for (let i = 0; i < maxPages && startPage + i < totalPages; i++) {
+    pageNumbers.push(startPage + i);
+  }
 
   return (
     <section className={styles.page}>
@@ -200,6 +222,37 @@ export default function PartnerReviewsPage() {
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            className={styles.pageBtn}
+            onClick={() => goToPage(page - 1)}
+            disabled={page === 0}
+          >
+            <FaChevronLeft />
+          </button>
+          {pageNumbers.map((n) => (
+            <button
+              key={n}
+              className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ''}`}
+              onClick={() => goToPage(n)}
+            >
+              {n + 1}
+            </button>
+          ))}
+          <button
+            className={styles.pageBtn}
+            onClick={() => goToPage(page + 1)}
+            disabled={page >= totalPages - 1}
+          >
+            <FaChevronRight />
+          </button>
+          <span className={styles.pageInfo}>
+            Trang {page + 1} / {totalPages} ({totalElements} review)
+          </span>
         </div>
       )}
 
