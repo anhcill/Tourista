@@ -8,6 +8,7 @@ import {
   FaCalendarAlt, FaHotel, FaMapMarkerAlt, FaQrcode, FaUsers, FaTimes,
   FaEdit, FaShareAlt
 } from 'react-icons/fa';
+import { QRCodeSVG } from 'qrcode.react';
 import bookingApi from '@/api/bookingApi';
 import ClientChatModal from '@/components/Chat/ClientChatModal';
 import ModifyBookingModal from '@/components/Bookings/ModifyBookingModal/ModifyBookingModal';
@@ -271,9 +272,6 @@ function ProfileBookingsContent() {
             const qrData = encodeQrData(booking);
             const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
             const detailUrl = qrData && baseOrigin ? `${baseOrigin}/booking-qr?d=${encodeURIComponent(qrData)}` : '';
-            const qrUrl = detailUrl
-              ? `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(detailUrl)}`
-              : '';
             const statusKey = statusClass[booking.status] || 'pending';
             const bookingTypeLabel = isTourBooking ? 'TOUR' : 'HOTEL';
             const title = isTourBooking
@@ -358,10 +356,15 @@ function ProfileBookingsContent() {
 
                 <div className={styles.qrBox}>
                   <div className={styles.qrTitle}><FaQrcode /> QR booking</div>
-                  {qrUrl ? (
+                  {detailUrl ? (
                     <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={qrUrl} alt={`QR booking ${booking.bookingCode || ''}`} className={styles.qrImage} />
+                      <QRCodeSVG
+                        value={detailUrl}
+                        size={160}
+                        level="M"
+                        bgColor="transparent"
+                        className={styles.qrImage}
+                      />
                       <small>Quét để mở trang thông tin booking</small>
                     </>
                   ) : (
