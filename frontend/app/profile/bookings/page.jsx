@@ -43,10 +43,10 @@ const encodeQrData = (booking) => {
   const payload = {
     bookingCode: booking.bookingCode || '-',
     bookingType: booking.bookingType || (isTourBooking ? 'TOUR' : 'HOTEL'),
-    title: isTourBooking
+    hotelName: isTourBooking
       ? (booking.tourTitle || 'Tour chua xac dinh')
       : (booking.hotelName || 'Khach san chua xac dinh'),
-    subTitle: isTourBooking
+    roomTypeName: isTourBooking
       ? `Khoi hanh: ${formatDate(booking.departureDate)}`
       : (booking.roomTypeName || '-'),
     checkIn: formatDate(booking.checkIn),
@@ -56,7 +56,7 @@ const encodeQrData = (booking) => {
     rooms: booking.rooms || 0,
     adults: booking.adults || 0,
     children: booking.children || 0,
-    totalAmount: `${formatMoney(booking.totalAmount)} ${booking.currency || 'VND'}`,
+    totalAmount: Number(booking.totalAmount) || 0,
     status: statusLabel[booking.status] || booking.status || '-',
     createdAt: formatDate(booking.createdAt),
   };

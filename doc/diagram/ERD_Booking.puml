@@ -1,0 +1,140 @@
+@startuml Booking_ERD
+!theme plain
+
+title ERD — Phân hệ Đặt chỗ (Booking)
+
+package "bookings" {
+
+    class Booking {
+        Long id : PK
+        String bookingCode : UNIQUE, NOT NULL
+        User user : FK → users
+        BookingType bookingType : NOT NULL
+        BookingStatus status : DEFAULT PENDING
+        String guestName : NOT NULL
+        String guestEmail : NOT NULL
+        String guestPhone : NOT NULL
+        BigDecimal subtotal : NOT NULL
+        BigDecimal discountAmount : DEFAULT 0
+        BigDecimal taxAmount : DEFAULT 0
+        BigDecimal totalAmount : NOT NULL
+        String currency : DEFAULT 'VND'
+        String specialRequests
+        String cancelReason
+        LocalDateTime cancelledAt
+        LocalDateTime confirmedAt
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    enum BookingType {
+        HOTEL
+        TOUR
+        COMBO
+    }
+
+    enum BookingStatus {
+        PENDING
+        CONFIRMED
+        CHECKED_IN
+        COMPLETED
+        CANCELLED
+        REFUNDED
+    }
+}
+
+package "hotel_booking" {
+
+    class BookingHotelDetail {
+        Long id : PK
+        Booking booking : FK → bookings (1:1 UNIQUE)
+        Hotel hotel : FK → hotels
+        RoomType roomType : FK → room_types
+        LocalDate checkInDate : NOT NULL
+        LocalDate checkOutDate : NOT NULL
+        Integer nights : NOT NULL
+        Integer numRooms : NOT NULL
+        Integer adults : NOT NULL
+        Integer children : NOT NULL
+        String hotelName : NOT NULL (denorm.)
+        String roomTypeName : NOT NULL (denorm.)
+        BigDecimal pricePerNight : NOT NULL
+    }
+}
+
+package "tour_booking" {
+
+    class BookingTourDetail {
+        Long id : PK
+        Booking booking : FK → bookings (1:1 UNIQUE)
+        Tour tour : FK → tours
+        TourDeparture departure : FK → tour_departures
+        Integer numAdults : NOT NULL
+        Integer numChildren : NOT NULL
+        String tourTitle : NOT NULL (denorm.)
+        LocalDate departureDate : NOT NULL
+        BigDecimal pricePerAdult : NOT NULL
+        BigDecimal pricePerChild : NOT NULL
+    }
+}
+
+package "combo_booking" {
+
+    class BookingCombo {
+        Long id : PK
+        Booking booking : FK → bookings (N:1)
+        ComboPackage comboPackage : FK → combo_packages
+        String guestName : NOT NULL
+        String guestEmail : NOT NULL
+        String guestPhone
+        LocalDate bookingDate : NOT NULL
+        Integer guestCount : DEFAULT 1
+        Integer nights : DEFAULT 1
+        BigDecimal totalAmount : NOT NULL
+        String paymentStatus : DEFAULT 'PENDING'
+        String paymentMethod
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+}
+
+package "promotion" {
+
+    class BookingPromotion {
+        Long id : PK
+        Booking booking : FK → bookings
+        Promotion promotion : FK → promotions
+        BigDecimal discountAmount : NOT NULL
+    }
+
+    class Promotion {
+        Long id : PK
+        String code : UNIQUE
+        String nameVi
+        BigDecimal discountValue
+        DiscountType discountType : PERCENT | AMOUNT
+        LocalDateTime startDate
+        LocalDateTime endDate
+        Boolean isActive
+    }
+
+    enum DiscountType {
+        PERCENT
+        AMOUNT
+    }
+}
+
+' RELATIONSHIPS
+Booking "1" o-- "1" BookingHotelDetail : hotel booking >
+Booking "1" o-- "1" BookingTourDetail : tour booking >
+Booking "1" o-- "N" BookingCombo : combo items >
+Booking "1" o-- "N" BookingPromotion : applied promos >
+
+BookingPromotion "N" --> "1" Promotion : uses >
+BookingHotelDetail "N" --> "1" Hotel : at hotel >
+BookingHotelDetail "N" --> "1" RoomType : room type >
+BookingTourDetail "N" --> "1" Tour : for tour >
+BookingTourDetail "N" --> "1" TourDeparture : departure >
+BookingCombo "N" --> "1" ComboPackage : combo >
+Booking "N" --> "1" User : placed by >
+@enduml

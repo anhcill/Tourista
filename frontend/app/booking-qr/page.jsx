@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FaArrowLeft, FaCheckCircle, FaHotel, FaQrcode } from 'react-icons/fa';
 import styles from './page.module.css';
 
+const formatMoney = (value) => new Intl.NumberFormat('vi-VN').format(Number(value || 0));
+
 const decodeQrData = (raw) => {
   if (!raw) return null;
 
@@ -52,11 +54,11 @@ function BookingQrInner() {
 
         <div className={styles.grid}>
           <div className={styles.item}>
-            <span>Khách sạn</span>
-            <strong><FaHotel /> {data.hotelName || '-'}</strong>
+            <span>{data.bookingType === 'TOUR' ? 'Tour' : 'Khách sạn'}</span>
+            <strong>{data.hotelName || '-'}</strong>
           </div>
           <div className={styles.item}>
-            <span>Loại phòng</span>
+            <span>{data.bookingType === 'TOUR' ? 'Thông tin tour' : 'Loại phòng'}</span>
             <strong>{data.roomTypeName || '-'}</strong>
           </div>
           <div className={styles.item}>
@@ -77,7 +79,7 @@ function BookingQrInner() {
           </div>
           <div className={styles.item}>
             <span>Tổng tiền</span>
-            <strong>{data.totalAmount || '-'}</strong>
+            <strong>{formatMoney(data.totalAmount)} VND</strong>
           </div>
           <div className={styles.item}>
             <span>Trạng thái</span>
