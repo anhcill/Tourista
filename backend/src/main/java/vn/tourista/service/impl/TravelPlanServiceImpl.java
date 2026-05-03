@@ -82,6 +82,12 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         }
 
         log.info("TravelPlanService: Generated plan for destination={}, days={}", request.getDestination(), totalDays);
+
+        // Debug: log AI results
+        log.info("TravelPlanService: rewrittenProse={}, aiSuggestions count={}",
+                plan.getRewrittenProse() != null ? "present" : "null/empty",
+                plan.getAiSuggestions() != null ? plan.getAiSuggestions().size() : 0);
+
         return plan;
     }
 

@@ -148,7 +148,8 @@ const BotChatBox = () => {
 
     // Initialize BOT conversation via REST, then subscribe to WebSocket
     useEffect(() => {
-        if (initializedRef.current || !user) return;
+        // Skip if already initialized, unless bot was closed and reopened (remount)
+        if (initializedRef.current && conversationId) return;
         initializedRef.current = true;
 
         const init = async () => {
