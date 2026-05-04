@@ -130,7 +130,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     boolean existsBySlug(String slug);
 
     @Query(value = """
-        SELECT MIN(rt.base_price) FROM room_types rt
+        SELECT MIN(rt.base_price_per_night) FROM room_types rt
         WHERE rt.hotel_id = :hotelId
         """, nativeQuery = true)
     BigDecimal findMinBasePriceByHotelId(@Param("hotelId") Long hotelId);
