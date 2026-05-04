@@ -290,8 +290,10 @@ public class AiService {
         sb.append("YÊU CẦU:\n");
         sb.append("- Trả lời tự nhiên, thân thiện, như đang chat với bạn bè\n");
         sb.append("- Dùng emoji phù hợp (VD: 🏖️ cho biển, 🏨 cho khách sạn, 🍜 cho ẩm thực)\n");
-        sb.append("- Nếu có dữ liệu tour/hotel: đề cập tên cụ thể, giá, rating nếu có\n");
-        sb.append("- Nếu không có dữ liệu: trả lời dựa trên kiến thức chung\n");
+        sb.append("- Nếu có dữ liệu tour: đề cập tên cụ thể, giá, rating nếu có\n");
+        sb.append("- Nếu có dữ liệu khách sạn: gợi ý cụ thể tên khách sạn, số sao, giá phòng tối thiểu\n");
+        sb.append("- Nếu trong DB context có khách sạn tại một địa điểm nào đó, LUÔN gợi ý khách sạn kèm theo (VD: 'Tại Đà Nẵng có khách sạn X 4★ từ Y VNĐ/đêm, rất gần biển')\n");
+        sb.append("- Nếu user hỏi về địa điểm du lịch: trả lời kèm gợi ý khách sạn tại địa điểm đó (nếu có trong DB)\n");
         sb.append("- Trả lời ngắn gọn (dưới 300 từ), không cần quá dài\n");
         sb.append("- KHÔNG bịa thông tin (giá, tên, địa chỉ) nếu không có trong dữ liệu\n");
         sb.append("- Nếu user hỏi về booking: hướng dẫn gửi mã TRS-YYYYMMDD-XXXXXX để tra cứu\n");

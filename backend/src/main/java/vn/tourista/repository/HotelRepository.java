@@ -132,4 +132,61 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
         WHERE rt.hotel_id = :hotelId
         """, nativeQuery = true)
     BigDecimal findMinBasePriceByHotelId(@Param("hotelId") Long hotelId);
+
+    /**
+     * Tim khu khach san noi bat theo thanh pho/tinh.
+     * Dung de AI chatbot goi y khach san khi user hoi ve dia diem du lich.
+     */
+    @Query(value = """
+            SELECT
+                h.id,
+                h.name,
+                h.star_rating,
+                COALESCE(c.name_vi, c.name_en) AS city_name,
+                h.avg_rating,
+                h.review_count,
+                (SELECT MIN(rt.base_price_per_night)
+                 FROM room_types rt
+                 WHERE rt.hotel_id = h.id
+                   AND rt.is_active = TRUE
+                   AND rt.base_price_per_night > 0
+                 LIMIT 1) AS min_price
+            FROM hotels h
+            LEFT JOIN cities c ON c.id = h.city_id
+            WHERE h.is_active = TRUE
+              AND c.name_en = :cityEn
+            ORDER BY h.avg_rating DESC, h.review_count DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> findPopularHotelsByCityEn(
+            @Param("cityEn") String cityEn,
+            @Param("limit") int limit);
+
+    @Query(value = """
+            SELECT
+                h.id,
+                h.name,
+                h.star_rating,
+                COALESCE(c.name_vi, c.name_en) AS city_name,
+                h.avg_rating,
+                h.review_count,
+                (SELECT MIN(rt.base_price_per_night)
+                 FROM room_types rt
+                 WHERE rt.hotel_id = h.id
+                   AND rt.is_active = TRUE
+                   AND rt.base_price_per_night > 0
+                 LIMIT 1) AS min_price
+            FROM hotels h
+            LEFT JOIN cities c ON c.id = h.city_id
+            WHERE h.is_active = TRUE
+              AND (
+                  LOWER(c.name_vi) = LOWER(:cityName)
+                  OR LOWER(c.name_en) = LOWER(:cityName)
+              )
+            ORDER BY h.avg_rating DESC, h.review_count DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> findPopularHotelsByCityName(
+            @Param("cityName") String cityName,
+            @Param("limit") int limit);
 }

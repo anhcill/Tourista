@@ -1066,24 +1066,42 @@ public class BotService {
             }
         }
 
-        // Hotels (nếu user hỏi về khách sạn)
-        if (containsAny(canonical, List.of("khach san", "hotel", "noi that", "nghi duong", "住宿"))) {
+        // Hotels (nếu user hỏi về khách sạn HOẶC đã detect city)
+        CityAlias detectedCity = parseCityAlias(canonical);
+        boolean asksAboutHotel = containsAny(canonical, List.of("khach san", "hotel", "noi that", "nghi duong", "住宿", "cho o", "noi nghi"));
+        boolean asksAboutPlace = containsAny(canonical, List.of("di dau", "den dau", "o dau", "nghi o dau", "dia diem", "diem den"));
+        boolean hasCity = detectedCity != null || parseMaxDurationDays(inputText) != null;
+
+        if (asksAboutHotel || asksAboutPlace || hasCity) {
             try {
-                List<Long> hotelIds = hotelRepository.findActiveHotelIds(PageRequest.of(0, 5));
-                if (hotelIds != null && !hotelIds.isEmpty()) {
-                    List<Hotel> hotels = hotelRepository.findAllById(hotelIds);
-                    ctx.append("Khách sạn đang hoạt động: ");
-                    for (int i = 0; i < hotels.size(); i++) {
-                        Hotel h = hotels.get(i);
+                List<Object[]> hotelRows;
+                if (detectedCity != null) {
+                    hotelRows = hotelRepository.findPopularHotelsByCityEn(detectedCity.queryValue(), 3);
+                } else {
+                    hotelRows = List.of();
+                }
+
+                if (hotelRows != null && !hotelRows.isEmpty()) {
+                    ctx.append("Khách sạn nổi bật ");
+                    if (detectedCity != null) {
+                        ctx.append("tại ").append(detectedCity.displayValue()).append(": ");
+                    } else {
+                        ctx.append(": ");
+                    }
+                    for (int i = 0; i < hotelRows.size(); i++) {
+                        Object[] row = hotelRows.get(i);
                         if (i > 0) ctx.append("; ");
-                        ctx.append("- \"").append(h.getName()).append("\"")
-                                .append(" (").append(h.getStarRating()).append("★)")
-                                .append(" tại ").append(h.getAddress() != null ? h.getAddress() : h.getCity().getNameVi());
-                        if (h.getAvgRating() != null && h.getAvgRating().compareTo(BigDecimal.ZERO) > 0) {
-                            ctx.append(", rating ").append(h.getAvgRating()).append("★");
+                        ctx.append("- \"").append(row[1] != null ? row[1] : "")
+                                .append("\" (").append(row[2] != null ? row[2] : "").append("★)")
+                                .append(", rating ").append(row[4] != null ? row[4] : "N/A").append("★");
+                        if (row[6] != null) {
+                            long price = ((Number) row[6]).longValue();
+                            ctx.append(", từ ").append(formatVnd(price)).append("/đêm");
                         }
                     }
                     ctx.append(".\n");
+                } else if (asksAboutHotel) {
+                    ctx.append("Hiện chưa có khách sạn nào trong hệ thống cho khu vực này.\n");
                 }
             } catch (Exception e) {
                 log.debug("Could not load hotels for chatbot: {}", e.getMessage());

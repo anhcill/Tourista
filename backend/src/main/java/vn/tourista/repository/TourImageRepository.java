@@ -21,7 +21,7 @@ public interface TourImageRepository extends JpaRepository<TourImage, Long> {
                 (SELECT ti.url
                  FROM tour_images ti
                  WHERE ti.tour_id = :tourId
-                 ORDER BY ti.is_primary DESC, ti.sort_order ASC, ti.id ASC
+                 ORDER BY ti.is_cover DESC, ti.sort_order ASC, ti.id ASC
                  LIMIT 1)
             )
             """, nativeQuery = true)
@@ -38,7 +38,7 @@ public interface TourImageRepository extends JpaRepository<TourImage, Long> {
                 (SELECT ti3.url
                  FROM tour_images ti3
                  WHERE ti3.tour_id = ti.tour_id
-                 ORDER BY ti3.is_primary DESC, ti3.sort_order ASC, ti3.id ASC
+                 ORDER BY ti3.is_cover DESC, ti3.sort_order ASC, ti3.id ASC
                  LIMIT 1)
             ) AS cover_url
             FROM tour_images ti

@@ -84,13 +84,13 @@ public interface CityRepository extends JpaRepository<City, Integer> {
                 COALESCE(
                     c.cover_image,
                     (
-                        SELECT hi.image_url
+                        SELECT hi.url
                         FROM hotels h3
                         LEFT JOIN hotel_images hi ON hi.hotel_id = h3.id
                         WHERE h3.city_id = c.id
                           AND h3.is_active = TRUE
                         ORDER BY h3.avg_rating DESC, h3.review_count DESC,
-                                 hi.is_primary DESC, hi.id ASC
+                                 hi.is_cover DESC, hi.sort_order ASC, hi.id ASC
                         LIMIT 1
                     )
                 ) AS cover_image
