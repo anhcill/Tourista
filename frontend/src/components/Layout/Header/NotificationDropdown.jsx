@@ -35,10 +35,15 @@ const MOCK_NOTIFICATIONS = [
 
 export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
-    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+    // Start with [] to avoid SSR/hydration mismatch; populate on client only
+    const [notifications, setNotifications] = useState([]);
     const dropdownRef = useRef(null);
 
     const unreadCount = notifications.filter(n => n.unread).length;
+
+    useEffect(() => {
+        setNotifications(MOCK_NOTIFICATIONS);
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
