@@ -86,6 +86,10 @@ public class ReviewServiceImpl implements ReviewService {
 
         ensureTargetExists(targetType, targetId);
 
+        if (reviewRepository.existsByUserIdAndTargetTypeAndTargetId(user.getId(), targetType, targetId)) {
+            throw new IllegalArgumentException("Ban da danh gia dich vu nay roi");
+        }
+
         String comment = normalizeText(request.getComment());
         List<String> mediaUrls = sanitizeMediaUrls(request.getMediaUrls());
 
@@ -311,8 +315,11 @@ public class ReviewServiceImpl implements ReviewService {
         if (user == null) {
             return false;
         }
+        if (reviewRepository.existsByUserIdAndTargetTypeAndTargetId(user.getId(), Review.TargetType.HOTEL, hotelId)) {
+            return false;
+        }
         List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
-                List.of(Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+                List.of(Booking.BookingStatus.PENDING, Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
         for (Booking booking : bookings) {
             if (booking.getBookingType() != Booking.BookingType.HOTEL) {
                 continue;
@@ -335,8 +342,11 @@ public class ReviewServiceImpl implements ReviewService {
         if (user == null) {
             return false;
         }
+        if (reviewRepository.existsByUserIdAndTargetTypeAndTargetId(user.getId(), Review.TargetType.TOUR, tourId)) {
+            return false;
+        }
         List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
-                List.of(Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+                List.of(Booking.BookingStatus.PENDING, Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
         for (Booking booking : bookings) {
             if (booking.getBookingType() != Booking.BookingType.TOUR) {
                 continue;

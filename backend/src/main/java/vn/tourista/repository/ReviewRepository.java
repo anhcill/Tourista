@@ -243,4 +243,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             Pageable pageable);
 
     List<Review> findByTargetTypeAndTargetIdIn(Review.TargetType targetType, List<Long> targetIds);
+
+    boolean existsByUserIdAndTargetTypeAndTargetId(Long userId, Review.TargetType targetType, Long targetId);
 }
