@@ -16,6 +16,7 @@ import vn.tourista.repository.HotelRepository;
 import vn.tourista.repository.ReviewRepository;
 import vn.tourista.repository.RoomTypeRepository;
 import vn.tourista.service.HotelService;
+import vn.tourista.util.VietnameseNormalizer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,15 +56,19 @@ public class HotelServiceImpl implements HotelService {
                 int page = request.getPage() != null && request.getPage() >= 0 ? request.getPage() : 0;
                 int pageSize = request.getPageSize() != null && request.getPageSize() > 0 ? Math.min(request.getPageSize(), 50) : 8;
 
+                // Normalize query: remove diacritics + lowercase để search mờ (không dấu, quận/huyện)
+                String rawCity = request.getCity() != null ? request.getCity().trim() : "";
+                String normalizedQuery = VietnameseNormalizer.normalize(rawCity);
+
                 long total = hotelRepository.countSearchAvailableHotels(
-                                request.getCity(),
+                                normalizedQuery,
                                 request.getCheckIn(),
                                 request.getCheckOut(),
                                 request.getAdults(),
                                 request.getRooms());
 
                 List<Long> hotelIds = hotelRepository.searchAvailableHotelIdsPaged(
-                                request.getCity(),
+                                normalizedQuery,
                                 request.getCheckIn(),
                                 request.getCheckOut(),
                                 request.getAdults(),

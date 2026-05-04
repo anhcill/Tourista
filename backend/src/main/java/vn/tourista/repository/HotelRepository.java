@@ -53,10 +53,11 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     @Query(value = "SELECT h.id FROM hotels h " +
             "LEFT JOIN cities c ON c.id = h.city_id " +
             "WHERE h.is_active = true " +
-            "AND (:city IS NULL OR " +
+            "AND (:city IS NULL OR :city = '' OR " +
             "  LOWER(h.name) LIKE CONCAT('%', LOWER(:city), '%') OR " +
             "  LOWER(c.name_vi) LIKE CONCAT('%', LOWER(:city), '%') OR " +
-            "  LOWER(c.name_en) LIKE CONCAT('%', LOWER(:city), '%'))",
+            "  LOWER(c.name_en) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(h.address) LIKE CONCAT('%', LOWER(:city), '%'))",
             nativeQuery = true)
     List<Long> searchAvailableHotelIdsPaged(
             @Param("city") String city,
@@ -69,10 +70,11 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     @Query(value = "SELECT COUNT(h.id) FROM hotels h " +
             "LEFT JOIN cities c ON c.id = h.city_id " +
             "WHERE h.is_active = true " +
-            "AND (:city IS NULL OR " +
+            "AND (:city IS NULL OR :city = '' OR " +
             "  LOWER(h.name) LIKE CONCAT('%', LOWER(:city), '%') OR " +
             "  LOWER(c.name_vi) LIKE CONCAT('%', LOWER(:city), '%') OR " +
-            "  LOWER(c.name_en) LIKE CONCAT('%', LOWER(:city), '%'))",
+            "  LOWER(c.name_en) LIKE CONCAT('%', LOWER(:city), '%') OR " +
+            "  LOWER(h.address) LIKE CONCAT('%', LOWER(:city), '%'))",
             nativeQuery = true)
     long countSearchAvailableHotels(
             @Param("city") String city,
