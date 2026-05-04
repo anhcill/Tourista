@@ -25,8 +25,8 @@ public interface TourDepartureRepository extends JpaRepository<TourDeparture, Lo
      * Lock departure row FOR UPDATE to prevent race conditions.
      * Call this before decrementAvailableSlots to ensure atomic slot reservation.
      */
-    @Query(value = "SELECT * FROM tour_departures WHERE id = :departureId FOR UPDATE", nativeQuery = true)
-    void lockDepartureForUpdate(@Param("departureId") Long departureId);
+    @Query(value = "SELECT 1 FROM tour_departures WHERE id = :departureId FOR UPDATE", nativeQuery = true)
+    Object lockDepartureForUpdate(@Param("departureId") Long departureId);
 
     @Modifying
     @Query(value = """
