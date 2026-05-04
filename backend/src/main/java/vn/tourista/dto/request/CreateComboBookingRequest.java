@@ -42,6 +42,8 @@ public class CreateComboBookingRequest {
 
     private String note;
 
+    private String bankCode;
+
     @NotBlank(message = "Phuong thuc thanh toan la bat buoc")
     private String paymentMethod; // VNPAY | MOMO | ZALOPAY | COD
 }

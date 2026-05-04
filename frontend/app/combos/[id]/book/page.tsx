@@ -48,6 +48,21 @@ import styles from './page.module.css';
 
 const formatVnd = (v: unknown) => new Intl.NumberFormat('vi-VN').format(Number(v || 0));
 
+const VNPAY_BANKS = [
+  { code: '', label: 'Chọn ngân hàng thanh toán' },
+  { code: 'VNBANK', label: 'Ngân hàng Ngoại thương (Vietcombank)' },
+  { code: 'ICBVN', label: 'Ngân hàng Công thương (VietinBank)' },
+  { code: 'BIDV', label: 'Ngân hàng Đầu tư và Phát triển (BIDV)' },
+  { code: 'AGRIBANK', label: 'Ngân hàng Nông nghiệp (Agribank)' },
+  { code: 'ACB', label: 'Ngân hàng Á Châu (ACB)' },
+  { code: 'TECHCOMBANK', label: 'Ngân hàng Kỹ thương (Techcombank)' },
+  { code: 'MB', label: 'Ngân hàng Quân đội (MB Bank)' },
+  { code: 'VIB', label: 'Ngân hàng Quốc tế (VIB)' },
+  { code: 'TPBANK', label: 'Ngân hàng Tiên Phong (TPBank)' },
+  { code: 'VISA', label: 'Thẻ Visa / Mastercard (Qua VNPay)' },
+  { code: 'INTELLIGENT', label: 'Thanh toán thông minh (VNPay)' },
+];
+
 const PAYMENT_METHODS = [
   {
     id: 'VNPAY',
@@ -90,6 +105,7 @@ export default function ComboBookPage() {
     guestCount: string;
     nights: string;
     paymentMethod: string;
+    bankCode: string;
     note: string;
   };
 
@@ -103,6 +119,7 @@ export default function ComboBookPage() {
     guestCount: '1',
     nights: '1',
     paymentMethod: 'VNPAY',
+    bankCode: '',
     note: '',
   });
   const [errors, setErrors] = useState<ErrorsType>({});
@@ -166,6 +183,7 @@ export default function ComboBookPage() {
         nights: Number(form.nights) || 1,
         note: form.note.trim(),
         paymentMethod: form.paymentMethod,
+        ...(form.paymentMethod === 'VNPAY' && form.bankCode && { bankCode: form.bankCode }),
       };
 
       const data = await comboApi.bookCombo(payload);
@@ -399,6 +417,21 @@ export default function ComboBookPage() {
                   </label>
                 ))}
               </div>
+              {form.paymentMethod === 'VNPAY' && (
+                <div style={{ marginTop: '1rem' }}>
+                  <label className={`${styles.field} ${styles.fieldFull}`}>
+                    <span>Chọn ngân hàng / phương thức thanh toán</span>
+                    <select
+                      value={form.bankCode}
+                      onChange={(e) => setForm((f) => ({ ...f, bankCode: e.target.value }))}
+                    >
+                      {VNPAY_BANKS.map((bank) => (
+                        <option key={bank.code} value={bank.code}>{bank.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
               {errors.paymentMethod && <small className={styles.fieldError}>{errors.paymentMethod}</small>}
 
               <button

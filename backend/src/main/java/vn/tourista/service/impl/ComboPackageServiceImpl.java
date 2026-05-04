@@ -159,6 +159,8 @@ public class ComboPackageServiceImpl implements ComboPackageService {
                 CreateVnpayPaymentRequest vnpayRequest = CreateVnpayPaymentRequest.builder()
                         .bookingId(booking.getId())
                         .bookingCode("COMBO_" + booking.getBookingCode())
+                        .bankCode(request.getBankCode())
+                        .returnUrl("https://tourista-nine.vercel.app/payments/vnpay/return")
                         .build();
                 CreateVnpayPaymentResponse vnpayResponse = vnpayService.createPaymentUrl(
                         booking.getGuestEmail(),

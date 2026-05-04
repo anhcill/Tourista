@@ -20,6 +20,28 @@ import styles from './page.module.css';
 
 const formatVnd = (value) => new Intl.NumberFormat('vi-VN').format(Number(value || 0));
 
+const VNPAY_BANKS = [
+  { code: '', label: 'Chọn ngân hàng thanh toán' },
+  { code: 'VNBANK', label: 'Ngân hàng Ngoại thương (Vietcombank)' },
+  { code: 'ICBVN', label: 'Ngân hàng Công thương (VietinBank)' },
+  { code: 'BIDV', label: 'Ngân hàng Đầu tư và Phát triển (BIDV)' },
+  { code: 'AGRIBANK', label: 'Ngân hàng Nông nghiệp (Agribank)' },
+  { code: 'ACB', label: 'Ngân hàng Á Châu (ACB)' },
+  { code: 'TECHCOMBANK', label: 'Ngân hàng Kỹ thương (Techcombank)' },
+  { code: 'MB', label: 'Ngân hàng Quân đội (MB Bank)' },
+  { code: 'VIB', label: 'Ngân hàng Quốc tế (VIB)' },
+  { code: 'TPBANK', label: 'Ngân hàng Tiên Phong (TPBank)' },
+  { code: 'OCB', label: 'Ngân hàng Phương Đông (OCB)' },
+  { code: 'SHINHANBANK', label: 'Ngân hàng Shinhan' },
+  { code: 'VIETCAPITALBANK', label: 'Ngân hàng Bản Việt (VietCapital)' },
+  { code: 'NCB', label: 'Ngân hàng Quốc Dân (NCB)' },
+  { code: 'HDBANK', label: 'Ngân hàng HD Bank' },
+  { code: 'BACABANK', label: 'Ngân hàng BACA' },
+  { code: 'NAMABANK', label: 'Ngân hàng Nam Á (NamA Bank)' },
+  { code: 'VISA', label: 'Thẻ Visa / Mastercard (Qua VNPay)' },
+  { code: 'INTELLIGENT', label: 'Thanh toán thông minh (VNPay)' },
+];
+
 const PAYMENT_METHODS = [
   {
     id: 'vnpay',
@@ -96,6 +118,7 @@ function HotelBookingInner() {
     cardCvc: '',
     closeRooms: false,
     paymentMethod: 'vnpay',
+    bankCode: '',
     needInvoice: false,
     invoiceCompany: '',
     invoiceTaxCode: '',
@@ -291,6 +314,7 @@ function HotelBookingInner() {
         const vnpayRes = await bookingApi.createVnpayPayment({
           bookingCode: booking.bookingCode,
           returnUrl: `${window.location.origin}/payments/vnpay/return`,
+          ...(formState.bankCode && { bankCode: formState.bankCode }),
         });
         const paymentUrl = vnpayRes?.data?.paymentUrl;
 
@@ -489,6 +513,32 @@ function HotelBookingInner() {
                 );
               })}
             </div>
+
+            {formState.paymentMethod === 'vnpay' && (
+              <div style={{ marginTop: '1rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.4rem', display: 'block' }}>
+                  Chọn ngân hàng / phương thức thanh toán
+                </label>
+                <select
+                  value={formState.bankCode}
+                  onChange={(e) => onFieldChange('bankCode', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.8rem',
+                    borderRadius: '6px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.9rem',
+                    backgroundColor: '#fff',
+                  }}
+                >
+                  {VNPAY_BANKS.map((bank) => (
+                    <option key={bank.code} value={bank.code}>
+                      {bank.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className={styles.noticeBox}>
               Số tiền thanh toán ngay theo phương thức đã chọn:
