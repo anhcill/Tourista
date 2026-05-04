@@ -437,7 +437,7 @@ export default function AITravelPlannerPage() {
                                     <button className={styles.actionBtnPrimary} onClick={() => router.push(`/tours/search?destination=${encodeURIComponent(plan.destination || '')}`)}>
                                         <FaChevronRight /> Tìm tour phù hợp
                                     </button>
-                                    <button className={styles.actionBtnSecondary} onClick={() => router.push(`/hotels/search?city=${encodeURIComponent(plan.destination || '')}`)}>
+                                    <button className={styles.actionBtnSecondary} onClick={() => router.push(`/hotels/search?destination=${encodeURIComponent(plan.destination || '')}`)}>
                                         <FaBed /> Tìm khách sạn
                                     </button>
                                 </div>

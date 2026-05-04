@@ -8,6 +8,7 @@ import vn.tourista.dto.request.TravelPlanRequest;
 import vn.tourista.dto.response.TravelPlanResponse;
 import vn.tourista.service.AiService;
 import vn.tourista.service.TravelPlanService;
+import vn.tourista.util.DestinationParser;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -199,6 +200,8 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                     if (aiPlan.getDestination() == null || aiPlan.getDestination().isBlank()) {
                         aiPlan.setDestination(destination);
                     }
+                    // Luôn ghi đè destination = city name (last segment) để search khách sạn đúng
+                    aiPlan.setDestination(DestinationParser.extractCity(destination));
                     log.info("TravelPlanService: AI generated plan with {} days for unknown destination '{}'",
                             aiPlan.getDayPlans().size(), destination);
                     return aiPlan;
@@ -259,8 +262,9 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                 .mapToInt(a -> a.getEstimatedCost() != null ? a.getEstimatedCost() : 0)
                 .sum();
 
+        String normalizedCity = DestinationParser.extractCity(destination);
         return TravelPlanResponse.builder()
-                .destination(destination)
+                .destination(normalizedCity)
                 .tripDuration(formatDuration(totalDays))
                 .totalDays((int) totalDays)
                 .totalBudget(totalBudget)
@@ -340,8 +344,9 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                 .mapToInt(a -> a.getEstimatedCost() != null ? a.getEstimatedCost() : 0)
                 .sum();
 
+        String normalizedCity = DestinationParser.extractCity(destination);
         return TravelPlanResponse.builder()
-                .destination(destination)
+                .destination(normalizedCity)
                 .tripDuration(formatDuration(totalDays))
                 .totalDays((int) totalDays)
                 .totalBudget(totalBudget)
