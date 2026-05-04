@@ -68,7 +68,7 @@ public class HomeController {
         List<Object[]> cityRows = cityRepository.findTrendingCities(safeLimit);
         List<TrendingCityResponse> trendingCities = cityRows.stream()
                 .map(row -> {
-                    Double topHotelRating = toDouble(row[8]);
+                    Double topHotelRating = toDouble(row[6]);
                     return TrendingCityResponse.builder()
                             .id(toLong(row[0]))
                             .nameVi(toString(row[1]))
@@ -81,7 +81,7 @@ public class HomeController {
                             .avgRating(topHotelRating)
                             .topHotelName(toString(row[7]))
                             .topHotelRating(topHotelRating)
-                            .coverImage(toString(row[9]))
+                            .coverImage(toString(row[8]))
                             .build();
                 })
                 .toList();

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.tourista.dto.request.CreateConversationRequest;
@@ -29,6 +30,7 @@ public class ChatService {
         private final ChatMessageRepository chatMessageRepository;
         private final UserRepository userRepository;
         private final BookingRepository bookingRepository;
+        private final SimpMessagingTemplate messagingTemplate;
 
         // =====================================================================
         // CONVERSATION
@@ -77,10 +79,7 @@ public class ChatService {
                                                 .client(client)
                                                 .build();
                                 Conversation saved = conversationRepository.save(c);
-                                // Thêm tin nhắn chào mừng hệ thống (không dùng emoji để tránh lỗi charset DB
-                                // cũ)
-                                insertSystemMessage(saved, "Xin chao " + client.getFullName()
-                                                + "! Toi la tro ly Tourista Studio. Go ma dat cho (VD: TRS-20260325-934D6D) de tra cuu lich trinh, hoac hoi toi bat cu dieu gi.");
+                                saveAndPushBotGreeting(saved, client.getFullName());
                                 existing = saved;
                         }
 
@@ -251,7 +250,31 @@ public class ChatService {
                                 .content(text)
                                 .isRead(true)
                                 .build();
-                chatMessageRepository.save(sys);
+                ChatMessage saved = chatMessageRepository.save(sys);
+
+                String email = conv.getClient() != null ? conv.getClient().getEmail()
+                                : conv.getPartner() != null ? conv.getPartner().getEmail() : null;
+                if (email != null) {
+                        messagingTemplate.convertAndSendToUser(
+                                        email, "/queue/messages", ChatMessageResponse.from(saved));
+                }
+        }
+
+        private void saveAndPushBotGreeting(Conversation conv, String clientName) {
+                String greeting = "Xin chao " + clientName
+                                + "! Toi la tro ly Tourista Studio. Go ma dat cho (VD: TRS-20260325-934D6D) de tra cuu lich trinh, hoac hoi toi bat cu dieu gi.";
+                ChatMessage saved = chatMessageRepository.save(ChatMessage.builder()
+                                .conversation(conv)
+                                .sender(null)
+                                .contentType(ChatMessage.ContentType.TEXT)
+                                .content(greeting)
+                                .isRead(false)
+                                .build());
+
+                if (conv.getClient() != null) {
+                        messagingTemplate.convertAndSendToUser(
+                                        conv.getClient().getEmail(), "/queue/messages", ChatMessageResponse.from(saved));
+                }
         }
 
         private ConversationResponse toResponse(Conversation conv, boolean viewingAsClient, User me) {

@@ -1,5 +1,7 @@
 package vn.tourista.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -8,17 +10,21 @@ import vn.tourista.dto.request.CreateVnpayPaymentRequest;
 import vn.tourista.dto.response.CreateVnpayPaymentResponse;
 import vn.tourista.dto.response.VnpayReturnResponse;
 import vn.tourista.entity.Booking;
+import vn.tourista.entity.AuditLog;
 import vn.tourista.entity.BookingHotelDetail;
 import vn.tourista.entity.BookingTourDetail;
 import vn.tourista.entity.BookingPromotion;
+import vn.tourista.entity.Payment;
 import vn.tourista.entity.Promotion;
 import vn.tourista.repository.BookingHotelDetailRepository;
 import vn.tourista.repository.BookingPromotionRepository;
 import vn.tourista.repository.BookingRepository;
 import vn.tourista.repository.BookingTourDetailRepository;
+import vn.tourista.repository.PaymentRepository;
 import vn.tourista.repository.PromotionRepository;
 import vn.tourista.repository.RoomTypeRepository;
 import vn.tourista.repository.TourDepartureRepository;
+import vn.tourista.repository.AuditLogRepository;
 import vn.tourista.service.BrevoEmailService;
 import vn.tourista.service.VnpayService;
 
@@ -35,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @Transactional
@@ -56,7 +64,12 @@ public class VnpayServiceImpl implements VnpayService {
     private final RoomTypeRepository roomTypeRepository;
     private final BookingPromotionRepository bookingPromotionRepository;
     private final PromotionRepository promotionRepository;
+    private final PaymentRepository paymentRepository;
+    private final AuditLogRepository auditLogRepository;
     private final BrevoEmailService emailService;
+
+    private static final Logger log = LoggerFactory.getLogger(VnpayServiceImpl.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.vnpay.tmn-code:}")
     private String tmnCode;
@@ -83,6 +96,8 @@ public class VnpayServiceImpl implements VnpayService {
             RoomTypeRepository roomTypeRepository,
             BookingPromotionRepository bookingPromotionRepository,
             PromotionRepository promotionRepository,
+            PaymentRepository paymentRepository,
+            AuditLogRepository auditLogRepository,
             BrevoEmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.bookingHotelDetailRepository = bookingHotelDetailRepository;
@@ -91,6 +106,8 @@ public class VnpayServiceImpl implements VnpayService {
         this.roomTypeRepository = roomTypeRepository;
         this.bookingPromotionRepository = bookingPromotionRepository;
         this.promotionRepository = promotionRepository;
+        this.paymentRepository = paymentRepository;
+        this.auditLogRepository = auditLogRepository;
         this.emailService = emailService;
     }
 
@@ -189,7 +206,21 @@ public class VnpayServiceImpl implements VnpayService {
             booking.setConfirmedAt(LocalDateTime.now());
             bookingRepository.save(booking);
 
-            // Gửi email xác nhận thanh toán thành công
+            Payment payment = Payment.builder()
+                    .booking(booking)
+                    .amount(booking.getTotalAmount())
+                    .status(Payment.PaymentStatus.SUCCESS)
+                    .transactionId(vnpParams.getOrDefault("vnp_TransactionNo", null))
+                    .paymentMethod("VNPAY")
+                    .bankCode(vnpParams.getOrDefault("vnp_BankCode", null))
+                    .cardType(vnpParams.getOrDefault("vnp_CardType", null))
+                    .paidAt(LocalDateTime.now())
+                    .build();
+            Payment savedPayment = paymentRepository.save(payment);
+
+            savePaymentAudit(booking, payment, "PAYMENT_SUCCESS",
+                    "Thanh toan VNPay thanh cong, ma giao dich: " + vnpParams.getOrDefault("vnp_TransactionNo", "N/A"));
+
             String transactionNo = vnpParams.getOrDefault("vnp_TransactionNo", "N/A");
             sendBookingConfirmationEmail(booking, "VNPAY", transactionNo);
             return response("00", "Confirm Success");
@@ -265,6 +296,20 @@ public class VnpayServiceImpl implements VnpayService {
                 booking.setStatus(Booking.BookingStatus.CONFIRMED);
                 booking.setConfirmedAt(LocalDateTime.now());
                 bookingRepository.save(booking);
+
+                Payment payment = Payment.builder()
+                        .booking(booking)
+                        .amount(booking.getTotalAmount())
+                        .status(Payment.PaymentStatus.SUCCESS)
+                        .transactionId(!transactionNo.isBlank() ? transactionNo : null)
+                        .paymentMethod("VNPAY")
+                        .paidAt(LocalDateTime.now())
+                        .build();
+                Payment savedPayment = paymentRepository.save(payment);
+
+                savePaymentAudit(booking, payment, "PAYMENT_SUCCESS",
+                        "Thanh toan VNPay thanh cong qua return URL, ma giao dich: "
+                                + (!transactionNo.isBlank() ? transactionNo : "N/A"));
             }
         }
 
@@ -461,6 +506,35 @@ public class VnpayServiceImpl implements VnpayService {
                     transactionNo != null ? transactionNo : "N/A");
         } catch (Exception e) {
             // Log lỗi nhưng không throw — email thất bại không được phép break payment flow
+        }
+    }
+
+    private void savePaymentAudit(Booking booking, Payment payment, String action, String reason) {
+        try {
+            AuditLog auditLog = AuditLog.builder()
+                    .actorEmail(booking.getGuestEmail())
+                    .action(action)
+                    .resourceType("PAYMENTS")
+                    .resourceId(payment.getId())
+                    .oldValue(null)
+                    .newValue(toJson(payment))
+                    .reason(reason)
+                    .build();
+            auditLogRepository.save(auditLog);
+        } catch (Exception e) {
+            log.warn("Khong the ghi audit log cho payment: {}", e.getMessage());
+        }
+    }
+
+    private String toJson(Object payload) {
+        if (payload == null) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            log.warn("Khong the serialize payment payload: {}", e.getMessage());
+            return null;
         }
     }
 }

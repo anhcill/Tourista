@@ -10,6 +10,8 @@ const DIFFICULTY_MAP = {
   HARD: { label: 'Thử thách', color: null },
 };
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80';
+
 export default function TourCard({ tour, onClick = null }) {
   const router = useRouter();
 
@@ -28,6 +30,8 @@ export default function TourCard({ tour, onClick = null }) {
     nearestDepartureDate = '',
     availableSlots = 0,
   } = tour || {};
+
+  const displayImage = image && image.trim() ? image : FALLBACK_IMAGE;
 
   const formatVnd = (value) =>
     Number(value || 0).toLocaleString('vi-VN') + ' đ';
@@ -54,14 +58,8 @@ export default function TourCard({ tour, onClick = null }) {
     >
       {/* ── IMAGE ─────────────────────────────── */}
       <div className={styles.imagePart}>
-        {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt={title} className={styles.tourImage} />
-        ) : (
-          <div className={styles.imagePlaceholder}>
-            <span>🧭</span>
-          </div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={displayImage} alt={title} className={styles.tourImage} />
 
         {availableSlots > 0 && availableSlots <= 5 && (
           <div className={styles.urgencyBadge}>Còn {availableSlots} chỗ!</div>

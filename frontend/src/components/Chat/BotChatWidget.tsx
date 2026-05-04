@@ -131,8 +131,9 @@ const BotChatBox = () => {
         if (!conversationId) return [];
         const wsList: ChatMessage[] = wsMessages[conversationId] || [];
 
-        // If wsList is empty (not yet loaded from WS), prepend greeting
-        if (wsList.length === 0 && !initializedRef.current) {
+        // Show local greeting only while waiting for server greeting (prevents flash of empty screen)
+        // Once server greeting arrives in wsList, it replaces the local placeholder
+        if (wsList.length === 0) {
             return [{
                 id: 0,
                 senderId: 0 as number,
@@ -142,27 +143,34 @@ const BotChatBox = () => {
             }];
         }
 
-        // If wsList already has messages from WS, use them (server sent greeting + history)
-        return wsList;
+        // Filter out TYPING content type (shown via isTyping state instead)
+        return wsList.filter(msg => msg.contentType !== 'TYPING');
     }, [conversationId, wsMessages]);
+
+    // Handle incoming WebSocket messages: detect TYPING indicator
+    useEffect(() => {
+        if (!conversationId) return;
+        const msgs = wsMessages[conversationId] || [];
+        const lastMsg = msgs[msgs.length - 1];
+        if (lastMsg?.contentType === 'TYPING') {
+            setIsTyping(true);
+        } else {
+            setIsTyping(false);
+        }
+    }, [wsMessages, conversationId]);
 
     // Initialize BOT conversation via REST, then subscribe to WebSocket
     useEffect(() => {
-        // Skip if already initialized, unless bot was closed and reopened (remount)
-        if (initializedRef.current && conversationId) return;
-        initializedRef.current = true;
+        if (!user) return;
 
         const init = async () => {
             try {
                 const res = await chatApi.createConversation({ type: 'BOT' });
-                console.log('[Bot] createConversation raw response:', JSON.stringify(res, null, 2));
                 const conv = res?.data?.data ?? res?.data;
-                console.log('[Bot] Unwrapped conversation:', conv);
                 if (conv?.id) {
                     setConversationId(conv.id);
                     dispatch(setActiveBotConversation(conv.id));
 
-                    // Load existing message history
                     const histRes = await chatApi.getMessages(conv.id);
                     const hist: ChatMessage[] = histRes?.data?.content ?? [];
                     hist.forEach(msg => dispatch(addMessage({ ...msg, conversationId: conv.id })));
@@ -175,16 +183,7 @@ const BotChatBox = () => {
         };
 
         void init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user]);
-
-    // Handle incoming WebSocket messages for bot typing indicator
-    useEffect(() => {
-        if (!conversationId) return;
-        const msgs = wsMessages[conversationId] || [];
-        const lastMsg = msgs[msgs.length - 1];
-        setIsTyping(false);
-    }, [wsMessages, conversationId]);
+    }, [user, dispatch]);
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -53,25 +53,37 @@ public class TravelPlanServiceImpl implements TravelPlanService {
 
     @Override
     public TravelPlanResponse generatePlan(TravelPlanRequest request) {
-        // Bước 1: CORE ENGINE tạo lịch trình có cấu trúc
         long totalDays = calculateDays(request);
         if (totalDays <= 0) totalDays = 3;
 
-        TravelPlanResponse plan = buildRuleBasedPlan(request, totalDays);
+        String destination = nullSafe(request.getDestination());
+        String budget = request.getBudget() != null ? request.getBudget().toUpperCase() : "TRUNGBINH";
+        String tripType = request.getTripType() != null ? request.getTripType().toUpperCase() : "RELAX";
+        String interests = nullSafe(request.getInterests());
+        DestinationData destData = findBestMatch(destination);
 
-        // Bước 2: AI viết lại văn phong tự nhiên (song song)
-        String dayPlansJson = serializeDayPlans(plan);
-        String rewrittenProse = aiService.rewritePlanToNaturalProse(
-                plan.getSummary() != null ? plan.getSummary() : "",
-                dayPlansJson
-        );
-        if (rewrittenProse != null && !rewrittenProse.isBlank()) {
-            plan.setRewrittenProse(rewrittenProse);
+        TravelPlanResponse plan;
+
+        if (destData == null) {
+            // Không có trong DB → nhờ AI tạo lịch trình riêng cho địa điểm này
+            log.info("TravelPlanService: Destination '{}' not in DB, using AI generation", destination);
+            plan = buildAiOnlyPlan(request, totalDays, destination, budget, tripType, interests);
+        } else {
+            // Có trong DB → dùng CORE ENGINE (nhanh, chính xác)
+            plan = buildRuleBasedPlan(request, totalDays, destData, budget, tripType, interests);
+
+            // AI viết lại văn phong tự nhiên (song song)
+            String dayPlansJson = serializeDayPlans(plan);
+            String rewrittenProse = aiService.rewritePlanToNaturalProse(
+                    plan.getSummary() != null ? plan.getSummary() : "",
+                    dayPlansJson
+            );
+            if (rewrittenProse != null && !rewrittenProse.isBlank()) {
+                plan.setRewrittenProse(rewrittenProse);
+            }
         }
 
-        // Bước 3: AI gợi ý câu hỏi tiếp theo
-        String budget = request.getBudget() != null ? request.getBudget() : "TRUNG_BINH";
-        String tripType = request.getTripType() != null ? request.getTripType() : "RELAX";
+        // AI gợi ý câu hỏi tiếp theo
         List<String> suggestions = aiService.suggestFollowUpQuestions(
                 plan.getSummary() != null ? plan.getSummary() : "",
                 budget,
@@ -81,14 +93,184 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             plan.setAiSuggestions(suggestions);
         }
 
-        log.info("TravelPlanService: Generated plan for destination={}, days={}", request.getDestination(), totalDays);
-
-        // Debug: log AI results
-        log.info("TravelPlanService: rewrittenProse={}, aiSuggestions count={}",
-                plan.getRewrittenProse() != null ? "present" : "null/empty",
-                plan.getAiSuggestions() != null ? plan.getAiSuggestions().size() : 0);
+        log.info("TravelPlanService: Generated plan for destination={}, days={}, hasActivities={}",
+                destination, totalDays,
+                plan.getDayPlans() != null ? plan.getDayPlans().stream()
+                        .mapToInt(dp -> dp.getActivities() != null ? dp.getActivities().size() : 0).sum() : 0);
 
         return plan;
+    }
+
+    /**
+     * Khi địa điểm không có trong database, nhờ AI tạo lịch trình riêng.
+     */
+    private TravelPlanResponse buildAiOnlyPlan(
+            TravelPlanRequest request, long totalDays,
+            String destination, String budget, String tripType, String interests) {
+
+        int adults = request.getAdults() != null ? request.getAdults() : 2;
+        int children = request.getChildren() != null ? request.getChildren() : 0;
+
+        String budgetLabel = switch (budget) {
+            case "THAP", "THAP_" -> "tiết kiệm (dưới 2 triệu/người)";
+            case "CAO", "CAO_" -> "cao cấp (trên 10 triệu/người)";
+            default -> "trung bình (2-10 triệu/người)";
+        };
+
+        String tripLabel = switch (tripType) {
+            case "ADVENTURE" -> "phiêu lưu, mạo hiểm";
+            case "ROMANTIC" -> "lãng mạn, cặp đôi";
+            case "FAMILY" -> "gia đình có trẻ em";
+            case "BUSINESS" -> "công tác kết hợp khám phá";
+            default -> "nghỉ dưỡng, thư giãn";
+        };
+
+        LocalDate checkIn = parseDate(request.getCheckIn(), LocalDate.now());
+        String dateStr = checkIn.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+        String season = getVietnameseSeason();
+        String interestsNote = interests != null && !interests.isBlank()
+                ? "Sở thích: " + interests : "";
+
+        String prompt = """
+                Bạn là chuyên gia lập lịch trình du lịch Việt Nam. Hãy tạo lịch trình chi tiết cho chuyến đi.
+
+                THÔNG TIN CHUYẾN ĐI:
+                - Địa điểm: %s
+                - Thời gian: %d ngày %d đêm
+                - Ngày bắt đầu: %s (mùa: %s)
+                - Ngân sách: %s
+                - Phong cách: %s
+                - Số người: %d người lớn%s
+                %s
+
+                YÊU CẦU:
+                - Tạo lịch trình chi tiết từng ngày với thời gian cụ thể (7:00 → 21:00)
+                - Mỗi ngày có 3-5 hoạt động cụ thể gắn với %s (địa điểm, món ăn, trải nghiệm thực tế)
+                - Mỗi hoạt động gồm: thời gian, tên hoạt động, mô tả ngắn, địa điểm cụ thể, chi phí ước tính (VND)
+                - Thêm mẹo thực tế cho từng hoạt động
+                - Đưa ra danh sách đồ dùng cần mang theo
+                - Ghi chú thời tiết và mẹo địa phương
+
+                Trả lời theo format JSON:
+                {
+                  "destination": "tên địa điểm",
+                  "tripDuration": "X ngày Y đêm",
+                  "totalDays": X,
+                  "totalBudget": tổng chi phí,
+                  "summary": "tóm tắt 1-2 câu",
+                  "dayPlans": [
+                    {
+                      "day": 1,
+                      "date": "dd/MM/yyyy",
+                      "title": "Tiêu đề ngày",
+                      "activities": [
+                        {
+                          "time": "07:00",
+                          "title": "Tên hoạt động",
+                          "description": "Mô tả",
+                          "type": "sight_seeing|food|accommodation|shopping|transport",
+                          "location": "Địa điểm cụ thể",
+                          "estimatedCost": số VND,
+                          "tips": "Mẹo"
+                        }
+                      ]
+                    }
+                  ],
+                  "packingList": ["đồ 1", "đồ 2"],
+                  "weatherNote": "ghi chú thời tiết",
+                  "localTips": "mẹo địa phương"
+                }
+
+                Chỉ trả lời JSON, không thêm giải thích gì khác.
+                """.formatted(
+                destination, totalDays, totalDays - 1, dateStr, season,
+                budgetLabel, tripLabel,
+                adults, children > 0 ? " và " + children + " trẻ em" : "",
+                interestsNote,
+                destination
+        );
+
+        String jsonResponse = aiService.ask(prompt);
+        if (jsonResponse != null && !jsonResponse.isBlank()) {
+            try {
+                TravelPlanResponse aiPlan = objectMapper.readValue(jsonResponse, TravelPlanResponse.class);
+                if (aiPlan != null && aiPlan.getDayPlans() != null && !aiPlan.getDayPlans().isEmpty()) {
+                    if (aiPlan.getDestination() == null || aiPlan.getDestination().isBlank()) {
+                        aiPlan.setDestination(destination);
+                    }
+                    log.info("TravelPlanService: AI generated plan with {} days for unknown destination '{}'",
+                            aiPlan.getDayPlans().size(), destination);
+                    return aiPlan;
+                }
+            } catch (Exception ex) {
+                log.warn("TravelPlanService: Failed to parse AI plan JSON for '{}' — {}", destination, ex.getMessage());
+            }
+        }
+
+        // AI cũng thất bại → fallback generic
+        log.warn("TravelPlanService: AI generation failed for '{}', falling back to generic", destination);
+        return buildFallbackGenericPlan(request, totalDays, destination, budget, tripType, interests);
+    }
+
+    private String getVietnameseSeason() {
+        int month = java.time.LocalDate.now().getMonthValue();
+        if (month >= 3 && month <= 5) return "Hè / Nắng nóng";
+        if (month >= 6 && month <= 8) return "Hè nóng / Mưa mùa hạ";
+        if (month >= 9 && month <= 11) return "Thu / Đông đầu";
+        return "Đông / Lạnh";
+    }
+
+    private TravelPlanResponse buildFallbackGenericPlan(
+            TravelPlanRequest request, long totalDays,
+            String destination, String budget, String tripType, String interests) {
+
+        LocalDate checkIn = parseDate(request.getCheckIn(), LocalDate.now());
+        List<TravelPlanResponse.DayPlan> dayPlans = new ArrayList<>();
+        for (int d = 0; d < totalDays; d++) {
+            LocalDate date = checkIn.plusDays(d);
+            dayPlans.add(TravelPlanResponse.DayPlan.builder()
+                    .day(d + 1)
+                    .date(date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                    .title("Ngày " + (d + 1) + " — Khám phá " + destination)
+                    .activities(List.of(
+                            TravelPlanResponse.Activity.builder()
+                                    .time("08:00").title("Khám phá " + destination)
+                                    .description("Bắt đầu ngày mới tại " + destination + ". Tìm hiểu các địa điểm nổi tiếng.")
+                                    .type("sight_seeing").location(destination).estimatedCost(0).tips("Hỏi người địa phương để được gợi ý tốt nhất.").build(),
+                            TravelPlanResponse.Activity.builder()
+                                    .time("12:00").title("Thưởng thức ẩm thực địa phương")
+                                    .description("Tìm và thưởng thức các món ngon đặc trưng của vùng.")
+                                    .type("food").location(destination).estimatedCost(200000).tips("Hỏi khách sạn hoặc người địa phương quán ngon gần đó.").build(),
+                            TravelPlanResponse.Activity.builder()
+                                    .time("15:00").title("Tham quan danh lam thắng cảnh")
+                                    .description("Khám phá các điểm du lịch nổi tiếng tại " + destination + ".")
+                                    .type("sight_seeing").location(destination).estimatedCost(100000).tips("Mua vé online để tiết kiệm thời gian.").build(),
+                            TravelPlanResponse.Activity.builder()
+                                    .time("19:00").title("Trải nghiệm ẩm thực đêm")
+                                    .description("Dạo phố đêm, thưởng thức đặc sản và đặc sản địa phương.")
+                                    .type("food").location(destination).estimatedCost(250000).tips("Đi theo nhóm sẽ an toàn và vui hơn.").build()
+                    ))
+                    .build());
+        }
+
+        int totalBudget = dayPlans.stream()
+                .flatMap(dp -> dp.getActivities().stream())
+                .mapToInt(a -> a.getEstimatedCost() != null ? a.getEstimatedCost() : 0)
+                .sum();
+
+        return TravelPlanResponse.builder()
+                .destination(destination)
+                .tripDuration(formatDuration(totalDays))
+                .totalDays((int) totalDays)
+                .totalBudget(totalBudget)
+                .summary("Chuyến đi " + totalDays + " ngày đến " + destination + " — lịch trình chi tiết đang được cập nhật. Hãy liên hệ để biết thêm thông tin.")
+                .dayPlans(dayPlans)
+                .packingList(List.of("CMND/CCCD", "Điện thoại & sạc", "Tiền mặt", "Kem chống nắng", "Thuốc cá nhân"))
+                .weatherNote("Nên mang theo kem chống nắng và áo mưa nhẹ.")
+                .localTips("Nên thuê xe máy để di chuyển linh hoạt, giá khoảng 100-150k/ngày.")
+                .currency("VND")
+                .build();
     }
 
     private long calculateDays(TravelPlanRequest request) {
@@ -128,14 +310,10 @@ public class TravelPlanServiceImpl implements TravelPlanService {
 
     // ===== CORE ENGINE — RULE-BASED PLAN BUILDER ==============================
 
-    private TravelPlanResponse buildRuleBasedPlan(TravelPlanRequest request, long totalDays) {
+    private TravelPlanResponse buildRuleBasedPlan(TravelPlanRequest request, long totalDays,
+            DestinationData destData, String budget, String tripType, String interests) {
         String destination = nullSafe(request.getDestination());
         LocalDate checkIn = parseDate(request.getCheckIn(), LocalDate.now());
-        String budget = request.getBudget() != null ? request.getBudget().toUpperCase() : "TRUNGBINH";
-        String tripType = request.getTripType() != null ? request.getTripType().toUpperCase() : "RELAX";
-        String interests = nullSafe(request.getInterests());
-
-        DestinationData destData = findBestMatch(destination);
 
         List<TravelPlanResponse.DayPlan> dayPlans = new ArrayList<>();
 
@@ -219,26 +397,28 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             String tripType, String interests) {
 
         List<ActivityTemplate> picked = new ArrayList<>();
+        Set<String> pickedTitles = new HashSet<>();
 
         if (dayIndex == 0) {
-            picked.add(findByType(all, "accommodation"));
-            picked.add(findByType(all, "sight_seeing"));
-            picked.add(findByType(all, "food"));
+            addUnique(picked, pickedTitles, findByType(all, "accommodation"));
+            addUnique(picked, pickedTitles, findByType(all, "sight_seeing"));
+            addUnique(picked, pickedTitles, findByType(all, "food"));
         } else if (dayIndex < totalDays - 1) {
-            picked.add(findByType(all, "sight_seeing"));
-            picked.add(findByType(all, "food"));
-            picked.add(findByType(all, "sight_seeing"));
-            picked.add(findByType(all, "shopping"));
+            addUnique(picked, pickedTitles, findByType(all, "sight_seeing"));
+            addUnique(picked, pickedTitles, findByType(all, "food"));
+            addUnique(picked, pickedTitles, findByType(all, "sight_seeing"));
+            addUnique(picked, pickedTitles, findByType(all, "shopping"));
         } else {
-            picked.add(findByType(all, "sight_seeing"));
-            picked.add(findByType(all, "food"));
-            picked.add(findByType(all, "transport"));
+            addUnique(picked, pickedTitles, findByType(all, "sight_seeing"));
+            addUnique(picked, pickedTitles, findByType(all, "food"));
+            addUnique(picked, pickedTitles, findByType(all, "transport"));
         }
 
         if ("ADVENTURE".equals(tripType) || (interests != null && interests.toLowerCase().contains("mạo hiểm"))) {
             ActivityTemplate adventure = findByType(all, "sight_seeing");
-            if (adventure != null && !picked.contains(adventure)) {
+            if (adventure != null && !pickedTitles.contains(adventure.title)) {
                 picked.add(1, adventure);
+                pickedTitles.add(adventure.title);
             }
         }
         if ("ROMANTIC".equals(tripType) || (interests != null && interests.toLowerCase().contains("lãng mạn"))) {
@@ -249,6 +429,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                     "Chọn quán có tầm nhìn ra biển hoặc núi."
             );
             picked.add(2, romantic);
+            pickedTitles.add(romantic.title);
         }
         if ("FAMILY".equals(tripType) || (interests != null && interests.toLowerCase().contains("gia đình"))) {
             ActivityTemplate family = new ActivityTemplate(
@@ -258,15 +439,17 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                     "Mang theo đồ bơi, kem chống nắng cho bé."
             );
             picked.add(1, family);
+            pickedTitles.add(family.title);
         }
 
-        List<ActivityTemplate> unique = new ArrayList<>();
-        for (ActivityTemplate a : picked) {
-            if (a != null && !unique.contains(a)) {
-                unique.add(a);
-            }
+        return picked;
+    }
+
+    private void addUnique(List<ActivityTemplate> list, Set<String> titles, ActivityTemplate tpl) {
+        if (tpl != null && !titles.contains(tpl.title)) {
+            list.add(tpl);
+            titles.add(tpl.title);
         }
-        return unique;
     }
 
     private String buildDayTitle(DestinationData dest, int dayIndex, int totalDays, String tripType) {
@@ -341,12 +524,53 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         if (destination == null || destination.isBlank()) return null;
         String d = destination.toLowerCase().trim();
 
+        // 1. Exact/contains match (priority: longest match wins)
+        DestinationData best = null;
+        int bestLen = 0;
         for (Map.Entry<String, DestinationData> entry : DESTINATION_DATA.entrySet()) {
             String key = entry.getKey().toLowerCase();
             if (d.contains(key) || key.contains(d)) {
+                if (key.length() >= bestLen) {
+                    best = entry.getValue();
+                    bestLen = key.length();
+                }
+            }
+        }
+        if (best != null) return best;
+
+        // 2. Keyword aliases — extract neighborhood/area and find parent city
+        String[] parts = d.split("[,\\s]+");
+        for (String part : parts) {
+            part = part.trim();
+            if (part.length() < 3) continue;
+            for (Map.Entry<String, DestinationData> entry : DESTINATION_DATA.entrySet()) {
+                String key = entry.getKey().toLowerCase();
+                if (key.contains(part) || part.contains(key)) {
+                    return entry.getValue();
+                }
+            }
+        }
+
+        // 3. Fuzzy match: if user typed a partial name like "nam" match "hà nội" via common aliases
+        for (Map.Entry<String, DestinationData> entry : DESTINATION_DATA.entrySet()) {
+            String key = entry.getKey();
+            // "ha noi" / "hanoi" / "hn" — Hà Nội
+            if ((d.contains("hà nội") || d.contains("hanoi") || d.contains("hn "))
+                    && (key.contains("hà nội") || key.contains("hanoi"))) {
+                return entry.getValue();
+            }
+            // "sg" / "sai gon" / "tphcm" — HCM
+            if ((d.contains("sg") || d.contains("sài gòn") || d.contains("sai gon") || d.contains("tphcm"))
+                    && (key.contains("sài gòn") || key.contains("sài gòn"))) {
+                return entry.getValue();
+            }
+            // "dn" / "da nang" — Đà Nẵng
+            if ((d.contains("đà nẵng") || d.contains("da nang") || d.contains("dn "))
+                    && key.contains("đà nẵng")) {
                 return entry.getValue();
             }
         }
+
         return null;
     }
 

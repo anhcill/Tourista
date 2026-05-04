@@ -176,6 +176,10 @@ public class BotService {
     @Async("botTaskExecutor")
     @Transactional
     public void handleBotMessage(Long conversationId, String inputText, String clientEmail) {
+        // Capture context BEFORE processing so AI gets the latest conversation
+        String previousContext = buildRecentConversationContext(conversationId);
+        currentConversationContext.set(previousContext);
+
         try {
             String upperInput = inputText.toUpperCase();
             Matcher matcher = BOOKING_CODE_PATTERN.matcher(upperInput);
@@ -211,7 +215,6 @@ public class BotService {
                     "⚠️ Hệ thống đang bận, bạn vui lòng thử lại sau ít phút.");
         } finally {
             String recentCtx = buildRecentConversationContext(conversationId);
-            currentConversationContext.set(recentCtx);
             updateConversationSession(conversationId, recentCtx);
         }
     }

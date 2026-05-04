@@ -81,8 +81,19 @@ public interface CityRepository extends JpaRepository<City, Integer> {
                     ORDER BY h3.avg_rating DESC, h3.review_count DESC
                     LIMIT 1
                 ) AS top_hotel_name,
-                COALESCE(hc.top_hotel_rating, 0),
-                NULL
+                COALESCE(
+                    c.cover_image,
+                    (
+                        SELECT hi.image_url
+                        FROM hotels h3
+                        LEFT JOIN hotel_images hi ON hi.hotel_id = h3.id
+                        WHERE h3.city_id = c.id
+                          AND h3.is_active = TRUE
+                        ORDER BY h3.avg_rating DESC, h3.review_count DESC,
+                                 hi.is_primary DESC, hi.id ASC
+                        LIMIT 1
+                    )
+                ) AS cover_image
             FROM cities c
             LEFT JOIN (
                 SELECT

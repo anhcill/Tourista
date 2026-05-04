@@ -30,4 +30,7 @@ public class City {
 
     @Column(name = "slug", nullable = false, length = 120)
     private String slug;
+
+    @Column(name = "cover_image", length = 500)
+    private String coverImage;
 }

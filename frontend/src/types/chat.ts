@@ -7,7 +7,8 @@ export type ContentType =
   | 'TOUR_CARDS'
   | 'SCENARIO_CHOICE'
   | 'FAQ_MENU'
-  | 'SYSTEM_LOG';
+  | 'SYSTEM_LOG'
+  | 'TYPING';
 
 export interface ChatMessage {
   id?: number;

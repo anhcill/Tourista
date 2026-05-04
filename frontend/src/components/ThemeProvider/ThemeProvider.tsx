@@ -18,19 +18,13 @@ const ThemeContext = createContext<ThemeContextType>({
 const STORAGE_KEY = 'tourista_theme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === 'undefined') return 'light';
-    return (localStorage.getItem(STORAGE_KEY) as Theme) || 'light';
-  });
+  const [theme, setTheme] = useState<Theme>(() => 'light');
   const mounted = useHydrated();
 
   useEffect(() => {
-    // Sync theme to DOM on mount
     const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initial: Theme = (stored === 'dark' || stored === 'light')
-      ? stored
-      : (prefersDark ? 'dark' : 'light');
+    // Only use stored preference; default to light if nothing saved yet
+    const initial: Theme = (stored === 'dark' || stored === 'light') ? stored : 'light';
     document.documentElement.setAttribute('data-theme', initial);
   }, []);
 

@@ -54,9 +54,15 @@ axiosClient.interceptors.response.use(
     const clearSessionAndRedirectLogin = () => {
       clearAuthTokens();
       localStorage.removeItem(STORAGE_KEYS.USER);
+      sessionStorage.removeItem(STORAGE_KEYS.USER);
 
+      // Only redirect to login if the user was actually logged in before.
+      // If there was never a token, just reject — don't yank them to /login.
       if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        const hadToken = getAccessToken() || getRefreshToken();
+        if (hadToken) {
+          window.location.href = "/login";
+        }
       }
     };
 
@@ -64,11 +70,11 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        // Try to refresh token
-        const refreshToken = getRefreshToken();
+      // Try to refresh token
+      const refreshToken = getRefreshToken();
 
-        if (refreshToken) {
+      if (refreshToken) {
+        try {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refreshToken,
           });
@@ -90,19 +96,20 @@ axiosClient.interceptors.response.use(
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${token}`;
           return axiosClient(originalRequest);
-        } else {
-          // Không còn refresh token => phiên đã hết, buộc đăng nhập lại
+        } catch (refreshError) {
+          // Refresh failed, logout user and redirect
           clearSessionAndRedirectLogin();
-          return Promise.reject({
-            message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
-            status: 401,
-          });
+          return Promise.reject(refreshError);
         }
-      } catch (refreshError) {
-        // Refresh failed, logout user
+      } else {
+        // No refresh token → user never logged in or session expired.
+        // If they had an access token that just expired, redirect them to login.
+        // If they were never logged in, just reject silently.
         clearSessionAndRedirectLogin();
-
-        return Promise.reject(refreshError);
+        return Promise.reject({
+          message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+          status: 401,
+        });
       }
     }
 

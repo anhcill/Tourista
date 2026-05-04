@@ -152,8 +152,10 @@ export const useChatWebSocket = () => {
     }
   }, []);
 
-  const connect = useCallback(async () => {
-    if (stompClientRef.current?.active) return;
+    const connect = useCallback(async () => {
+    // Guard: prevent multiple simultaneous connections
+    const current = stompClientRef.current;
+    if (current && (current.active || (current.connected))) return;
 
     if (typeof window === "undefined") return;
 
@@ -174,7 +176,7 @@ export const useChatWebSocket = () => {
         Authorization: `Bearer ${token}`,
       },
 
-      reconnectDelay: 5000,
+      reconnectDelay: 0, // Disable auto-reconnect; we handle it manually via onWebSocketClose
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
 
@@ -211,8 +213,10 @@ export const useChatWebSocket = () => {
         dispatch(setWsConnected(false));
       },
 
-      onWebSocketClose: () => {
+      onWebSocketClose: (event) => {
         dispatch(setWsConnected(false));
+        // Manual reconnect with backoff — avoids the reconnectDelay loop that causes message loss
+        setTimeout(() => void connect(), 3000);
       },
 
       onStompError: (frame) => {
@@ -227,7 +231,7 @@ export const useChatWebSocket = () => {
             const refreshedToken = await refreshAccessToken();
             if (!refreshedToken) return;
 
-            if (stompClientRef.current?.active) {
+            if (stompClientRef.current && (stompClientRef.current.active || stompClientRef.current.connected)) {
               await stompClientRef.current.deactivate();
               stompClientRef.current = null;
             }
@@ -237,7 +241,7 @@ export const useChatWebSocket = () => {
               connectHeaders: {
                 Authorization: `Bearer ${refreshedToken}`,
               },
-              reconnectDelay: 5000,
+              reconnectDelay: 0,
               heartbeatIncoming: 10000,
               heartbeatOutgoing: 10000,
               onConnect: () => {
