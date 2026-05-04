@@ -46,12 +46,17 @@ public class PartnerService {
     private final BookingTourDetailRepository bookingTourDetailRepository;
 
     public List<PartnerHotelResponse> getPartnerHotels(Long userId) {
+        return getPartnerHotels(userId, 0, 20).getContent();
+    }
+
+    public Page<PartnerHotelResponse> getPartnerHotels(Long userId, int page, int size) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
-        List<Hotel> hotels = hotelRepository.findByOwner(user);
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
+        Page<Hotel> hotelPage = hotelRepository.findByOwner(user, pageable);
 
-        List<Long> hotelIds = hotels.stream().map(Hotel::getId).collect(Collectors.toList());
+        List<Long> hotelIds = hotelPage.getContent().stream().map(Hotel::getId).collect(Collectors.toList());
         List<BookingHotelDetail> allDetails = hotelIds.isEmpty()
                 ? List.of()
                 : bookingHotelDetailRepository.findByHotelIdIn(hotelIds);
@@ -66,7 +71,7 @@ public class PartnerService {
                         d -> d.getHotel().getId(),
                         Collectors.reducing(BigDecimal.ZERO, d -> d.getBooking().getTotalAmount(), BigDecimal::add)));
 
-        return hotels.stream().map(h -> PartnerHotelResponse.builder()
+        List<PartnerHotelResponse> content = hotelPage.getContent().stream().map(h -> PartnerHotelResponse.builder()
                 .id(h.getId())
                 .name(h.getName())
                 .city(h.getCity() != null ? h.getCity().getNameVi() : null)
@@ -79,6 +84,8 @@ public class PartnerService {
                 .totalRevenue(hotelRevenue.getOrDefault(h.getId(), BigDecimal.ZERO))
                 .build())
                 .collect(Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, hotelPage.getTotalElements());
     }
 
     public List<PartnerTourResponse> getPartnerTours(Long userId) {

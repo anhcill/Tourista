@@ -30,11 +30,14 @@ public class PartnerController {
     private final UserRepository userRepository;
 
     @GetMapping("/hotels")
-    public ResponseEntity<ApiResponse<?>> getPartnerHotels(Authentication authentication) {
+    public ResponseEntity<ApiResponse<Page<PartnerHotelResponse>>> getPartnerHotels(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(ApiResponse.ok("Lay danh sach hotel thanh cong",
-                partnerService.getPartnerHotels(user.getId())));
+                partnerService.getPartnerHotels(user.getId(), page, size)));
     }
 
     @GetMapping("/tours")

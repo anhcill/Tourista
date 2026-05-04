@@ -106,28 +106,28 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
     // ===== Revenue stats queries =====
 
     @Query("""
-            SELECT FUNCTION('DATE', b.createdAt) AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
+            SELECT FUNCTION('DATE', b.confirmedAt) AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
             FROM Booking b
             JOIN BookingHotelDetail hd ON hd.booking = b
             JOIN hd.hotel h
             WHERE h.owner.id = :ownerId
               AND b.status IN ('CONFIRMED', 'COMPLETED', 'CHECKED_IN')
-              AND b.createdAt >= :fromDate
-            GROUP BY FUNCTION('DATE', b.createdAt)
-            ORDER BY FUNCTION('DATE', b.createdAt) ASC
+              AND b.confirmedAt >= :fromDate
+            GROUP BY FUNCTION('DATE', b.confirmedAt)
+            ORDER BY FUNCTION('DATE', b.confirmedAt) ASC
             """)
     List<Object[]> sumDailyRevenueByHotelOwner(@Param("ownerId") Long ownerId, @Param("fromDate") LocalDateTime fromDate);
 
     @Query("""
-            SELECT FUNCTION('DATE', b.createdAt) AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
+            SELECT FUNCTION('DATE', b.confirmedAt) AS date, SUM(b.totalAmount) AS amount, COUNT(b) AS count
             FROM Booking b
             JOIN BookingTourDetail td ON td.booking = b
             JOIN td.tour t
             WHERE t.operator.id = :operatorId
               AND b.status IN ('CONFIRMED', 'COMPLETED', 'CHECKED_IN')
-              AND b.createdAt >= :fromDate
-            GROUP BY FUNCTION('DATE', b.createdAt)
-            ORDER BY FUNCTION('DATE', b.createdAt) ASC
+              AND b.confirmedAt >= :fromDate
+            GROUP BY FUNCTION('DATE', b.confirmedAt)
+            ORDER BY FUNCTION('DATE', b.confirmedAt) ASC
             """)
     List<Object[]> sumDailyRevenueByTourOperator(@Param("operatorId") Long operatorId, @Param("fromDate") LocalDateTime fromDate);
 

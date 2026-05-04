@@ -13,9 +13,9 @@ const safeRequest = async (fn, fallbackMessage) => {
 };
 
 const partnerApi = {
-  getPartnerHotels: async () => {
+  getPartnerHotels: async ({ page = 0, size = 10 } = {}) => {
     return safeRequest(
-      () => axiosClient.get('/partner/hotels'),
+      () => axiosClient.get('/partner/hotels', { params: { page, size } }),
       'Không thể tải danh sách khách sạn.',
     );
   },
