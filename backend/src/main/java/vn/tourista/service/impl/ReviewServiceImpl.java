@@ -312,7 +312,7 @@ public class ReviewServiceImpl implements ReviewService {
             return false;
         }
         List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
-                List.of(Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+                List.of(Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
         for (Booking booking : bookings) {
             if (booking.getBookingType() != Booking.BookingType.HOTEL) {
                 continue;
@@ -336,7 +336,7 @@ public class ReviewServiceImpl implements ReviewService {
             return false;
         }
         List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
-                List.of(Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+                List.of(Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
         for (Booking booking : bookings) {
             if (booking.getBookingType() != Booking.BookingType.TOUR) {
                 continue;
