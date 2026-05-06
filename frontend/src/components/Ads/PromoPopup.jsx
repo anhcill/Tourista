@@ -5,20 +5,28 @@ import Image from 'next/image';
 import { FaTimes } from 'react-icons/fa';
 import styles from './PromoPopup.module.css';
 
+const STORAGE_KEY = 'tourista_promo_closed';
+
 const PromoPopup = () => {
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(() => {
+        // Đọc từ localStorage khi khởi tạo — tránh bị flash khi Next.js re-render
+        if (typeof window !== 'undefined') {
+            const lastClosed = localStorage.getItem(STORAGE_KEY);
+            const now = new Date().getTime();
+            if (lastClosed && now - parseInt(lastClosed, 10) < 86400000) {
+                return false;
+            }
+        }
+        return false; // mặc định ẩn, chỉ hiện sau 3s
+    });
 
     useEffect(() => {
-        // Kiểm tra xem user đã đóng popup hôm nay chưa
-        const lastClosed = localStorage.getItem('tourista_promo_closed');
+        const lastClosed = localStorage.getItem(STORAGE_KEY);
         const now = new Date().getTime();
-
-        // 24 tiếng = 24 * 60 * 60 * 1000
         if (lastClosed && now - parseInt(lastClosed, 10) < 86400000) {
             return;
         }
 
-        // Hiện popup sau 3 giây hoặc khi người dùng có ý định thoát (exit intent)
         const timer = setTimeout(() => setIsVisible(true), 3000);
 
         const handleMouseLeave = (e) => {
@@ -37,7 +45,7 @@ const PromoPopup = () => {
 
     const handleClose = () => {
         setIsVisible(false);
-        localStorage.setItem('tourista_promo_closed', new Date().getTime().toString());
+        localStorage.setItem(STORAGE_KEY, new Date().getTime().toString());
     };
 
     if (!isVisible) return null;
@@ -45,25 +53,24 @@ const PromoPopup = () => {
     return (
         <div className={styles.overlay} onClick={handleClose}>
             <div className={styles.popupBox} onClick={(e) => e.stopPropagation()}>
-                <button 
-                    className={styles.closeBtn} 
+                <button
+                    className={styles.closeBtn}
                     onClick={handleClose}
                     aria-label="Đóng popup"
                 >
                     <FaTimes />
                 </button>
-                
+
                 <div className={styles.imageContainer}>
-                    {/* Render mockup image */}
-                    <Image 
-                        src="/images/promos/promo_popup_voucher_1775811780696.png" 
-                        alt="Tourista Studio Welcome Voucher" 
+                    <Image
+                        src="/images/promos/promo_popup_voucher_1775811780696.png"
+                        alt="Tourista Studio Welcome Voucher"
                         fill
                         className={styles.promoImage}
                         sizes="(max-width: 768px) 100vw, 400px"
                     />
                 </div>
-                
+
                 <div className={styles.content}>
                     <h3>Tặng bạn quà xịn! 🎁</h3>
                     <p>Nhận ngay Voucher <strong>500K</strong> cho chuyến đi đầu tiên cùng Tourista Studio. Đừng bỏ lỡ!</p>
@@ -77,3 +84,4 @@ const PromoPopup = () => {
 };
 
 export default PromoPopup;
+

@@ -16,58 +16,11 @@ import {
   setP2PModalOpen,
 } from '@/store/slices/chatSlice';
 import { p2pModalBus } from '@/utils/p2pModalBus';
+import { getInitials, formatClock, formatDateLabel, isOwnMessage, extractErrorMessage } from '@/utils/chat/formatters';
 import styles from './ClientChatModal.module.css';
 
-const unwrapPayload = (response) =>
-    response?.data?.data ??
-    response?.data ??
-    response ??
-    null;
-
-const unwrapPageContent = (response) =>
-    response?.data?.content ??
-    response?.content ??
-    response ?? [];
-
-const extractErrorMessage = (error) => {
-  if (!error) return 'Không thể kết nối chat lúc này.';
-  if (typeof error === 'string') return error;
-  if (error?.response?.status === 401) return 'Vui lòng đăng nhập để sử dụng chat.';
-  if (error?.response?.status === 403) return 'Bạn không có quyền chat với dịch vụ này.';
-  if (error?.response?.status === 404) return 'Không tìm thấy cuộc trò chuyện. Vui lòng thử lại.';
-  if (error?.response?.status === 500) return 'Lỗi server. Vui lòng thử lại sau giây lát.';
-  return error?.message || error?.data?.message || 'Không thể kết nối chat lúc này.';
-};
-
-function getInitials(name) {
-  if (!name) return '?';
-  const parts = name.trim().split(' ');
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function formatClock(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(d);
-}
-
-function formatDateLabel(dateStr) {
-  const d = new Date(dateStr);
-  const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (isToday) return 'Hôm nay';
-  if (d.toDateString() === yesterday.toDateString()) return 'Hôm qua';
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-const MessageBubble = ({ message, isOwn, showDate }) => {
+/* ───────────────────────── MessageItem ───────────────────────── */
+function MessageItem({ message, isOwn, showDate }) {
   if (message?.contentType === 'SYSTEM_LOG') {
     return (
       <>
@@ -104,13 +57,14 @@ const MessageBubble = ({ message, isOwn, showDate }) => {
       </div>
     </>
   );
-};
+}
 
+/* ───────────────────────── ClientChatModal ───────────────────────── */
 export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
   const dispatch = useDispatch();
   const { sendMessage } = useChatWebSocket();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const { activeP2PConversationId, messages } = useSelector((state) => state.chat);
+  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const { activeP2PConversationId, messages } = useSelector(state => state.chat);
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -177,7 +131,7 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
         };
 
         const response = await chatApi.createConversation(payload);
-        const conversation = unwrapPayload(response);
+        const conversation = response?.data?.data ?? response?.data ?? null;
         if (!conversation?.id) throw new Error('Không mở được cuộc trò chuyện.');
 
         dispatch(setActiveP2PConversation(conversation.id));
@@ -185,7 +139,7 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
         setPartnerAvatar(conversation.partnerAvatar || '');
 
         const historyResponse = await chatApi.getMessages(conversation.id);
-        const history = unwrapPageContent(historyResponse);
+        const history = historyResponse?.data?.content ?? historyResponse?.content ?? [];
         dispatch(setMessages({ conversationId: conversation.id, messages: history }));
         dispatch(markConversationRead(conversation.id));
         await chatApi.markAsRead(conversation.id);
@@ -198,7 +152,7 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
       }
     };
 
-    initConversation();
+    void initConversation();
   }, [conversationSeed, dispatch, isAuthenticated, isOpen]);
 
   useEffect(() => {
@@ -211,7 +165,6 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     const trimmed = draft.trim();
     if (!trimmed || !activeP2PConversationId || submitting) return;
 
-    // Optimistic update
     const optimisticMessage = {
       id: `temp-${Date.now()}`,
       conversationId: activeP2PConversationId,
@@ -224,7 +177,6 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     };
 
     dispatch(addMessage(optimisticMessage));
-
     setDraft('');
     setSubmitting(true);
     setSendingIndicator(true);
@@ -317,12 +269,8 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
                   </div>
                 ) : (
                   chatMessages.map((message, idx) => {
-                    const isOwn =
-                      message?.senderId != null && user?.id != null
-                        ? Number(message.senderId) === Number(user.id)
-                        : false;
-
-                    const prev = chatMessages[idx - 1];
+                    const isOwn = isOwnMessage(message, user?.id);
+                    const prev = idx > 0 ? chatMessages[idx - 1] : null;
                     const showDate = !prev || formatDateLabel(message.createdAt) !== formatDateLabel(prev.createdAt);
 
                     return (
@@ -374,42 +322,5 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
         </div>
       </section>
     </div>
-  );
-}
-
-function MessageItem({ message, isOwn, showDate }) {
-  if (message?.contentType === 'SYSTEM_LOG') {
-    return (
-      <>
-        {showDate && (
-          <div className={styles.dateSeparator}>
-            <span>{formatDateLabel(message.createdAt)}</span>
-          </div>
-        )}
-        <div className={styles.systemMessage}>{message.content}</div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      {showDate && (
-        <div className={styles.dateSeparator}>
-          <span>{formatDateLabel(message.createdAt)}</span>
-        </div>
-      )}
-      <div className={`${styles.messageRow} ${isOwn ? styles.messageOwn : styles.messageIncoming}`}>
-        <div className={`${styles.messageBubble} ${isOwn ? styles.messageBubbleOwn : styles.messageBubbleIncoming}`}>
-          {!isOwn && message?.senderName && (
-            <span className={styles.senderName}>{message.senderName}</span>
-          )}
-          <p>{message?.content || ''}</p>
-          <div className={styles.messageFooter}>
-            <span className={styles.messageTime}>{formatClock(message?.createdAt)}</span>
-            {isOwn && <span className={styles.readReceipt}>✓✓</span>}
-          </div>
-        </div>
-      </div>
-    </>
   );
 }

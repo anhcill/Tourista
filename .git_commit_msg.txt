@@ -1,0 +1,21 @@
+feat: add welcome voucher WELCOME500K, switch chatbot to DeepSeek-v4-pro, fix bot send button
+
+Backend:
+- Add WelcomeVoucherController + WelcomeVoucherService for WELCOME500K voucher
+- Add welcome_voucher_claimed column to users table
+- Switch beeknoee model from gemini-flash to deepseek/deepseek-v4-pro with reasoning off
+- Add WelcomeVoucherResponse DTO
+
+Frontend:
+- Add WelcomeVoucherBanner component with claim logic
+- Fix BotChatWidget send button: remove isWsReady guard blocking message send
+- Add welcomeVoucherApi, useWelcomeVoucher hook
+- Update TopAnnouncementBar with welcome voucher CTA
+- Add PromoPopup and FloatingGiftWidget for promo display
+- Add MessageBubble shared component for chat
+- Update AppShellClient to integrate welcome voucher
+- Add admin chat panel (AdminChatController, adminChatApi)
+
+Database:
+- ALTER TABLE users ADD COLUMN welcome_voucher_claimed BOOLEAN DEFAULT FALSE
+- INSERT/UPDATE promotions WELCOME500K (500K fixed discount, min order 500K, valid 2027)

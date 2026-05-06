@@ -74,6 +74,11 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    // Đã claim voucher chào mừng chưa (chỉ dùng khi user đã đăng nhập)
+    @Column(name = "welcome_voucher_claimed")
+    @Builder.Default
+    private Boolean welcomeVoucherClaimed = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

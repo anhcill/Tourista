@@ -11,5 +11,5 @@ public interface ReviewService {
 
     boolean canUserReviewHotel(String userEmail, Long hotelId);
 
-    boolean canUserReviewTour(String userEmail, Long tourId);
+    boolean hasUserReviewed(String userEmail, String targetType, Long targetId); boolean canUserReviewTour(String userEmail, Long tourId);
 }

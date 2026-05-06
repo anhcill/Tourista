@@ -12,7 +12,7 @@ public interface BookingHotelDetailRepository extends JpaRepository<BookingHotel
     List<BookingHotelDetail> findByBooking_IdIn(List<Long> bookingIds);
 
     // Lấy chi tiết hotel theo booking (BotService dùng để lấy check-in/out, loại phòng)
-    Optional<BookingHotelDetail> findByBooking(Booking booking);
+    Optional<BookingHotelDetail> findByBooking(Booking booking); Optional<BookingHotelDetail> findByBooking_Id(Long bookingId);
 
     List<BookingHotelDetail> findByHotelIdIn(List<Long> hotelIds);
 }

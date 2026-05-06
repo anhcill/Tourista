@@ -6,7 +6,7 @@
     },
     {
       "keywords": ["hủy", "huy tour", "hủy tour", "hủy phòng", "huy phong", "cancel", "hoàn tiền", "hoan tien", "refund", "đổi lịch", "doi lich", "dời lịch", "doi tour"],
-      "answer": "📋 **Chính sách hủy & hoàn tiền Tourista:**\n\n• **Hủy trước 7 ngày:** hoàn 100% tiền cọc\n• **Hủy trước 3–6 ngày:** hoàn 50% tổng tiền\n• **Hủy trong vòng 3 ngày:** có thể phát sinh phí theo điều kiện đối tác\n\n⚠️ Một số tour cao điểm/combo đặc biệt có chính sách riêng — kiểm tra mục **Điều kiện hủy** trên trang chi tiết tour.\n\n**Cách xử lý nhanh:**\nVào **Tài khoản → Lịch sử Booking → Chọn đơn → Hủy/Đổi lịch**\n\nCần hỗ trợ thêm? Gử mã booking TRS-... để mình kiểm tra trực tiếp nhé!"
+      "answer": "📋 **Chính sách hủy & hoàn tiền Tourista:**\n\n• **Hủy trước 7 ngày:** hoàn 100% tiền cọc\n• **Hủy trước 3–6 ngày:** hoàn 50% tổng tiền\n• **Hủy trong vòng 3 ngày:** có thể phát sinh phí theo điều kiện đối tác\n\n⚠️ Một số tour cao điểm/combo đặc biệt có chính sách riêng — kiểm tra mục **Điều kiện hủy** trên trang chi tiết tour.\n\n**Cách xử lý nhanh:**\nVào **Tài khoản → Lịch sử Booking → Chọn đơn → Hủy/Đổi lịch**\n\nCần hỗ trợ thêm? Gửi mã booking TRS-... để mình kiểm tra trực tiếp nhé!"
     },
     {
       "keywords": ["thanh toán", "thanh toan", "vnpay", "payment", "chuyển khoản", "chuyen khoan", "visa", "mastercard", "qr", "trả tiền", "tra tien", "phương thức thanh toán", "phuong thuc"],
@@ -46,8 +46,8 @@
     },
     {
       "keywords": ["thời tiết", "thoi tiet", "mùa", "mua du lich", "mùa du lịch", "nên đi", "nen di", "thích hợp", "thich hop", "khí hậu", "khi hau"],
-      "answer": "🌤️ **Thời tiết & mùa du lịch Việt Nam:**\n\n| Điểm đến | Thời gian lý tưởng | Tránh |\n|---|---|---|\n| 🏖️ Đà Nẵng | Tháng 3–8 | Tháng 9–12 (mưa bão) |\n| 🌊 Phú Quốc | Tháng 11–4 | Tháng 5–10 (mưa) |\n| ❄️ Sapa | Tháng 9–11, 3–5 | Tháng 6–8 (mưa trượt) |\n| 🌸 Đà Lạt | Quanh năm | Tháng 7–8 (mưa nhiều) |\n| 🏛️ Hà Nội | Tháng 10–4 | Tháng 5–9 (nóng, ẩm) |\n| 🌺 Hội An | Tháng 2–8 | Tháng 10–12 (lũ) |\n\nBạn muốn đi địa điểm nào? Mình gợi ý tour phù hợp ngay!"
+      "answer": "🌤️ **Thời tiết & mùa du lịch Việt Nam:**\n\n• **Đà Nẵng:** Tháng 3–8 là lý tưởng — tránh tháng 9–12 (mưa bão)\n• **Phú Quốc:** Tháng 11–4 là lý tưởng — tránh tháng 5–10 (mưa)\n• **Sapa:** Tháng 9–11 và 3–5 lý tưởng — tránh tháng 6–8 (mưa trượt)\n• **Đà Lạt:** Quanh năm đẹp — tránh tháng 7–8 (mưa nhiều)\n• **Hà Nội:** Tháng 10–4 thoáng mát — tránh tháng 5–9 (nóng, ẩm)\n• **Hội An:** Tháng 2–8 lý tưởng — tránh tháng 10–12 (lũ)\n\nBạn muốn đi địa điểm nào? Mình gợi ý tour phù hợp ngay!"
     }
   ],
-  "defaultAnswer": "🤔 Mình chưa hiểu rõ yêu cầu của bạn.\n\nBạn có thể thử:\n- **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXXX\n- **Gợi ý tour:** nhắn ngân sách + số người (ví dụ: \"gợi ý tour 8tr cho 2 người\")\n- **Hỏi về:** hủy/hoàn tiền, thanh toán, thời tiết, kinh nghiệm du lịch\n\nHoặc chọn một trong các gợi ý nhanh bên dưới nhé! 👇"
+  "defaultAnswer": "🤔 Mình chưa hiểu rõ yêu cầu của bạn.\n\nBạn có thể thử:\n• 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXXX\n• 🗺️ **Gợi ý tour:** nhắn ngân sách + số người (ví dụ: \"gợi ý tour 8tr cho 2 người\")\n• 📋 **Hỏi về:** hủy/hoàn tiền, thanh toán, thời tiết, kinh nghiệm du lịch\n\nHoặc chọn một trong các gợi ý nhanh bên dưới nhé! 👇"
 }

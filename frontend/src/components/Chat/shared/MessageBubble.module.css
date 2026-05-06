@@ -1,0 +1,136 @@
+/* Shared MessageBubble styles — used by both BotChatWidget and ClientChatModal */
+
+/* ── Basic bubble layout ── */
+.bubble {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+.bubbleOwn {
+  flex-direction: row-reverse;
+}
+
+.bubbleBot {
+  flex-direction: row;
+}
+
+.botAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e8f5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.bubbleContent {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  position: relative;
+}
+
+.bubbleContentBot {
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-bottom-left-radius: 4px;
+}
+
+.bubbleContentOwn {
+  background: #1976d2;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.bubbleText {
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.bubbleText p {
+  margin: 0 0 4px;
+}
+
+.bubbleText p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Bullet list lines ── */
+.bulletLine {
+  display: block;
+  padding-left: 12px;
+  margin: 2px 0;
+  position: relative;
+}
+
+.bulletLine::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  opacity: 0.5;
+}
+
+.bubbleTime {
+  font-size: 10px;
+  opacity: 0.6;
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ── System message ── */
+.systemMsg {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin: 8px 0;
+}
+
+/* ── Date separator ── */
+.dateSeparator {
+  text-align: center;
+  margin: 12px 0 4px;
+}
+
+.dateSeparator span {
+  font-size: 11px;
+  color: #999;
+  background: #f5f5f5;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+/* ── Typing indicator ── */
+.typingBubble {
+  padding: 12px 16px !important;
+}
+
+.typingBubble .bubbleText,
+.typingBubble .bubbleTime {
+  display: none;
+}
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #999;
+  margin: 0 2px;
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.dot:nth-child(1) { animation-delay: 0s; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}

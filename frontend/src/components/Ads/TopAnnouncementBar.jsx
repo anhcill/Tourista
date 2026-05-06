@@ -5,8 +5,16 @@ import Link from 'next/link';
 import { FaTimes, FaGift } from 'react-icons/fa';
 import styles from './TopAnnouncementBar.module.css';
 
+const STORAGE_KEY = 'tv_announcement_closed';
+
 const TopAnnouncementBar = () => {
-    const [isVisible, setIsVisible] = useState(true);
+    const [isVisible, setIsVisible] = useState(() => {
+        // Đọc từ localStorage khi khởi tạo — tránh bị flash khi Next.js re-render
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(STORAGE_KEY) !== '1';
+        }
+        return true;
+    });
     const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 0, seconds: 0 });
 
     useEffect(() => {
@@ -45,7 +53,7 @@ const TopAnnouncementBar = () => {
                         Mùa hè rực rỡ - Giảm tới <strong>20%</strong> toàn bộ Tour Phú Quốc. Nhập mã: <strong className={styles.code}>PHUQUOC20</strong>
                     </span>
                 </div>
-                
+
                 <div className={styles.rightSide}>
                     <div className={styles.countdown}>
                         <span className={styles.timeBlock}>{pad(timeLeft.hours)}</span>:
@@ -55,9 +63,12 @@ const TopAnnouncementBar = () => {
                     <Link href="/tours" className={styles.ctaButton}>
                         <FaGift className={styles.ctaIcon} /> Đặt ngay
                     </Link>
-                    <button 
-                        className={styles.closeButton} 
-                        onClick={() => setIsVisible(false)}
+                    <button
+                        className={styles.closeButton}
+                        onClick={() => {
+                            setIsVisible(false);
+                            localStorage.setItem(STORAGE_KEY, '1');
+                        }}
                         aria-label="Đóng thông báo"
                     >
                         <FaTimes />
@@ -69,3 +80,4 @@ const TopAnnouncementBar = () => {
 };
 
 export default TopAnnouncementBar;
+

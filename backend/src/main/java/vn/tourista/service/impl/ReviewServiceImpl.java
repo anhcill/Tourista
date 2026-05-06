@@ -175,7 +175,7 @@ public class ReviewServiceImpl implements ReviewService {
                 return false;
             }
 
-            BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking(booking).orElse(null);
+            BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking_Id(booking.getId()).orElse(null);
             if (detail == null || detail.getHotel() == null) {
                 return false;
             }
@@ -316,24 +316,44 @@ public class ReviewServiceImpl implements ReviewService {
             return false;
         }
         if (reviewRepository.existsByUserIdAndTargetTypeAndTargetId(user.getId(), Review.TargetType.HOTEL, hotelId)) {
+            System.out.println("canUserReviewHotel: false because already reviewed");
             return false;
         }
         List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
                 List.of(Booking.BookingStatus.PENDING, Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+        
+        System.out.println("canUserReviewHotel: Found " + bookings.size() + " valid bookings for user");
+
         for (Booking booking : bookings) {
             if (booking.getBookingType() != Booking.BookingType.HOTEL) {
                 continue;
             }
-            BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking(booking).orElse(null);
-            if (detail != null && detail.getHotel() != null
-                    && Objects.equals(detail.getHotel().getId(), hotelId)) {
-                return true;
+            BookingHotelDetail detail = bookingHotelDetailRepository.findByBooking_Id(booking.getId()).orElse(null);
+            if (detail != null && detail.getHotel() != null) {
+                System.out.println("canUserReviewHotel: checking booking hotel " + detail.getHotel().getId() + " vs " + hotelId);
+                if (Objects.equals(detail.getHotel().getId(), hotelId)) {
+                    return true;
+                }
             }
         }
+        System.out.println("canUserReviewHotel: false because no matching hotel found in bookings");
         return false;
     }
 
     @Override
+        @Override
+    public boolean hasUserReviewed(String userEmail, String targetType, Long targetId) {
+        if (userEmail == null || targetType == null || targetId == null) return false;
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) return false;
+        try {
+            Review.TargetType type = Review.TargetType.valueOf(targetType.trim().toUpperCase(java.util.Locale.ROOT));
+            return reviewRepository.existsByUserIdAndTargetTypeAndTargetId(user.getId(), type, targetId);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public boolean canUserReviewTour(String userEmail, Long tourId) {
         if (userEmail == null || tourId == null) {
             return false;

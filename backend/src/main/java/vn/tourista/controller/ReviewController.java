@@ -104,7 +104,12 @@ public class ReviewController {
             Authentication authentication) {
 
         boolean canReview = reviewService.canUserReview(resolveEmail(authentication), targetType, targetId);
-        Map<String, Boolean> data = Map.of("canReview", canReview);
+        boolean hasReviewed = reviewService.hasUserReviewed(resolveEmail(authentication), targetType, targetId);
+        
+        Map<String, Boolean> data = Map.of(
+            "canReview", canReview,
+            "hasReviewed", hasReviewed
+        );
         return ResponseEntity.ok(ApiResponse.ok("Kiem tra quyen danh gia thanh cong", data));
     }
 }

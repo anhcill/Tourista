@@ -112,8 +112,9 @@ app:
 
 # ===== BEEKNOEE AI (OpenAI-compatible, powered by Zhipu GLM-4.7-flash) =====
 beeknoee:
-  api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff868332e888c2141c29354d934b3e83a82}
-  model: gemini-3.1-flash-lite-preview
+  api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff82f3ca9a6bb1c42fd8c2dc4ef5e7a2e9a}
+  model: deepseek/deepseek-v4-pro
+  reasoning: off
   api-url: https://platform.beeknoee.com/api/v1/chat/completions
-  timeout-seconds: 30
+  timeout-seconds: 60
   max-tokens: 2000

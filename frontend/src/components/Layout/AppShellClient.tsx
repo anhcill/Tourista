@@ -10,6 +10,7 @@ import MobileBottomNav from '@/components/Layout/MobileBottomNav/MobileBottomNav
 import Toast from '@/components/Common/Toast/Toast';
 import DetailTopSearchBar from '@/components/Hotels/DetailTopSearchBar/DetailTopSearchBar';
 import BotChatWidget from '@/components/Chat/BotChatWidget';
+import WelcomeVoucherBanner from '@/components/Ads/WelcomeVoucherBanner';
 import { ThemeProvider } from '@/components/ThemeProvider/ThemeProvider';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import PullToRefresh from '@/components/Common/PullToRefresh/PullToRefresh';
@@ -81,6 +82,7 @@ export default function AppShellClient({ children }: AppShellClientProps) {
         ) : (
           <div className="app-shell">
             <PullToRefresh onRefresh={handleRefresh} key={refreshKey} />
+            <WelcomeVoucherBanner />
             {!isP2PModalOpen && (isHotelDetailPage ? <DetailTopSearchBar /> : <Header />)}
             <main className="app-main">{children}</main>
             {!isP2PModalOpen && <MobileBottomNav />}

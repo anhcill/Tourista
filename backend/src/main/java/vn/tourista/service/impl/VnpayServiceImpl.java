@@ -83,6 +83,9 @@ public class VnpayServiceImpl implements VnpayService {
     @Value("${app.vnpay.return-url:http://localhost:3000/payments/vnpay/return}")
     private String configuredReturnUrl;
 
+    @Value("${app.vnpay.ipn-url:}")
+    private String ipnUrl;
+
     @Value("${app.vnpay.order-type:other}")
     private String orderType;
 
@@ -148,6 +151,9 @@ public class VnpayServiceImpl implements VnpayService {
         vnpParams.put("vnp_OrderType", valueOrDefault(orderType, DEFAULT_ORDER_TYPE));
         vnpParams.put("vnp_Locale", valueOrDefault(locale, DEFAULT_LOCALE));
         vnpParams.put("vnp_ReturnUrl", valueOrDefault(request.getReturnUrl(), configuredReturnUrl));
+        if (ipnUrl != null && !ipnUrl.isBlank()) {
+            vnpParams.put("vnp_IpnUrl", ipnUrl);
+        }
         vnpParams.put("vnp_IpAddr", normalizeClientIp(clientIp));
         vnpParams.put("vnp_CreateDate", now.format(VNPAY_TIME));
         vnpParams.put("vnp_ExpireDate", expiresAt.format(VNPAY_TIME));
@@ -363,6 +369,10 @@ public class VnpayServiceImpl implements VnpayService {
 
         String signedData = buildQuery(cloned);
         String calculatedHash = hmacSha512(hashSecret, signedData);
+
+        log.debug("VNPay signature check: txnRef={}, signedData='{}', calcHash='{}', recvHash='{}'",
+                vnpParams.get("vnp_TxnRef"), signedData, calculatedHash, callbackHash);
+
         return calculatedHash.equalsIgnoreCase(callbackHash);
     }
 

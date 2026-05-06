@@ -1,5 +1,9 @@
-fix: login/register flow - add confirmPassword and relax password validation
+fix: axios interceptor redirect loop + cleanup stale doc files
 
-- Frontend: send confirmPassword field on registration
-- Backend: remove strict @Pattern password rule (only keep @Size min=8)
-- Fix InlineFaqChat props destructuring (onChatWithOwner, ownerId, ownerName)
+- axiosClient: only redirect to /login on 401 when user actually had a token
+- useChatWebSocket: remove TypeScript 'as any' syntax from .js files
+- chat.ts: add TYPING to ContentType union
+- BotChatWidget: fix TYPING filter now that type includes it
+- ThemeProvider, TourCard: minor fixes
+- Remove stale ERD/docs files
+- Add Payment entity + repository + schema for new payment feature

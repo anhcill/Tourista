@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import vn.tourista.dto.response.FaqResponse;
+import vn.tourista.service.chatbot.ChatbotFaqService;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -14,13 +15,11 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
- * Service cung cấp FAQ dựa trên context:
- * - HOTEL: FAQ liên quan đến khách sạn (thanh toán, hủy, tiện nghi...)
- * - TOUR: FAQ liên quan đến tour (lịch trình, khởi hành, bao gồm...)
- * - GENERAL: FAQ chung của nền tảng
+ * Service cung cấp FAQ dựa trên context cho trang hotel/tour detail.
  *
- * Dữ liệu gốc từ chatbot-faq.json, được phân loại theo category.
- * KHÔNG dùng Gemini — tất cả câu trả lời từ FAQ keyword matching cục bộ.
+ * KHÔNG dùng AI — tất cả câu trả lời từ FAQ keyword matching cục bộ.
+ *
+ * Dùng chung FAQ data từ chatbot-faq.json (thông qua ChatbotFaqService).
  */
 @Slf4j
 @Service
@@ -28,10 +27,10 @@ import java.util.regex.Pattern;
 public class FaqService {
 
     private static final String FAQ_RESOURCE = "chatbot-faq.json";
-
     private static final Pattern WORD_SPLIT = Pattern.compile("\\s+");
 
     private final ObjectMapper objectMapper;
+    private final ChatbotFaqService chatbotFaqService;
     private volatile List<FaqEntry> cachedFaqs = List.of();
 
     @jakarta.annotation.PostConstruct
@@ -86,11 +85,7 @@ public class FaqService {
 
     /**
      * Trả lời câu hỏi bằng keyword matching từ FAQ cache.
-     * KHÔNG dùng Gemini — hoàn toàn rule-based, không cần API key.
-     *
-     * @param question Câu hỏi của user
-     * @param context  "HOTEL" | "TOUR" | null
-     * @param conversationContext Không dùng nữa (giữ interface cũ)
+     * KHÔNG dùng AI.
      */
     public String answerQuestion(String question, String context, String conversationContext) {
         if (question == null || question.isBlank()) {
@@ -100,12 +95,10 @@ public class FaqService {
         String normalizedQuestion = normalize(question);
         String ctx = context != null && !context.isBlank() ? context.toUpperCase(Locale.ROOT) : null;
 
-        // Tìm FAQ phù hợp nhất
         FaqEntry best = null;
         int bestScore = 0;
 
         for (FaqEntry entry : cachedFaqs) {
-            // Lọc theo context nếu có
             if (ctx != null && !"GENERAL".equals(ctx)) {
                 if (!ctx.equals(entry.category) && !"GENERAL".equals(entry.category)) {
                     continue;
@@ -123,26 +116,16 @@ public class FaqService {
             return best.answer;
         }
 
-        // Fallback: trả lời dựa trên keyword đơn lẻ
         return answerByKeywords(normalizedQuestion, ctx);
     }
 
-    /**
-     * Tìm câu trả lời gần nhất từ FAQ cache (fallback khi không tìm thấy).
-     */
     public String findClosestFaqAnswer(String question, String context) {
         return answerQuestion(question, context, null);
     }
 
-    /**
-     * Tính điểm matching giữa câu hỏi user và câu hỏi FAQ.
-     * - 3 điểm: chứa từ khóa chính
-     * - 2 điểm: chứa từ khóa phụ
-     * - 1 điểm: có từ chung
-     */
     private int calculateMatchScore(String userQuestion, String faqQuestion) {
         if (userQuestion.contains(faqQuestion) || faqQuestion.contains(userQuestion)) {
-            return 4; // gần như identical
+            return 4;
         }
 
         String[] userWords = WORD_SPLIT.split(userQuestion);
@@ -166,7 +149,6 @@ public class FaqService {
             }
         }
 
-        // Bonus nếu >50% từ FAQ được match
         if (totalWords > 0 && (double) matchedWords / totalWords > 0.5) {
             score += 2;
         }
@@ -174,11 +156,7 @@ public class FaqService {
         return score;
     }
 
-    /**
-     * Trả lời dựa trên keyword đơn lẻ trong câu hỏi.
-     */
     private String answerByKeywords(String question, String ctx) {
-        // HOTEL keywords
         if (containsAny(question, List.of(
                 "check-in", "checkin", "nhận phòng", "trả phòng", "checkout",
                 "hủy", "huỷ", "hoàn tiền", "refund", "huy tour", "hủy tour",
@@ -191,7 +169,6 @@ public class FaqService {
             return getHotelAnswer(question);
         }
 
-        // TOUR keywords
         if (containsAny(question, List.of(
                 "lịch trình", "lichtrinh", "ngày", "đêm", "thời gian", "khởi hành",
                 "bao gồm", "không bao gồm", "excludes", "includes",
@@ -205,7 +182,6 @@ public class FaqService {
             return getTourAnswer(question);
         }
 
-        // General keywords
         if (containsAny(question, List.of(
                 "liên hệ", "hotline", "email", "support", "hỗ trợ", "zalo",
                 "tài khoản", "đăng nhập", "đăng ký", "register", "login",
@@ -216,7 +192,6 @@ public class FaqService {
             return getGeneralAnswer(question);
         }
 
-        // Default
         return buildFallbackAnswer();
     }
 
@@ -477,8 +452,6 @@ public class FaqService {
     }
 
     private record FaqEntry(String id, String question, String answer, String category) {}
-
     private record FaqRoot(List<FaqRule> rules, String defaultAnswer) {}
-
     private record FaqRule(String answer) {}
 }
