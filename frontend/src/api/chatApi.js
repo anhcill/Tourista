@@ -18,6 +18,14 @@ const chatApi = {
     /** Đánh dấu tất cả tin nhắn trong conversation là đã đọc */
     markAsRead: (conversationId) =>
         axios.patch(`/chat/conversations/${conversationId}/read`),
+
+    /** Tra cứu booking theo mã TRS-YYYYMMDD-XXXXXX */
+    lookupBooking: (code) =>
+        axios.get('/chat/booking', { params: { code } }),
+
+    /** Lấy danh sách tour hot (top 6) */
+    getHotTours: () =>
+        axios.get('/chat/tours/hot'),
 };
 
 export default chatApi;

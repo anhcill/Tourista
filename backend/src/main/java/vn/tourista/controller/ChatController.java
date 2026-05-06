@@ -8,9 +8,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.tourista.dto.request.CreateConversationRequest;
 import vn.tourista.dto.response.ApiResponse;
+import vn.tourista.dto.response.BotBookingResponse;
 import vn.tourista.dto.response.ChatMessageResponse;
 import vn.tourista.dto.response.ConversationResponse;
+import vn.tourista.dto.response.TourCardItem;
 import vn.tourista.service.ChatService;
+import vn.tourista.service.chatbot.BookingLookupService;
+import vn.tourista.service.chatbot.TourRecommendationQueryService;
 
 import java.security.Principal;
 import java.util.List;
@@ -25,6 +29,8 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final BookingLookupService bookingLookupService;
+    private final TourRecommendationQueryService tourRecommendationQueryService;
 
     /**
      * GET /api/chat/conversations
@@ -76,5 +82,54 @@ public class ChatController {
             Principal principal) {
         chatService.markAsRead(id, principal.getName());
         return ResponseEntity.ok(ApiResponse.ok("Đã đánh dấu đã đọc"));
+    }
+
+    /**
+     * GET /api/chat/booking?code=TRS-YYYYMMDD-XXXXXX
+     * Tra cứu thông tin booking theo mã.
+     * Yêu cầu đăng nhập — chỉ chủ booking mới được xem.
+     */
+    @GetMapping("/booking")
+    public ResponseEntity<ApiResponse<BotBookingResponse>> lookupBooking(
+            Principal principal,
+            @RequestParam String code) {
+        if (principal == null) {
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.error("Vui lòng đăng nhập để tra cứu booking."));
+        }
+        BookingLookupService.LookupResult result =
+                bookingLookupService.lookupBooking(code.trim(), principal.getName());
+
+        if (result.isNotFound()) {
+            return ResponseEntity.status(404)
+                    .body(ApiResponse.error("Không tìm thấy mã đặt chỗ này. Vui lòng kiểm tra lại mã trong email xác nhận."));
+        }
+
+        if (result.isForbidden()) {
+            return ResponseEntity.status(403)
+                    .body(ApiResponse.error("Bạn không có quyền xem thông tin mã đặt chỗ này."));
+        }
+
+        if (result.isError()) {
+            return ResponseEntity.status(400)
+                    .body(ApiResponse.error(result.errorMessage()));
+        }
+
+        return ResponseEntity.ok(ApiResponse.ok("Tra cứu thành công", result.response()));
+    }
+
+    /**
+     * GET /api/chat/tours/hot
+     * Lấy danh sách tour hot (top 6 theo booking count).
+     */
+    @GetMapping("/tours/hot")
+    public ResponseEntity<ApiResponse<List<TourCardItem>>> getHotTours() {
+        List<Long> ids = tourRecommendationQueryService.findHotTourIds(
+                org.springframework.data.domain.PageRequest.of(0, 6));
+        if (ids.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.ok("Không có tour hot", List.of()));
+        }
+        List<TourCardItem> cards = tourRecommendationQueryService.buildTourCards(ids);
+        return ResponseEntity.ok(ApiResponse.ok("Lấy tour hot thành công", cards));
     }
 }

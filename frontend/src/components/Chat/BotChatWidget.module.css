@@ -1,3 +1,4 @@
+/* ──────────── Root variables ──────────── */
 :root {
   --travel-sea: #0e7490;
   --travel-sea-deep: #155e75;
@@ -8,6 +9,7 @@
   --travel-muted: #64748b;
 }
 
+/* ──────────── Widget & FAB ──────────── */
 .widget {
   position: fixed;
   right: 28px;
@@ -17,7 +19,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 14px;
-  font-family: "Be Vietnam Pro", "Manrope", sans-serif;
+  font-family: 'Be Vietnam Pro', 'Manrope', sans-serif;
   overflow: visible;
 }
 
@@ -61,35 +63,7 @@
   line-height: 1;
 }
 
-.badge {
-  position: absolute;
-  top: -7px;
-  right: -7px;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 2px solid #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  animation: badgePop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes badgePop {
-  from {
-    transform: scale(0.2);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
+/* ──────────── Chat Box Wrapper ──────────── */
 .chatBoxWrapper {
   position: absolute;
   bottom: calc(100% + 14px);
@@ -125,6 +99,7 @@
     0 8px 18px rgba(2, 132, 199, 0.12);
 }
 
+/* ──────────── Header ──────────── */
 .chatHeader {
   padding: 16px 18px;
   display: flex;
@@ -147,6 +122,24 @@
   gap: 12px;
 }
 
+.headerBackBtn {
+  border: none;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 18px;
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.headerBackBtn:hover {
+  background: rgba(255,255,255,0.28);
+}
+
 .botIcon {
   width: 48px;
   height: 48px;
@@ -157,6 +150,7 @@
   justify-content: center;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(2px);
+  flex-shrink: 0;
 }
 
 .chatHeaderName {
@@ -184,15 +178,9 @@
 }
 
 @keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(74, 222, 128, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
-  }
+  0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
 }
 
 .closeBtn {
@@ -204,9 +192,8 @@
   border-radius: 8px;
   padding: 6px;
   cursor: pointer;
-  transition:
-    background 0.18s ease,
-    color 0.18s ease;
+  transition: background 0.18s ease, color 0.18s ease;
+  flex-shrink: 0;
 }
 
 .closeBtn:hover {
@@ -214,124 +201,195 @@
   color: #fff;
 }
 
+/* ──────────── Messages Area (Panel Container) ──────────── */
 .messagesArea {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  scroll-behavior: smooth;
   background:
-    radial-gradient(
-      circle at 22% -4%,
-      rgba(14, 116, 144, 0.11) 0%,
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 100% 15%,
-      rgba(251, 146, 60, 0.1) 0%,
-      transparent 34%
-    ),
+    radial-gradient(circle at 22% -4%, rgba(14, 116, 144, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 100% 15%, rgba(251, 146, 60, 0.07) 0%, transparent 34%),
     linear-gradient(180deg, var(--travel-cloud) 0%, var(--travel-sand) 100%);
 }
 
 .messagesArea::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .messagesArea::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.6);
+  background: rgba(148, 163, 184, 0.5);
   border-radius: 999px;
 }
 
-.loadOlderBtn {
-  align-self: center;
-  border: 1px solid rgba(14, 116, 144, 0.25);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #0f766e;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 7px 12px;
-  cursor: pointer;
-  transition: all 0.16s ease;
+/* ──────────── Home Panel ──────────── */
+.homePanel {
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100%;
 }
 
-.loadOlderBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  border-color: rgba(14, 116, 144, 0.45);
-  background: rgba(236, 253, 245, 0.95);
-}
-
-.loadOlderBtn:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.welcomeCard {
-  align-self: stretch;
-  border-radius: 16px;
+.homeGreeting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 14px 16px;
-  border: 1px solid rgba(14, 116, 144, 0.22);
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255,255,255,0.82);
+  border-radius: 16px;
+  border: 1px solid rgba(148,163,184,0.22);
   backdrop-filter: blur(2px);
 }
 
-.welcomeTitle {
+.homeBotIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0ea5e9, #0e7490);
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(14, 116, 144, 0.3);
+}
+
+.homeGreetingTitle {
   font-size: 15px;
-  line-height: 1.45;
   font-weight: 700;
   color: #0f172a;
 }
 
-.welcomeMeta {
-  margin-top: 6px;
+.homeGreetingSub {
   font-size: 13px;
-  line-height: 1.5;
-  color: var(--travel-muted);
+  color: #64748b;
+  margin-top: 2px;
 }
 
-.conciergeLoading {
-  margin: 10px 0 0;
-  font-size: 12px;
-  color: #0369a1;
-  font-weight: 600;
+.serviceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
 }
 
-.conciergeList {
-  margin: 10px 0 0;
-  padding: 0;
-  list-style: none;
+@media (max-width: 480px) {
+  .serviceGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.serviceBtn {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: var(--svc-bg, #f0fdf4);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  min-height: 80px;
+  text-align: center;
+  font-family: inherit;
 }
 
-.conciergeItem {
-  font-size: 12px;
-  color: #334155;
-  line-height: 1.45;
-  border-radius: 10px;
-  border: 1px solid rgba(14, 116, 144, 0.18);
-  background: rgba(240, 249, 255, 0.72);
-  padding: 6px 9px;
+.serviceBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  border-color: var(--svc-color, #10b981);
 }
 
-.loadingState {
+.serviceEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.serviceLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.3;
+}
+
+/* ──────────── Content Views (Tour Hot, Booking Lookup, etc.) ──────────── */
+.contentView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.viewHeader {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.88);
+  border-bottom: 1px solid rgba(148,163,184,0.2);
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+
+.backBtn {
+  border: none;
+  background: rgba(14,116,144,0.08);
+  color: #0e7490;
+  font-size: 16px;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+  font-weight: 700;
+}
+
+.backBtn:hover {
+  background: rgba(14,116,144,0.16);
+}
+
+.viewTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.viewBody {
   flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.viewBody::-webkit-scrollbar {
+  width: 5px;
+}
+
+.viewBody::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,0.5);
+  border-radius: 999px;
+}
+
+/* ──────────── Loading / Error / Empty States ──────────── */
+.loadingState {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: #334155;
+  padding: 32px 16px;
+  color: #475569;
   font-size: 14px;
 }
 
 .loadingSpinner {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 3px solid rgba(2, 132, 199, 0.18);
   border-top-color: #0284c7;
@@ -339,337 +397,216 @@
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-.systemMsg {
-  align-self: center;
-  text-align: center;
-  font-size: 12px;
-  line-height: 1.4;
-  color: #475569;
-  background: rgba(255, 255, 255, 0.76);
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  border-radius: 999px;
-  padding: 6px 11px;
-}
-
-.bubble {
-  max-width: 96%;
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  animation: bubbleFadeIn 0.24s ease;
-}
-
-@keyframes bubbleFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.bubbleOwn {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
-
-.bubbleBot {
-  align-self: flex-start;
-}
-
-.botAvatar {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 20px;
-  background: linear-gradient(135deg, #0ea5e9, #0e7490);
-  box-shadow: 0 6px 14px rgba(14, 116, 144, 0.3);
-}
-
-.bubbleContent {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.bubbleText {
-  font-size: 14px;
-  line-height: 1.65;
-  padding: 12px 15px;
-}
-
-.bubbleContentOwn .bubbleText {
-  color: #fff;
-  border-radius: 16px 16px 6px 16px;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  box-shadow: 0 8px 18px rgba(3, 105, 161, 0.33);
-}
-
-.bubbleContentBot .bubbleText {
-  color: var(--travel-ink);
-  border-radius: 16px 16px 16px 6px;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
-}
-
-.bubbleText p {
-  margin: 0;
-  color: inherit;
-}
-
-.bubbleText p + p {
-  margin-top: 6px;
-}
-
-.bubbleTime {
-  align-self: flex-end;
-  padding: 0 4px;
-  color: #64748b;
-  font-size: 11px;
-}
-
-.typingBubble {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-  gap: 5px;
-  padding: 13px 16px;
-  border-radius: 16px 16px 16px 6px;
-  border: 1px solid rgba(148, 163, 184, 0.34);
-  background: rgba(255, 255, 255, 0.94);
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #64748b;
-  animation: bounce 1.2s infinite;
-}
-
-.dot:nth-child(2) {
-  animation-delay: 0.18s;
-}
-
-.dot:nth-child(3) {
-  animation-delay: 0.36s;
-}
-
-@keyframes bounce {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-  }
-  30% {
-    transform: translateY(-5px);
-  }
-}
-
-.quickPrompts {
-  padding: 12px 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  border-top: 1px solid rgba(148, 163, 184, 0.28);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), #fff);
-}
-
-/* ── Offer Buttons ── */
-.offersSection {
-  border-top: 1px solid rgba(148, 163, 184, 0.28);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), #fff);
-  flex-shrink: 0;
-  animation: offersSlideIn 0.3s ease;
-}
-
-@keyframes offersSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.offersHeader {
-  padding: 10px 14px 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #065f46;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.offersGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
-  padding: 4px 12px 12px;
-}
-
-@media (max-width: 480px) {
-  .offersGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.offerBtn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 10px 6px;
+.errorState {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 12px;
-  border: 1px solid rgba(14, 116, 144, 0.18);
-  background: #f0fdf4;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  min-height: 74px;
-  text-align: center;
-}
-
-.offerBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  border-color: rgba(21, 128, 61, 0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(21, 128, 61, 0.12);
-}
-
-.offerBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.offerEmoji {
-  font-size: 1.4rem;
-  line-height: 1;
-}
-
-.offerLabel {
-  font-size: 11px;
-  font-weight: 700;
-  color: #14532d;
-  line-height: 1.3;
-}
-
-.quickPromptBtn {
-  border: 1px solid rgba(14, 116, 144, 0.24);
-  border-radius: 999px;
-  padding: 9px 14px;
-  font-size: 13px;
-  white-space: normal;
-  text-align: left;
-  word-break: break-word;
-  hyphens: auto;
-  color: #0f172a;
-  background: rgba(240, 249, 255, 0.92);
-  cursor: pointer;
-  transition:
-    transform 0.16s ease,
-    background 0.16s ease,
-    border-color 0.16s ease;
-}
-
-.quickPromptBtn:hover {
-  transform: translateY(-1px);
-  background: #e0f2fe;
-  border-color: rgba(3, 105, 161, 0.46);
-}
-
-.inputArea {
-  flex-shrink: 0;
-  padding: 14px;
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  border-top: 1px solid rgba(148, 163, 184, 0.28);
-  background: #fff;
-}
-
-.input {
-  flex: 1;
-  resize: none;
-  min-height: 48px;
-  max-height: 130px;
-  border-radius: 14px;
-  border: 1.5px solid rgba(148, 163, 184, 0.34);
-  background: #f8fafc;
   padding: 12px 14px;
-  font-size: 14px;
+  font-size: 13.5px;
+  color: #dc2626;
+  text-align: center;
   line-height: 1.5;
-  color: #0f172a;
-  font-family: inherit;
-  transition:
-    border-color 0.16s ease,
-    background 0.16s ease,
-    box-shadow 0.16s ease;
 }
 
-.input:focus {
-  outline: none;
-  border-color: rgba(2, 132, 199, 0.66);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+.emptyState {
+  text-align: center;
+  padding: 32px 16px;
+  color: #94a3b8;
+  font-size: 14px;
 }
 
-.input:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
+/* ──────────── Booking Lookup ──────────── */
+.lookupIntro {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.5;
+  text-align: center;
 }
 
-.sendBtn {
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 12px;
-  flex-shrink: 0;
+.lookupIntro code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: monospace;
+  color: #0e7490;
+}
+
+.lookupForm {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-  background: linear-gradient(
-    140deg,
-    var(--travel-sun),
-    #f97316 60%,
-    #ea580c 100%
-  );
-  box-shadow: 0 10px 18px rgba(234, 88, 12, 0.32);
-  transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    opacity 0.16s ease;
+  gap: 8px;
 }
 
-.sendBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 20px rgba(234, 88, 12, 0.38);
+.lookupInput {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(148,163,184,0.4);
+  background: #f8fafc;
+  font-size: 14px;
+  font-family: inherit;
+  color: #0f172a;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
 }
 
-.sendBtn:disabled {
+.lookupInput:focus {
+  border-color: rgba(2,132,199,0.6);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(2,132,199,0.1);
+}
+
+.lookupInput:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
+}
+
+.lookupBtn {
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #0e7490, #0369a1);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 6px 14px rgba(14,116,144,0.3);
+}
+
+.lookupBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.lookupBtn:disabled {
   opacity: 0.45;
+  cursor: not-allowed;
   box-shadow: none;
 }
 
+.bookingResult {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ──────────── Tour List ──────────── */
+.tourList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ──────────── Guide / Policy ──────────── */
+.guideSection {
+  background: rgba(255,255,255,0.82);
+  border-radius: 14px;
+  border: 1px solid rgba(148,163,184,0.22);
+  padding: 14px 16px;
+  backdrop-filter: blur(2px);
+}
+
+.guideTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.guideText {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.policyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.policyCard {
+  background: #f8fafc;
+  border: 1px solid rgba(148,163,184,0.3);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.policyDays {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.policyRate {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ──────────── FAQ Accordion ──────────── */
+.faqItem {
+  background: rgba(255,255,255,0.82);
+  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,0.22);
+  overflow: hidden;
+  backdrop-filter: blur(2px);
+}
+
+.faqQuestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.faqQuestion:hover {
+  background: rgba(14,116,144,0.05);
+}
+
+.faqQuestion span:first-child {
+  flex: 1;
+}
+
+.faqChevron {
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.faqAnswer {
+  padding: 10px 16px 14px;
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.65;
+  border-top: 1px solid rgba(148,163,184,0.15);
+  animation: fadeIn 0.2s ease;
+}
+
+/* ──────────── Responsive ──────────── */
 @media (max-width: 640px) {
   .widget {
     right: 12px;
@@ -686,19 +623,13 @@
     max-width: 420px;
     height: min(680px, calc(100vh - 110px));
     border-radius: 18px;
-    overflow: hidden;
   }
 
-  .chatHeader {
-    padding: 14px 14px;
+  .serviceGrid {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
-  .messagesArea {
-    padding: 13px;
-  }
-
-  .quickPrompts {
-    padding: 10px 10px;
-    gap: 6px;
+  .policyGrid {
+    grid-template-columns: 1fr;
   }
 }
