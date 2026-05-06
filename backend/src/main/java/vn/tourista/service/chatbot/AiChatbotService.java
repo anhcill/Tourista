@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import vn.tourista.dto.response.ChatMessageResponse;
 import vn.tourista.entity.ChatMessage;
 import vn.tourista.entity.Conversation;
+import vn.tourista.entity.ConversationSession;
 import vn.tourista.repository.ChatMessageRepository;
 import vn.tourista.repository.ConversationRepository;
 import vn.tourista.repository.ConversationSessionRepository;
@@ -38,6 +39,7 @@ public class AiChatbotService {
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatbotFaqService faqService;
+    private final ChatbotNlpService nlpService;
     private final TourRecommendationQueryService tourQueryService;
     private final AiService aiService;
     private final ChatMessageRepository chatMessageRepository;
@@ -51,7 +53,7 @@ public class AiChatbotService {
      */
     public void processAiChatbot(Long conversationId, String inputText, String clientEmail,
                                  String conversationContext) {
-        String canonical = normalize(canonicalize(normalizeInput(inputText)));
+        String canonical = nlpService.normalize(nlpService.canonicalize(normalizeInput(inputText)));
 
         // Bước 1: Thử FAQ rules trước (fast path)
         String faqAnswer = faqService.findMatchingAnswer(canonical);
@@ -106,7 +108,7 @@ public class AiChatbotService {
     public void pushFaqMenu(Long conversationId, String clientEmail, String userInput) {
         try {
             String suggestion = "";
-            String canonical = canonicalize(normalizeInput(userInput));
+            String canonical = nlpService.canonicalize(normalizeInput(userInput));
 
             if (containsAny(canonical, List.of("thoi tiet", "mua", "bien", "nong", "lanh", "mua vang"))) {
                 suggestion = "Bạn có thể hỏi về thời tiết tại điểm đến cụ thể nhé!";

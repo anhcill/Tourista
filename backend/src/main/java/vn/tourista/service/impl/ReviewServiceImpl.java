@@ -353,7 +353,6 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-        @Override
     public boolean hasUserReviewed(String userEmail, String targetType, Long targetId) {
         if (userEmail == null || targetType == null || targetId == null) return false;
         User user = userRepository.findByEmail(userEmail).orElse(null);

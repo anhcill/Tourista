@@ -200,6 +200,19 @@ public class ChatbotNlpService {
     }
 
     /**
+     * Trích xuất booking code TRS-YYYYMMDD-XXXXXX từ text.
+     */
+    public String extractBookingCode(String inputText) {
+        if (inputText == null) return null;
+        Pattern pattern = Pattern.compile("\\b(TRS-\\d{8}-[A-Z0-9]{6})\\b", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(inputText);
+        if (matcher.find()) {
+            return matcher.group(1).toUpperCase();
+        }
+        return null;
+    }
+
+    /**
      * Kiểm tra có phải intent gợi ý tour không.
      */
     public boolean isRecommendationIntent(String canonicalInput) {
