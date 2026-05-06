@@ -572,7 +572,7 @@ function HotelDetailInner() {
             }
             try {
                 const res = await reviewApi.canUserReview('HOTEL', Number(hotel.id));
-                setCanReview(Boolean(res?.data?.data?.canReview));
+                setCanReview(Boolean(res?.data?.canReview));
             } catch {
                 setCanReview(false);
             }

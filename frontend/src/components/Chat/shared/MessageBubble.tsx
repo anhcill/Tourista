@@ -2,17 +2,34 @@
 
 import React from 'react';
 import { useSelector } from 'react-redux';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const useAppSelector: (selector: (state: any) => unknown) => unknown = useSelector as any;
+/* eslint-enable */
 import TourResultCard from '../TourResultCard/TourResultCard';
 import BookingItineraryCard from '../BookingItineraryCard/BookingItineraryCard';
 import FaqMenuCard from '../FaqMenuCard/FaqMenuCard';
-import { formatClock, parseSafeMarkdown, isOwnMessage } from '../../utils/chat/formatters';
+import { formatClock, parseSafeMarkdown, isOwnMessage } from '../../../utils/chat/formatters';
 import styles from './MessageBubble.module.css';
+
+interface MessageBubbleProps {
+    msg: {
+        id?: number;
+        content?: string;
+        contentType?: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        metadata?: any;
+        createdAt?: string;
+        senderId?: number;
+    };
+    showDateLabel?: string | null;
+    onFaqSelect?: (offerId: string) => void;
+}
 
 /**
  * Shared message bubble component used by both BotChatWidget and ClientChatModal.
  */
-const MessageBubble = React.memo(({ msg, showDateLabel, onFaqSelect }) => {
-    const { user } = useSelector(state => state.auth);
+const MessageBubble = React.memo(({ msg, showDateLabel, onFaqSelect }: MessageBubbleProps) => {
+    const { user } = useAppSelector(state => state.auth) as { user?: { id?: number; name?: string } };
 
     const isOwn = isOwnMessage(msg, user?.id);
     const isSystem = msg.contentType === 'SYSTEM_LOG';

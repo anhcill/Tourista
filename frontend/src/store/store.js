@@ -18,14 +18,14 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
-                // Ignore these action types
                 ignoredActions: ['ui/showToast'],
-                // Ignore these field paths in all actions
                 ignoredActionPaths: ['payload.timestamp'],
-                // Ignore these paths in the state
                 ignoredPaths: ['ui.toast'],
             },
         }),
 });
 
-export default store;
+/** @type {import('@reduxjs/toolkit').RootState} */
+export const RootState = store.getState;
+/** @type {import('@reduxjs/toolkit').AppDispatch} */
+export const AppDispatch = store.dispatch;

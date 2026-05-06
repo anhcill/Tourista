@@ -249,7 +249,7 @@ function TourDetailInner() {
       }
       try {
         const res = await reviewApi.canUserReview('TOUR', Number(tour.id));
-        setCanReview(Boolean(res?.data?.data?.canReview));
+        setCanReview(Boolean(res?.data?.canReview));
       } catch {
         setCanReview(false);
       }

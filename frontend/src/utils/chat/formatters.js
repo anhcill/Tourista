@@ -94,7 +94,7 @@ export function parseSafeMarkdown(text) {
   const lines = (text || '').split('\n');
   lines.forEach((line, lineIdx) => {
     if (line.match(/^\s*•\s/) || line.match(/^\s*[-*]\s/)) {
-      segments.push(<span key={lineIdx} className={styles.bulletLine}>• {line.replace(/^\s*•\s/, '').replace(/^\s*[-*]\s/, '')}</span>);
+      segments.push(<span key={lineIdx} style={{display:'block'}}>• {line.replace(/^\s*•\s/, '').replace(/^\s*[-*]\s/, '')}</span>);
     } else {
       const parts = line.split(/(\*\*[^*]+\*\*)/g);
       parts.forEach((part, i) => {

@@ -102,6 +102,16 @@ public class ReviewServiceImpl implements ReviewService {
 
         if (bookingId != null) {
             isVerified = validateBookingVerification(user.getId(), bookingId, targetType, targetId);
+        } else {
+            List<Booking> bookings = bookingRepository.findByUserAndStatusIn(user,
+                List.of(Booking.BookingStatus.PENDING, Booking.BookingStatus.CONFIRMED, Booking.BookingStatus.CHECKED_IN, Booking.BookingStatus.COMPLETED));
+            for (Booking booking : bookings) {
+                if (isBookingMatchedTarget(booking, targetType, targetId)) {
+                    bookingId = booking.getId();
+                    isVerified = true;
+                    break;
+                }
+            }
         }
 
         Review review = reviewRepository.save(Review.builder()
@@ -165,7 +175,9 @@ public class ReviewServiceImpl implements ReviewService {
             throw new IllegalArgumentException("Booking khong phu hop voi dich vu ban dang danh gia");
         }
 
-        return booking.getStatus() == Booking.BookingStatus.CHECKED_IN
+        return booking.getStatus() == Booking.BookingStatus.PENDING
+                || booking.getStatus() == Booking.BookingStatus.CONFIRMED
+                || booking.getStatus() == Booking.BookingStatus.CHECKED_IN
                 || booking.getStatus() == Booking.BookingStatus.COMPLETED;
     }
 

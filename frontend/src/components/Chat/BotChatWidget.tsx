@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import type { TypedUseSelectorHook } from 'react-redux';
 import { openBot, closeBot, setActiveBotConversation, addMessage } from '../../store/slices/chatSlice';
 import chatApi from '../../api/chatApi';
 import { useChatWebSocket } from '../../hooks/useChatWebSocket';
 import MessageBubble from './shared/MessageBubble';
 import styles from './BotChatWidget.module.css';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const useAppSelector: TypedUseSelectorHook<any> = useSelector;
+/* eslint-enable */
 
 const GREETING = `👋 Xin chào! Mình là **Tourista Travel Buddy** — trợ lý du lịch AI của bạn.\n\nMình có thể giúp bạn:\n- 🔍 **Tra cứu booking** — gửi mã TRS-YYYYMMDD-XXXXXX\n- 🗺️ **Gợi ý tour** phù hợp ngân sách & số người\n- 💳 **Hướng dẫn thanh toán** VNPay, chuyển khoản\n- 📋 **Chính sách hủy/đổi** lịch\n- 📞 **Kết nối hỗ trợ** Tourista\n\nBạn cần hỗ trợ gì hôm nay? 😊`;
 
@@ -33,16 +38,16 @@ const QUESTION_MAP = {
 const BotChatBox = () => {
     const dispatch = useDispatch();
     const { sendMessage } = useChatWebSocket();
-    const { user } = useSelector(state => state.auth);
-    const { messages: wsMessages, activeBotConversationId } = useSelector(state => state.chat);
+    const { user } = useAppSelector(state => state.auth);
+    const { messages: wsMessages, activeBotConversationId } = useAppSelector(state => state.chat);
 
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [conversationId, setConversationId] = useState(null);
     const [showOffers, setShowOffers] = useState(true);
 
-    const endRef = useRef(null);
-    const inputRef = useRef(null);
+    const endRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     // Merge greeting + WebSocket messages
     const displayMessages = React.useMemo(() => {
@@ -223,7 +228,7 @@ const BotChatBox = () => {
 /* ───────────────────────── BotChatWidget (FAB) ───────────────────────── */
 const BotChatWidget = () => {
     const dispatch = useDispatch();
-    const { isBotOpen, totalUnread } = useSelector(state => state.chat);
+    const { isBotOpen, totalUnread } = useAppSelector(state => state.chat);
 
     return (
         <div className={styles.widget}>
