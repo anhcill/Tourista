@@ -32,9 +32,9 @@ public class Conversation {
     @Column(name = "type", nullable = false, length = 10)
     private ConversationType type;
 
-    // Khách hàng (luôn có)
+    // Khách hàng (nullable cho anonymous user)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id", nullable = false)
+    @JoinColumn(name = "client_id")
     private User client;
 
     // Chủ tour/hotel (NULL nếu type = BOT)
