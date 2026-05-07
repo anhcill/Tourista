@@ -291,14 +291,12 @@ public class ChatService {
                         String[] parts = canonical.split("\\s+");
                         String location = "";
                         String[] keywords = {"nam dinh", "thai binh", "ha noi", "da nang", "hue", "hoi an",
-                                "nha trang", "phan thiet", "vung tau", "phu quoc", "cantho", "tp hcm", "hcm",
-                                "sa pa", "moc chau", "dalat", "quang ninh", "haiphong", "binh duong", "dong nai",
-                                "quang nam", "quang ngai", "binh thuan", "khanh hoa", "lam dong"};
-                        for (String p : parts) {
-                                for (String kw : keywords) {
-                                        if (p.contains(kw)) { location = p; break; }
-                                }
-                                if (!location.isBlank()) break;
+                                "nha trang", "phan thiet", "vung tau", "phu quoc", "cantho", "tp hcm",
+                                "sa pa", "moc chau", "dalat", "quang ninh", "haiphong",
+                                "quang nam", "quang ngai", "binh thuan", "khanh hoa", "lam dong",
+                                "hcm", "ha long", "dong nai", "binh duong"};
+                        for (String kw : keywords) {
+                                if (canonical.contains(kw)) { location = kw; break; }
                         }
                         if (location.isBlank()) {
                                 return "🌤️ Mình có thể cho bạn biết thời tiết chung của các vùng miền Việt Nam, nhưng để có thông tin chính xác bạn nên kiểm tra app thời tiết nhé!\n\nBạn muốn hỏi thời tiết ở đâu?";
