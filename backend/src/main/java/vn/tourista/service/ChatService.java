@@ -244,13 +244,16 @@ public class ChatService {
                         String canonical = chatbotNlpService.normalize(
                                 chatbotNlpService.canonicalize(userMessage.toLowerCase().trim()));
 
-                        // Bước 1: Thử FAQ rules trước (fast path)
-                        String faqAnswer = chatbotFaqService.findMatchingAnswer(canonical);
-                        if (faqAnswer != null && !faqAnswer.isBlank()) {
-                                return faqAnswer;
+                        // Bước 1: Thử FAQ rules trước (fast path), skip nếu có từ khóa thời tiết/đồ ăn
+                        boolean skipFaq = containsWeatherOrFoodKeyword(userMessage);
+                        if (!skipFaq) {
+                                String faqAnswer = chatbotFaqService.findMatchingAnswer(canonical);
+                                if (faqAnswer != null && !faqAnswer.isBlank()) {
+                                        return faqAnswer;
+                                }
                         }
 
-                        // Bước 2: Không khớp rule → gọi AI với DB context
+                        // Bước 2: Không khớp rule hoặc skip FAQ → gọi AI với DB context
                         String aiResponse = aiService.askChatbot(userMessage, conversationContext, dbContext);
                         if (aiResponse != null && !aiResponse.isBlank()) {
                                 return aiResponse;
@@ -262,6 +265,21 @@ public class ChatService {
                         log.error("askAiSync: error processing message '{}': {}", userMessage, e.getMessage());
                         return chatbotFaqService.getDefaultAnswer();
                 }
+        }
+
+        private boolean containsWeatherOrFoodKeyword(String text) {
+                if (text == null) return false;
+                String lower = text.toLowerCase();
+                return lower.contains("thời tiết") || lower.contains("thoi tiet") ||
+                       lower.contains("mùa") || lower.contains("mua") ||
+                       lower.contains("nhiệt độ") || lower.contains("nhiet do") ||
+                       lower.contains("trời") || lower.contains("troi") ||
+                       lower.contains("có gì") || lower.contains("co gi") ||
+                       lower.contains("món ngon") || lower.contains("mon ngon") ||
+                       lower.contains("đặc sản") || lower.contains("dac san") ||
+                       lower.contains("ăn ngon") || lower.contains("an ngon") ||
+                       lower.contains("quán") || lower.contains("quan") ||
+                       lower.contains("nhà hàng") || lower.contains("nha hang");
         }
 
         /**
