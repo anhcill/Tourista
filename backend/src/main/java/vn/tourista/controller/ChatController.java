@@ -194,10 +194,8 @@ public class ChatController {
             ChatMessage savedBotMsg = chatService.saveBotMessage(conversationId, aiResponse, ChatMessage.ContentType.AI_TEXT, null);
             return ResponseEntity.ok(ApiResponse.ok("OK", ChatMessageResponse.from(savedBotMsg)));
         } else {
-            // AI không trả lời được → fallback FAQ default
-            String fallback = chatbotFaqService.getDefaultAnswer();
-            ChatMessage savedBotMsg = chatService.saveBotMessage(conversationId, fallback, ChatMessage.ContentType.TEXT, null);
-            return ResponseEntity.ok(ApiResponse.ok("OK", ChatMessageResponse.from(savedBotMsg)));
+            // AI không trả lời được → chatService.askAiSync đã trả fallback rồi
+            return ResponseEntity.ok(ApiResponse.ok("OK", null));
         }
     }
 }
