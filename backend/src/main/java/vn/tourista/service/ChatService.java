@@ -285,8 +285,58 @@ public class ChatService {
          * Xây dựng fallback response khi AI không trả lời được.
          */
         private String buildFallbackResponse(String canonical) {
-                if (canonical.contains("thoi tiet") || canonical.contains("weather")) {
-                        return "🌤️ Mình có thể cho bạn biết thời tiết chung của các vùng miền, nhưng để có thông tin chính xác, bạn nên kiểm tra app thời tiết nhé!\n\nBạn muốn hỏi thời tiết ở đâu?";
+                if (canonical.contains("thoi tiet") || canonical.contains("weather") ||
+                        canonical.contains("mua") || canonical.contains("nang") || canonical.contains("nong") ||
+                        canonical.contains("troi")) {
+                        String[] parts = canonical.split("\\s+");
+                        String location = "";
+                        String[] keywords = {"nam dinh", "thai binh", "ha noi", "da nang", "hue", "hoi an",
+                                "nha trang", "phan thiet", "vung tau", "phu quoc", "cantho", "tp hcm", "hcm",
+                                "sa pa", "moc chau", "dalat", "quang ninh", "haiphong", "binh duong", "dong nai",
+                                "quang nam", "quang ngai", "binh thuan", "khanh hoa", "lam dong"};
+                        for (String p : parts) {
+                                for (String kw : keywords) {
+                                        if (p.contains(kw)) { location = p; break; }
+                                }
+                                if (!location.isBlank()) break;
+                        }
+                        if (location.isBlank()) {
+                                return "🌤️ Mình có thể cho bạn biết thời tiết chung của các vùng miền Việt Nam, nhưng để có thông tin chính xác bạn nên kiểm tra app thời tiết nhé!\n\nBạn muốn hỏi thời tiết ở đâu?";
+                        }
+                        return switch (location) {
+                                case "nam dinh", "thai binh" ->
+                                        "🌤️ Xuân Trường, Nam Định có khí hậu nhiệt đới gió mùa, nóng ẩm quanh năm. Nên đi tháng 10-4 (mát mẻ 18-25°C), tránh tháng 5-9 (nắng nóng 33-38°C). Gần bãi biển Quất Lâm và làng trạng nguyên Thái Đỗ!";
+                                case "ha noi", "hanoi" ->
+                                        "🌤️ Hà Nội: Mùa nóng tháng 5-9 (30-38°C, nóng ẩm), mùa mát tháng 10-4 (15-25°C). Tháng 2-3 hay mưa phùn. Đi tháng 10-12 và 3-4 là đẹp nhất!";
+                                case "da nang" ->
+                                        "🌤️ Đà Nẵng: Đi tháng 2-8 (nắng đẹp, 25-33°C), tránh tháng 9-12 (mưa bão, đặc biệt tháng 10-11). Bà Nà Hills mát mẻ quanh năm!";
+                                case "hue" ->
+                                        "🌤️ Huế: Mùa mưa tháng 9-12 nặng nhất, mùa khô tháng 5-9. Đẹp nhất tháng 3-5 (nắng, mát). Nắng nóng gay gắt tháng 6-8.";
+                                case "hoi an" ->
+                                        "🌤️ Hội An: Tương tự Đà Nẵng — đi tháng 2-8, tránh tháng 9-12 hay ngập lụt. Phố cổ đẹp nhất buổi tối!";
+                                case "nha trang", "khanh hoa" ->
+                                        "🌤️ Nha Trang: Tốt nhất tháng 2-9 (nắng, biển xanh, 25-32°C), tránh tháng 10-12 hay bão. Lặn biển, tắm biển lý tưởng!";
+                                case "phan thiet", "binh thuan" ->
+                                        "🌤️ Phan Thiết/Mũi Né: Nắng nóng quanh năm (26-35°C), mùa khô tháng 11-4 đẹp nhất, tránh tháng 9-11 hay mưa lớn. Cát vàng, gió biển thơm!";
+                                case "vung tau" ->
+                                        "🌤️ Vũng Tàu: Nắng nóng quanh năm, tốt nhất tháng 11-4 (mát hơn, 25-30°C), tránh tháng 5-10 (nắng gay gắt, có bão). Gần SGTP!";
+                                case "phu quoc" ->
+                                        "🌤️ Phú Quốc: Mùa khô tháng 11-4 (nắng, biển đẹp, 25-32°C) — đẹp nhất! Mùa mưa tháng 5-10 hay mưa rào.";
+                                case "cantho", "mekong", "cuu long" ->
+                                        "🌤️ Miền Tây (Cần Thơ): Nắng nóng quanh năm 25-35°C, mùa khô tháng 11-4 đẹp, mùa mưa tháng 5-10. Chợ nổi Cái Răng đẹp nhất mùa nước nổi!";
+                                case "tp hcm", "hcm", "sai gon" ->
+                                        "🌤️ TP.HCM: Nóng quanh năm 26-35°C, mùa khô tháng 11-4 (ít mưa), mùa mưa tháng 5-10 (chiều hay mưa rào). Đi tháng 12-3 là mát nhất!";
+                                case "sa pa" ->
+                                        "🌤️ Sa Pa: Mát mẻ quanh năm 15-22°C, đẹp nhất tháng 9-11 (nắng, ruộng bậc thang vàng) và tháng 3-5 (hoa đào nở). Tránh tháng 6-8 hay mưa to.";
+                                case "moc chau" ->
+                                        "🌤️ Mộc Châu: Mát mẻ 18-24°C quanh năm, đẹp nhất tháng 9-11 (hoa cải nở vàng) và tháng 3-5. Sáng sớm hay sương mù, mùa đông lạnh 5-10°C.";
+                                case "dalat", "lam dong" ->
+                                        "🌤️ Đà Lạt: Mát mẻ 18-24°C quanh năm — 'tiểu Paris'. Mùa khô tháng 11-4 đẹp, tránh tháng 7-10 (mưa nhiều). Sáng sớm hay sương mù.";
+                                case "quang ninh", "ha long", "haiphong" ->
+                                        "🌤️ Quảng Ninh/Hạ Long: Mùa đông 15-22°C (tháng 10-4), mùa hè nóng 28-35°C. Đẹp nhất tháng 9-11 (nắng, mát). Bãi tắm Tuần Châu, vịnh Hạ Long quanh năm đẹp!";
+                                default ->
+                                        "🌤️ Mình có thể cho bạn biết thời tiết chung của các vùng miền Việt Nam, nhưng để có thông tin chính xác bạn nên kiểm tra app thời tiết nhé!\n\nBạn muốn hỏi thời tiết ở đâu?";
+                        };
                 }
                 if (canonical.contains("visa") || canonical.contains("passport") || canonical.contains("ho chieu")) {
                         return "🛂 Về visa/hộ chiếu, mình gợi ý bạn liên hệ đại sứ quán để cập nhật thông tin mới nhất nhé!";
