@@ -85,6 +85,7 @@ public class SecurityConfig {
                                                                 "/api/payments/zalopay/**",
                                                                 "/api/combos/**",
                                                                 "/api/welcome-voucher/**",
+                                                                "/api/chat/**",
                                                                 "/login/oauth2/**",
                                                                 "/oauth2/**",
                                                                 // WebSocket handshake endpoint (SockJS dùng HTTP trước
