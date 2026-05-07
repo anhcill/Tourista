@@ -268,6 +268,7 @@ function TourSearchInner() {
           durationMax: localFilters.durationMax,
           difficulty: localFilters.difficulty || undefined,
         });
+        // API returns: { success, message, data: [...] } (axios interceptor already unwraps)
         const rawTours: ApiTourSummary[] = Array.isArray(response?.data) ? response.data : [];
         const mapped = rawTours.map((item) => ({
           id: item.id,
