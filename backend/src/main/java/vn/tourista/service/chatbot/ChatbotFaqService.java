@@ -31,7 +31,7 @@ public class ChatbotFaqService {
             🤔 Mình chưa hiểu rõ yêu cầu của bạn.
 
             Bạn có thể thử:
-            • 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXXX
+            • 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXX
             • 🗺️ **Gợi ý tour:** nhắn ngân sách + số người (ví dụ: "gợi ý tour 8tr cho 2 người")
             • 📋 **Hỏi về:** hủy/hoàn tiền, thanh toán, thời tiết, kinh nghiệm du lịch
 
@@ -123,7 +123,7 @@ public class ChatbotFaqService {
      */
     public String extractBookingCode(String input) {
         if (input == null) return null;
-        Pattern pattern = Pattern.compile("\\bTRS-\\d{8}-[A-Z0-9]{6}\\b", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("\\bTRS-\\d{8}-[A-Z0-9]{5,6}\\b", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(input);
         return matcher.find() ? matcher.group().toUpperCase() : null;
     }
@@ -187,7 +187,7 @@ public class ChatbotFaqService {
                                 Neu thanh toan loi, gui ma booking cho support@tourista.vn de duoc xu ly nhanh."""),
                 new FaqRule(
                         List.of("tra cuu", "xem booking", "ma dat", "đặt chỗ", "lịch trình", "tour cua toi"),
-                        "🔍 **Tra cuu booking:**\n\nGui ma dat cho minh theo dinh dang **TRS-YYYYMMDD-XXXXXX** de xem chi tiet lich trinh."),
+                        "🔍 **Tra cuu booking:**\n\nGui ma dat cho minh theo dinh dang **TRS-YYYYMMDD-XXXXX** de xem chi tiet lich trinh."),
                 new FaqRule(
                         List.of("lien he", "hotline", "email", "ho tro", "support", "hỗ trợ"),
                         """

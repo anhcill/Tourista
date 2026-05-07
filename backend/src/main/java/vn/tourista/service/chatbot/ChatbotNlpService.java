@@ -195,7 +195,7 @@ public class ChatbotNlpService {
      */
     public boolean containsBookingCode(String inputText) {
         if (inputText == null) return false;
-        Pattern pattern = Pattern.compile("\\bTRS-\\d{8}-[A-Z0-9]{6}\\b", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("\\bTRS-\\d{8}-[A-Z0-9]{5,6}\\b", Pattern.CASE_INSENSITIVE);
         return pattern.matcher(inputText).find();
     }
 
@@ -204,7 +204,7 @@ public class ChatbotNlpService {
      */
     public String extractBookingCode(String inputText) {
         if (inputText == null) return null;
-        Pattern pattern = Pattern.compile("\\b(TRS-\\d{8}-[A-Z0-9]{6})\\b", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("\\b(TRS-\\d{8}-[A-Z0-9]{5,6})\\b", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(inputText);
         if (matcher.find()) {
             return matcher.group(1).toUpperCase();

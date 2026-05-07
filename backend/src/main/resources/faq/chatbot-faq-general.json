@@ -4,7 +4,7 @@
   "rules": [
     {
       "keywords": ["xin chào", "xin chao", "chào", "chao", "hello", "hi", "hey", "bắt đầu", "bat dau", "start", "alo"],
-      "answer": "👋 Xin chào! Mình là **Tourista Travel Buddy** — trợ lý du lịch AI của bạn.\n\nMình có thể giúp bạn:\n- 🔍 **Tra cứu booking** — gửi mã TRS-YYYYMMDD-XXXXXX\n- 🗺️ **Gợi ý tour** phù hợp ngân sách & số người\n- 💳 **Hướng dẫn thanh toán** VNPay, chuyển khoản\n- 📋 **Chính sách hủy/đổi** lịch\n- 📞 **Kết nối hỗ trợ** Tourista\n\nBạn cần hỗ trợ gì hôm nay? 😊"
+      "answer": "👋 Xin chào! Mình là **Tourista Travel Buddy** — trợ lý du lịch AI của bạn.\n\nMình có thể giúp bạn:\n- 🔍 **Tra cứu booking** — gửi mã TRS-YYYYMMDD-XXXXX\n- 🗺️ **Gợi ý tour** phù hợp ngân sách & số người\n- 💳 **Hướng dẫn thanh toán** VNPay, chuyển khoản\n- 📋 **Chính sách hủy/đổi** lịch\n- 📞 **Kết nối hỗ trợ** Tourista\n\nBạn cần hỗ trợ gì hôm nay? 😊"
     },
     {
       "keywords": ["hủy", "huy tour", "hủy tour", "hủy phòng", "huy phong", "cancel", "hoàn tiền", "hoan tien", "refund", "đổi lịch", "doi lich", "dời lịch", "doi tour"],
@@ -16,7 +16,7 @@
     },
     {
       "keywords": ["tra cứu", "tra cuu", "xem booking", "xem don", "mã đặt", "ma dat", "lịch trình của tôi", "lich trinh cua toi", "trs-", "đơn đặt", "don dat"],
-      "answer": "🔍 **Tra cứu booking siêu nhanh:**\n\nChỉ cần gửi mã đặt theo định dạng **TRS-YYYYMMDD-XXXXXX** vào đây, mình sẽ trả ngay toàn bộ:\n- Tên tour / khách sạn\n- Ngày giờ, lịch trình chi tiết từng ngày\n- Trạng thái thanh toán\n- Thông tin liên hệ đối tác\n\n📧 Mã booking có trong **email xác nhận** hoặc mục **Lịch sử Booking** trên tài khoản."
+      "answer": "🔍 **Tra cứu booking siêu nhanh:**\n\nChỉ cần gửi mã đặt theo định dạng **TRS-YYYYMMDD-XXXXX** vào đây, mình sẽ trả ngay toàn bộ:\n- Tên tour / khách sạn\n- Ngày giờ, lịch trình chi tiết từng ngày\n- Trạng thái thanh toán\n- Thông tin liên hệ đối tác\n\n📧 Mã booking có trong **email xác nhận** hoặc mục **Lịch sử Booking** trên tài khoản."
     },
     {
       "keywords": ["liên hệ", "lien he", "hotline", "support", "hỗ trợ", "ho tro", "email", "chủ tour", "chu tour", "chủ khách sạn", "chu khach san", "gặp người thật", "gap nguoi that"],

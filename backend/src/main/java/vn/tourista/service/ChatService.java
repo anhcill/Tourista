@@ -281,7 +281,7 @@ public class ChatService {
                         🤔 Mình chưa hiểu rõ yêu cầu của bạn.
 
                         Bạn có thể thử:
-                        • 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXXX
+                        • 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXX
                         • 🗺️ **Gợi ý tour:** nhắn ngân sách + số người
                         • 🏨 **Tìm khách sạn:** nhắn địa điểm + ngân sách
                         """;

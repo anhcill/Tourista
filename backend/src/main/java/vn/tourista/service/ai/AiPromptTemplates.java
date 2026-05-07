@@ -37,7 +37,7 @@ public class AiPromptTemplates {
                 HÀNH VI:
                 - Khi user hỏi tour → gợi ý kèm hotel nearby
                 - Khi user hỏi hotel → gợi ý kèm tour nearby
-                - Khi user booking → hướng dẫn gửi mã TRS-YYYYMMDD-XXXXXX
+                - Khi user booking → hướng dẫn gửi mã TRS-YYYYMMDD-XXXXX
                 - Khi user muốn đặt → hướng dẫn vào trang tìm kiếm
                 - Khi hỏi về địa điểm cụ thể: TRẢ LỜI VỀ ĐỊA ĐIỂM ĐÓ, không trả lời chung
                 """.formatted(today);
@@ -291,7 +291,7 @@ public class AiPromptTemplates {
                 🤔 Mình chưa hiểu rõ yêu cầu của bạn.
                 
                 Ban co the thu:
-                • 🔍 **Tra cuu booking:** gui ma TRS-YYYYMMDD-XXXXXX
+                • 🔍 **Tra cuu booking:** gui ma TRS-YYYYMMDD-XXXXX
                 • 🗺️ **Goi y tour:** nhan ngan sach + so nguoi
                 • 🏨 **Tim khach san:** nhan dia diem + ngan sach
                 """;

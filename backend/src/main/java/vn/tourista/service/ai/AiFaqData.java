@@ -15,7 +15,7 @@ public class AiFaqData {
             🤔 Mình chưa hiểu rõ yêu cầu của bạn.
             
             Bạn có thể thử:
-            • 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXXX
+            • 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXX
             • 🗺️ **Gợi ý tour:** nhắn ngân sách + số người
             • 🏨 **Tìm khách sạn:** nhắn địa điểm + ngân sách
             """;
@@ -52,7 +52,7 @@ public class AiFaqData {
                 // Tra cứu booking
                 new AiFaqService.FaqRule(
                         List.of("tra cuu", "xem booking", "xem lich su", "lich su dat cho", "lich su booking"),
-                        "🔍 **Tra cứu booking:**\n\nGửi mã đặt cho mình theo định dạng **TRS-YYYYMMDD-XXXXXX** để xem chi tiết lịch trình."),
+                        "🔍 **Tra cứu booking:**\n\nGửi mã đặt cho mình theo định dạng **TRS-YYYYMMDD-XXXXX** để xem chi tiết lịch trình."),
                 
                 // Liên hệ
                 new AiFaqService.FaqRule(

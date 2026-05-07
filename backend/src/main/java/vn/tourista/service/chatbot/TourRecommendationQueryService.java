@@ -225,7 +225,7 @@ public class TourRecommendationQueryService {
 
         // Booking hint
         if (containsAny(canonical, List.of("booking", "dat cho", "tour cua toi", "lich su"))) {
-            ctx.append("Để tra cứu booking, hãy gửi mã theo định dạng TRS-YYYYMMDD-XXXXXX (ví dụ: TRS-20260503-ABC123).\n");
+            ctx.append("Để tra cứu booking, hãy gửi mã theo định dạng TRS-YYYYMMDD-XXXXX (ví dụ: TRS-20260503-ABC12).\n");
         }
 
         if (ctx.isEmpty()) {

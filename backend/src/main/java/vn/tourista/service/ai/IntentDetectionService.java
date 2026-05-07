@@ -77,9 +77,9 @@ public class IntentDetectionService {
             new KeywordPattern(List.of("tệ", "bad", "失望", "không hài lòng", "phàn nàn", "khiếu nại", "sao lại", "tại sao", "làm ăn", "dở", "dở", " không được"), Intent.COMPLAINT)
     );
 
-    // Booking code pattern: TRS-YYYYMMDD-XXXXXX
+    // Booking code pattern: TRS-YYYYMMDD-XXXXX
     private static final Pattern BOOKING_CODE_PATTERN = Pattern.compile(
-            "TRS-\\d{8}-[A-Z0-9]{6}", Pattern.CASE_INSENSITIVE);
+            "TRS-\\d{8}-[A-Z0-9]{5,6}", Pattern.CASE_INSENSITIVE);
 
     // ============================================================
     // MAIN DETECTION METHOD

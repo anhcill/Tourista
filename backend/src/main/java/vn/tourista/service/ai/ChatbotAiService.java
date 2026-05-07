@@ -77,7 +77,7 @@ public class ChatbotAiService {
                 👋 Chào bạn! Mình là trợ lý Tourista Studio.
                 
                 Mình có thể giúp bạn:
-                🔍 **Tra cứu booking** - gửi mã TRS-YYYYMMDD-XXXXXX
+                🔍 **Tra cứu booking** - gửi mã TRS-YYYYMMDD-XXXXX
                 🗺️ **Gợi ý tour** - nhắn ngân sách + số người
                 🏨 **Tìm khách sạn** - nhắn địa điểm + ngân sách
                 
@@ -95,7 +95,7 @@ public class ChatbotAiService {
         } else {
             pushBotText(conversationId, clientEmail,
                     "🔍 Để tra cứu booking, bạn gửi mã đặt theo định dạng:\n" +
-                    "**TRS-YYYYMMDD-XXXXXX**\n\n" +
+                    "**TRS-YYYYMMDD-XXXXX**\n\n" +
                     "Mã này có trong email xác nhận sau khi bạn đặt tour/khách sạn.");
         }
     }
@@ -248,7 +248,7 @@ public class ChatbotAiService {
     private String extractBookingCode(String input) {
         if (input == null) return null;
         java.util.regex.Pattern p = java.util.regex.Pattern.compile(
-                "TRS-\\d{8}-[A-Z0-9]{6}", java.util.regex.Pattern.CASE_INSENSITIVE);
+                "TRS-\\d{8}-[A-Z0-9]{5,6}", java.util.regex.Pattern.CASE_INSENSITIVE);
         java.util.regex.Matcher m = p.matcher(input);
         if (m.find()) {
             return m.group().toUpperCase();
