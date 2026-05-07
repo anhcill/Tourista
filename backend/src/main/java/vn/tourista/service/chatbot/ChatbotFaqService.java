@@ -17,14 +17,16 @@ import java.util.regex.Pattern;
  * Service xử lý FAQ matching cho chatbot.
  * Được dùng trước khi gọi AI để phản hồi nhanh (fast path).
  *
- * Nạp FAQ rules từ chatbot-faq.json, thực hiện keyword matching.
+ * Nạp FAQ rules từ thư mục faq/, thực hiện keyword matching.
+ * Tách FAQ theo category: general, tours, destinations, cuisine...
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatbotFaqService {
 
-    private static final String FAQ_RESOURCE = "chatbot-faq.json";
+    private static final String FAQ_RESOURCE_DIR = "faq/";
+    private static final String FAQ_FILE_PATTERN = "chatbot-faq-*.json";
     private static final String DEFAULT_FAQ_ANSWER = """
             🤔 Mình chưa hiểu rõ yêu cầu của bạn.
 
@@ -44,39 +46,50 @@ public class ChatbotFaqService {
     @jakarta.annotation.PostConstruct
     public void loadFaqRules() {
         List<FaqRule> loaded = new ArrayList<>();
-        try (InputStream stream = new ClassPathResource(FAQ_RESOURCE).getInputStream()) {
+        try {
+            // Load all FAQ files from faq/ directory
+            var resourcePatternResolver = new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
+            var resources = resourcePatternResolver.getResources("classpath:" + FAQ_RESOURCE_DIR + FAQ_FILE_PATTERN);
+
+            log.info("ChatbotFaqService: found {} FAQ files to load", resources.length);
+
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            FaqConfig config = mapper.readValue(stream, FaqConfig.class);
-            if (config != null) {
-                if (config.defaultAnswer() != null && !config.defaultAnswer().isBlank()) {
-                    defaultFaqAnswer = config.defaultAnswer();
-                }
-                if (config.rules() != null) {
-                    for (FaqItem item : config.rules()) {
-                        if (item == null || item.answer() == null || item.answer().isBlank()) continue;
-                        List<String> keywords = new ArrayList<>();
-                        if (item.keywords() != null) {
-                            for (String kw : item.keywords()) {
-                                if (kw != null && !kw.isBlank()) {
-                                    keywords.add(kw.toLowerCase().trim());
+
+            for (var resource : resources) {
+                try (InputStream stream = resource.getInputStream()) {
+                    String filename = resource.getFilename();
+                    log.debug("ChatbotFaqService: loading FAQ from {}", filename);
+
+                    FaqConfig config = mapper.readValue(stream, FaqConfig.class);
+                    if (config != null && config.rules() != null) {
+                        for (FaqItem item : config.rules()) {
+                            if (item == null || item.answer() == null || item.answer().isBlank()) continue;
+                            List<String> keywords = new ArrayList<>();
+                            if (item.keywords() != null) {
+                                for (String kw : item.keywords()) {
+                                    if (kw != null && !kw.isBlank()) {
+                                        keywords.add(kw.toLowerCase().trim());
+                                    }
                                 }
                             }
-                        }
-                        if (!keywords.isEmpty()) {
-                            loaded.add(new FaqRule(List.copyOf(keywords), item.answer().trim()));
+                            if (!keywords.isEmpty()) {
+                                loaded.add(new FaqRule(List.copyOf(keywords), item.answer().trim()));
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    log.warn("ChatbotFaqService: failed to load FAQ from {}: {}", resource.getFilename(), e.getMessage());
                 }
             }
         } catch (Exception ex) {
-            log.warn("ChatbotFaqService: cannot load FAQ config from {}. Using fallback rules.", FAQ_RESOURCE, ex);
+            log.warn("ChatbotFaqService: cannot load FAQ from directory. Using fallback rules.", ex);
         }
 
         if (loaded.isEmpty()) {
             loaded = buildFallbackFaqRules();
         }
         faqRules = List.copyOf(loaded);
-        log.info("ChatbotFaqService: loaded {} FAQ rules", faqRules.size());
+        log.info("ChatbotFaqService: loaded {} FAQ rules from {} files", faqRules.size());
     }
 
     /**
@@ -181,7 +194,7 @@ public class ChatbotFaqService {
 
     // ── Records for JSON parsing ──────────────────────────────────────────────
 
-    private record FaqConfig(List<FaqItem> rules, String defaultAnswer) {}
+    private record FaqConfig(List<FaqItem> rules, String defaultAnswer, String category, String description) {}
     private record FaqItem(List<String> keywords, String answer) {}
     private record FaqRule(List<String> keywords, String answer) {}
 }

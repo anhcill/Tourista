@@ -137,4 +137,34 @@ public class RecommendationStateService {
                 LocalDateTime.now()
         );
     }
+
+    // ============================================================
+    // HOTEL RECOMMENDATION STATE
+    // ============================================================
+
+    /**
+     * Trạng thái slot-filling cho hotel recommendation.
+     */
+    public record HotelRecommendationState(
+            Integer budgetVnd,
+            Integer rooms,
+            Integer guests,
+            String cityQuery,
+            String cityDisplay,
+            Integer checkInDays,
+            Integer starRating,
+            String amenityFilter,
+            LocalDateTime updatedAt
+    ) {}
+
+    /**
+     * Tạo HotelRecommendationState mới với thời gian hiện tại.
+     */
+    public HotelRecommendationState createHotelState(Integer budgetVnd, Integer rooms,
+                                                     Integer guests, String cityQuery,
+                                                     String cityDisplay, Integer checkInDays,
+                                                     Integer starRating, String amenityFilter) {
+        return new HotelRecommendationState(budgetVnd, rooms, guests, cityQuery, cityDisplay,
+                checkInDays, starRating, amenityFilter, LocalDateTime.now());
+    }
 }

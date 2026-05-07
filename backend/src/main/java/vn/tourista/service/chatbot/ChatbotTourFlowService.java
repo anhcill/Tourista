@@ -27,7 +27,7 @@ import java.util.Locale;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TourRecommendationFlowService {
+public class ChatbotTourFlowService {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;

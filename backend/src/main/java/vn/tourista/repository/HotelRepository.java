@@ -195,4 +195,70 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     List<Object[]> findPopularHotelsByCityName(
             @Param("cityName") String cityName,
             @Param("limit") int limit);
+
+    // ============================================================
+    // CHATBOT RECOMMENDATION QUERIES
+    // ============================================================
+
+    /**
+     * Tim hotels phu hop theo budget va dia diem cho chatbot.
+     * Loc theo gia max per night, so sao, va city.
+     */
+    @Query(value = """
+            SELECT h.id
+            FROM hotels h
+            LEFT JOIN cities c ON c.id = h.city_id
+            WHERE h.is_active = TRUE
+              AND (:city IS NULL OR :city = '' OR
+                   LOWER(c.name_en) = LOWER(:city) OR
+                   LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :city, '%')) OR
+                   LOWER(h.name) LIKE LOWER(CONCAT('%', :city, '%')))
+              AND (:minPrice IS NULL OR :minPrice = 0 OR
+                   EXISTS (
+                       SELECT 1 FROM room_types rt
+                       WHERE rt.hotel_id = h.id
+                         AND rt.is_active = TRUE
+                         AND rt.base_price_per_night <= :maxPricePerNight
+                   ))
+              AND (:starRating IS NULL OR :starRating = 0 OR h.star_rating >= :starRating)
+            ORDER BY
+                CASE WHEN :city IS NOT NULL AND :city != '' THEN 0 ELSE 1 END,
+                h.avg_rating DESC,
+                h.review_count DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Long> findBotRecommendedHotelIds(
+            @Param("city") String city,
+            @Param("maxPricePerNight") BigDecimal maxPricePerNight,
+            @Param("starRating") Integer starRating,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("limit") int limit);
+
+    /**
+     * Tim hotels noi bat (featured) cho chatbot.
+     */
+    @Query(value = """
+            SELECT h.id
+            FROM hotels h
+            LEFT JOIN cities c ON c.id = h.city_id
+            WHERE h.is_active = TRUE
+              AND h.is_featured = TRUE
+            ORDER BY h.avg_rating DESC, h.review_count DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Long> findBotFeaturedHotelIds(@Param("limit") int limit);
+
+    /**
+     * Tim hotels trending cho chatbot.
+     */
+    @Query(value = """
+            SELECT h.id
+            FROM hotels h
+            LEFT JOIN cities c ON c.id = h.city_id
+            WHERE h.is_active = TRUE
+              AND h.is_trending = TRUE
+            ORDER BY h.review_count DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Long> findBotTrendingHotelIds(@Param("limit") int limit);
 }

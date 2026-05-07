@@ -296,81 +296,118 @@
 }
 
 .modal {
-  width: min(640px, 100%);
+  width: min(1000px, 100%);
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal h3 {
-  margin: 0;
+  margin: 0 0 16px;
   color: #0f172a;
+  font-size: 20px;
 }
 
+.modalBody {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.modalLeft {}
+
 .detailGrid {
-  margin: 12px 0 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .detailGrid div {
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 10px;
+  padding: 12px 14px;
   background: #f8fafc;
 }
 
 .detailGrid dt {
-  font-size: 16px;
-  font-weight: 700;
-  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .detailGrid dd {
-  margin: 4px 0 0;
-  font-size: 16px;
+  margin: 3px 0 0;
+  font-size: 14px;
   color: #0f172a;
+  font-weight: 500;
+  word-break: break-word;
 }
 
-.modalActions {
-  margin-top: 14px;
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
+.modalRight {}
 
 .statusUpdateBox {
-  margin-right: auto;
-  min-width: 280px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+}
+
+.statusUpdateTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
 }
 
 .modalFieldLabel {
-  font-size: 17px;
-  font-weight: 700;
-  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
 }
 
 .modalSelect,
 .modalTextarea {
   width: 100%;
   border: 1px solid #cbd5e1;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #ffffff;
   color: #0f172a;
-  font-size: 16px;
-  padding: 16px 20px;
+  font-size: 14px;
+  padding: 10px 12px;
 }
 
 .modalTextarea {
   resize: vertical;
   min-height: 80px;
+}
+
+.statusUpdateActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.statusUpdateActions .primaryButton,
+.statusUpdateActions .ghostButton {
+  width: 100%;
+  min-height: 42px;
+  font-size: 14px;
+}
+
+.modalActions {
+  display: none; /* replaced by modalBody layout */
 }
 
 @media (max-width: 1260px) {
@@ -381,6 +418,16 @@
   .hero {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 900px) {
+  .modalBody {
+    grid-template-columns: 1fr;
+  }
+
+  .statusUpdateBox {
+    position: static;
   }
 }
 

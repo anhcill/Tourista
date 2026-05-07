@@ -1,0 +1,189 @@
+/* Admin bookings modal - forced reload via new file */
+[data-modal="bookings"] {
+  --modal-bg: #ffffff;
+  --modal-border: #e2e8f0;
+  --modal-radius: 16px;
+  --modal-accent: #0ea5e9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --bg-light: #f8fafc;
+  --border-light: #e2e8f0;
+  --border-input: #cbd5e1;
+}
+
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.admin-modal {
+  width: min(1040px, 100%);
+  background: var(--modal-bg);
+  border-radius: var(--modal-radius);
+  border: 1px solid var(--modal-border);
+  padding: 28px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.admin-modal h3 {
+  margin: 0 0 20px;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.admin-modal-body {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.admin-detail-item {
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--bg-light);
+}
+
+.admin-detail-item dt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.admin-detail-item dd {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.admin-status-panel {
+  background: var(--bg-light);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+}
+
+.admin-status-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.admin-status-panel label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.admin-status-panel select,
+.admin-status-panel textarea {
+  width: 100%;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--text-primary);
+  font-size: 14px;
+  padding: 10px 12px;
+  font-family: inherit;
+}
+
+.admin-status-panel textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.admin-status-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.admin-status-actions button {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  padding: 0 12px;
+  transition: all 0.2s;
+}
+
+.admin-status-actions .btn-primary {
+  background: #0ea5e9;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.admin-status-actions .btn-primary:hover:not(:disabled) {
+  background: #0284c7;
+}
+
+.admin-status-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-status-actions .btn-ghost {
+  background: #ffffff;
+  color: var(--text-primary);
+  border-color: var(--border-input);
+}
+
+.admin-status-actions .btn-ghost:hover {
+  background: #f1f5f9;
+}
+
+@media (max-width: 900px) {
+  .admin-modal-body {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-status-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-modal {
+    padding: 18px;
+  }
+}

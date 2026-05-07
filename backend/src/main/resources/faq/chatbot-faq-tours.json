@@ -1,0 +1,42 @@
+{
+  "category": "tours",
+  "description": "Câu hỏi về tour: gợi ý, giá, hot, so sánh",
+  "rules": [
+    {
+      "keywords": ["tour hot", "tour nổi bật", "tour noi bat", "phổ biến", "pho bien", "bestseller", "nhiều người đặt", "nhieu nguoi dat", "top tour", "tour tốt nhất", "tour tot nhat", "tour được yêu thích nhất"],
+      "answer": "🔥 **Tour hot nhất hiện tại trên Tourista:**\n\nHãy để mình gợi ý tour phù hợp với bạn! Chỉ cần cho mình biết:\n- 👥 **Số người:** đi mấy người?\n- 💰 **Ngân sách:** tổng dự kiến bao nhiêu?\n- 📍 **Điểm đến mơ ước** (nếu có)\n\nHoặc chọn nhanh một trong các kịch bản bên dưới và mình sẽ gợi ý ngay! ✨"
+    },
+    {
+      "keywords": ["giá rẻ", "gia re", "tiết kiệm", "tiet kiem", "rẻ nhất", "re nhat", "budget", "ngân sách thấp", "ngan sach thap", "tour bình dân", "gia binh dan", "tour giá sinh viên"],
+      "answer": "💸 **Tour giá rẻ — Tourista tìm cho bạn!**\n\nTourista có nhiều tour chất lượng với giá hợp lý:\n- **2 người, 2 ngày:** từ 2.500.000 VND\n- **2 người, 3 ngày:** từ 3.800.000 VND\n- **Gia đình 4 người, 3 ngày:** từ 7.200.000 VND\n\nĐể mình tìm đúng nhất, bạn cho biết thêm:\n👥 Đi **mấy người** và **tổng ngân sách** dự kiến là bao nhiêu?"
+    },
+    {
+      "keywords": ["so sánh tour", "compare tour", "tour nào tốt hơn", "tour nao tot hon", "chọn tour nào", "chon tour nao", "đà nẵng hay", "nha trang hay", "hội an hay", "sapa hay", "phú quốc hay"],
+      "answer": "📊 **So sánh điểm đến — Mình giúp bạn quyết định:**\n\n**Biển:**\n• Đà Nẵng vs Nha Trang: Đà Nẵng hiện đại hơn, Nha Trang yên tĩnh hơn\n• Phú Quốc vs Nha Trang: Phú Quốc exotic hơn, Nha Trang tiện lợi hơn\n\n**Phố cổ:**\n• Hội An vs Hà Nội: Hội An nhỏ xinh, Hà Nội sôi động hơn\n\n**Núi:**\n• Sapa vs Đà Lạt: Sapa mạo hiểm hơn, Đà Lạt lãng mạn hơn\n\n**Giá cả:**\n• Hội An, Đà Nẵng: Trung bình-cao (du lịch phát triển)\n• Phú Quốc: Cao hơn (đảo)\n• Sapa, Đà Lạt: Bình dân hơn\n\n💡 Gửi mình 2 điểm bạn đang phân vân, mình so sánh chi tiết hơn nhé!"
+    },
+    {
+      "keywords": ["một mình", "mot minh", "đi một mình", "di mot minh", "solo", "đi một mình", "du lịch một mình", "solo travel"],
+      "answer": "👤 **Du lịch một mình — Cùng mình khám phá!**\n\n**Ưu điểm:**\n• Tự do thời gian, không phụ thuộc ai\n• Dễ kết bạn mới trong tour ghép\n• Thoải mái khám phá theo ý thích\n\n**Điểm đến tốt cho solo:**\n• **Đà Nẵng:** Nhiều hostel, bar, dễ kết bạn\n• **Phú Quốc:** Yên bình, an toàn, có nhiều tour group\n• **Hội An:** Phố xinh, đi bộ thoải mái\n• **Sapa:** Có nhiều trekker solo\n\n**Mẹo:**\n• Chọn tour ghép để tiết kiệm và kết bạn\n• Đặt phòng có bếp để tiết kiệm ăn uống\n• Mang theo tai nghe để tận hưởng không gian riêng\n\n💡 Bạn muốn đi đâu? Mình gợi ý tour phù hợp nhé!"
+    },
+    {
+      "keywords": ["cặp đôi", "cap doi", "lứa đôi", "lua doi", "đi cùng nhau", "du lịch lãng mạn", "honeymoon", "pair", "tình yêu"],
+      "answer": "💑 **Du lịch cặp đôi — Lãng mạn nhất có thể!**\n\n**Điểm đến hoàn hảo:**\n• **Đà Lạt:** Thành phố ngàn hoa, khung cảnh lãng mạn\n• **Phú Quốc:** Biển xanh cát trắng, resort riêng tư\n• **Hội An:** Phố cổ lung linh về đêm\n• **Nha Trang:** Lặn biển cùng nhau, resort view biển\n\n**Gợi ý:**\n• Chọn khách sạn 4★+ có ban công view đẹp\n• Đặt tour riêng để thoải mái với nhau\n• Đừng bỏ lỡ sunset ở Mũi Né, Bãi Khế\n\n💡 Bạn thích biển hay núi? Mình gợi ý phù hợp nhé!"
+    },
+    {
+      "keywords": ["bạn bè", "ban be", "nhóm bạn", "nhom ban", "đi với bạn", "đi cùng bạn", "group", "party"],
+      "answer": "👥👫👬 **Du lịch cùng bạn bè — Sôi động nhất!**\n\n**Điểm đến perfect cho team:**\n• **Đà Nẵng:** Bar, beach club, Bà Nà Hills\n• **Nha Trang:** Beach party, dive club\n• **Phú Quốc:** Chợ đêm, island hopping, BBQ party\n• **Sapa:** Trekking, camping, pub check-in\n\n**Ưu đãi nhóm:**\n• Nhiều tour giảm 10-20% cho 4+ người\n• Thuê villa riêng tiết kiệm hơn khách sạn\n• Đặt team building activities qua chủ tour\n\n💡 Đi mấy người? Đi đâu? Mình gợi ý cụ thể nhé!"
+    },
+    {
+      "keywords": ["gia đình", "gia dinh", "đi cùng gia đình", "đi với gia đình", "family", "parents", "người lớn tuổi", "nguoi lon tuoi", " ông bà", "ong ba"],
+      "answer": "👨‍👩‍👧‍👦 **Du lịch gia đình — An toàn và thoải mái!**\n\n**Ưu tiên khi chọn tour:**\n• Lịch trình nhẹ nhàng, ít di chuyển\n• Có thời gian nghỉ ngơi\n• Ẩm thực phù hợp mọi lứa tuổi\n• Khách sạn tiện nghi, có thang máy\n\n**Điểm đến tốt:**\n• **Đà Nẵng:** Bãi biển đẹp, Bà Nà Hills\n• **Hội An:** Phố cổ đi bộ, an toàn\n• **Vịnh Hạ Long:** Du thuyền thoải mái\n\n**Lưu ý:**\n• Trẻ em: giảm 30-50% tùy tour\n• Người lớn tuổi: chọn tour nhẹ, không trek quá nhiều\n\n💡 Gia đình bao nhiêu người? Mình tư vấn cụ thể nhé!"
+    },
+    {
+      "keywords": ["trẻ em", "tre em", "bé", "con nhỏ", "đi cùng con", "gia đình có trẻ", "đi với gia đình", "family", "trẻ", "trẻ nhỏ", "baby", "kids"],
+      "answer": "👨‍👩‍👧‍👦 **Tour cho gia đình có trẻ em:**\n\n• **Trẻ dưới 2 tuổi:** miễn phí (ngồi cùng bố mẹ, cần mang theo giấy khai sinh)\n• **Trẻ 2–11 tuổi:** giảm 30–50% tùy tour (có giường riêng hoặc chung tùy)\n• **Trẻ trên 12 tuổi:** tính giá như người lớn\n\n**Lưu ý:**\n• Chọn tour nhẹ nhàng, ít di chuyển, có thời gian nghỉ ngơi\n• Ưu tiên khách sạn có bể bơi, khu vui chơi trẻ em\n• Nên đặt sớm để chủ tour chuẩn bị bữa ăn phù hợp\n\n💡 Khi đặt tour, ghi rõ tuổi trẻ em để được tư vấn tour phù hợp nhất nhé!"
+    },
+    {
+      "keywords": ["thời gian", "thoi gian", "mấy ngày", "may ngay", "ở mấy ngày", "o may ngay", "đủ mấy ngày", "du may ngay", "bao lâu", "bao lau", "nên ở", "nen o", "how many days", "nên đi mấy ngày", "nen di may ngay"],
+      "answer": "📅 **Thời gian lý tưởng cho từng điểm đến:**\n\n• **Đà Nẵng + Hội An:** 3-4 ngày (Đà Nẵng 2 ngày, Hội An 1-2 ngày)\n• **Sapa:** 2-3 ngày (leo núi Fansipan mất cả ngày)\n• **Phú Quốc:** 3-5 ngày (đảo, bãi biển, chợ đêm)\n• **Nha Trang:** 2-3 ngày (đủ để tắm biển + tham quan)\n• **Đà Lạt:** 2-3 ngày (đủ để đi thác, đồi chè, thành phố)\n• **Hà Nội:** 2-3 ngày (phố cổ, hoàng thành, vịnh Hạ Long)\n• **Huế:** 1-2 ngày (kinh thành, lăng tẩm, chùa Thiên Mu)\n\n💡 Bạn muốn đi đâu? Mình gợi ý tour với thời gian phù hợp nhé!"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "category": "cuisine",
+  "description": "Câu hỏi về ẩm thực: đặc sản, quán ngon theo vùng",
+  "rules": [
+    {
+      "keywords": ["ăn gì", "an gi", "ẩm thực", "am thuc", "đặc sản", "dac san", "quán ngon", "quan ngon", "món ngon", "mon ngon", "hải sản", "hai san", "món ăn đặc trưng", "mon an dac trung"],
+      "answer": "🍜 **Ẩm thực địa phương — Món ngon không thể bỏ qua:**\n\n• **Đà Nẵng:** Mì Quảng, Bún Chả Cá, Bánh Tráng Cuốn Thịt Heo, Bánh Xèo\n• **Hội An:** Cao Lầu, Bánh Mì Phượng, Hoành Sơn, Vạn Kiếu\n• **Phú Quốc:** Gỏi Cá Trích, Nước Mắm Phú Quốc, Tiêu Sọ, Cà Mau\n• **Sapa:** Thắng Cố, Lợn Cắp Ghẻ, Cá Tầm, Rượu Đắng\n• **Nha Trang:** Bún Sứa, Nem Nướng Nha Trang, Yến Sào\n• **Hà Nội:** Phở, Bún Chả, Bánh Cống, Trứng Chiên\n• **Huế:** Bún Bò Huế, Bánh Ép, Cơm Hến, Trà Sen\n\n💡 Hỏi trực tiếp chủ tour để được dẫn đi quán ngon, giá sinh viên nhé!"
+    },
+    {
+      "keywords": ["hà nội ăn gì", "ha noi an gi", "hà nội đặc sản", "hà nội món ngon", "phở hà nội", "bún chả hà nội"],
+      "answer": "🍜 **Ẩm thực Hà Nội — 36 phố phường đầy ắp món ngon:**\n\n**Must-try khi đến Hà Nội:**\n• **Phở** — Phở Gánh (phố Hàng Parfums), Phở Thìn (phố Hàng Bè)\n• **Bún Chả** — Bún Chả Hương Liên (Obama từng ăn!), Bún Chả Lò Vắn\n• **Bánh Cống** — Bánh Cống Ngõ 29 Thái Hà\n• **Bún Đuôi Bò** — Bún Đuôi Bò Ngõ 13 Lý Thường Kiệt\n• **Cốm Làng Vòng** — quà đặc biệt của Hà Nội\n• **Chả Cá Lã Vọng** — thơm lừng mùi lá sen\n\n**Khu ẩm thực nổi tiếng:**\n• **Phố cổ Hà Nội** — hàng trăm quán nhỏ\n• **Quán ăn đường phố** — phố Tạ Uyên, Lê Thái Tổ\n• **Chợ Đồng Xuân** — ẩm thực truyền thống\n\n**Mẹo:** Đi ăn buổi sáng sớm (6-7h) để trải nghiệm phở Hà Nội đúng vị!\n\n💡 Bạn đi Hà Nội để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["huế ăn gì", "hue an gi", "huế đặc sản", "hue dac san", "bún bò huế", "cao lầu huế", "bánh ép huế"],
+      "answer": "🍲 **Ẩm thực Huế — Cung đình ngự thiện:**\n\n**Đặc sản không thể bỏ qua:**\n• **Bún Bò Huế** — món ăn đặc trưng, nước dùng đậm đà\n• **Bánh Ép** — giòn rụm, nhân thịt thơm phức\n• **Cơm Hến** — cơm với hến xào, rau muống chần\n• **Bánh Bèo** — bánh tráng nước, ăn với tôm khô\n• **Trà Sen** — sen nấu thơm lừng\n• **Vả Trộn** — vả trộn tỏi, đậu phộng\n\n**Quán ngon nổi tiếng:**\n• **Bún Bò Bà Đức** — đường Mai Thanh Tướng\n• **Bánh Ép Bà Hoa** — đường Nguyễn Huệ\n• **Cơm Hến Bà Tuyết** — chợ Đông Ba\n\n**Mẹo:** Ăn bún bò huế ở Huế mới đúng vị, khác hẳn ở Sài Gòn!\n\n💡 Bạn đi Huế để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["đà nẵng ăn gì", "da nang an gi", "đà nẵng đặc sản", "da nang dac san", "mì quảng", "bánh xèo đà nẵng"],
+      "answer": "🍜 **Ẩm thực Đà Nẵng — Đường phố ngon bất ngờ:**\n\n**Must-try khi đến Đà Nẵng:**\n• **Mì Quảng** — Bà Mạnh 82 Nguyễn Thị Minh Khai (35k/tô)\n• **Bánh Xèo** — Bánh Xèo Gánh, Bánh Xèo Bà Dưỡng\n• **Bún Chả Cá** — Bún Chả Cá Bà Mua, nước dùng ngọt thanh\n• **Bánh Tráng Cuốn Thịt Heo** — ăn với nước mắm tỏi ớt\n• **Hải Sản** — Bà Hai Điệp, Bà Đào (Mỹ An)\n\n**Quán ngon nổi tiếng:**\n• **Mì Quảng Bà Mạnh** — 82 Nguyễn Thị Minh Khai\n• **Bún Chả Cá Bà Mua** — 4 Lê Duẩn\n• **Bánh Mì Cô Tân** — 87 Trần Bảo Ái\n\n**Mẹo:** Ăn hải sản ở Mỹ An, giá rẻ hơn trung tâm 30-50%!\n\n💡 Bạn đi Đà Nẵng để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["hội an ăn gì", "hoi an an gi", "hội an đặc sản", "hoi an dac san", "cao lầu", "bánh mì phượng"],
+      "answer": "🍽️ **Ẩm thực Hội An — Tinh hoa ẩm thực Việt Nam:**\n\n**Đặc sản độc đáo chỉ có ở Hội An:**\n• **Cao Lầu** — mì dai, rau thơm, không thể copy ở nơi khác\n• **Bánh Mì Phượng** — \"bánh mì ngon nhất thế giới\" (The Guardian)\n• **Hoành Sơn** — mì dai giòn, nước lèo đậm đà\n• **Vạn Kiếu** — hoa quả dầm sữa dừa\n\n**Quán ngon nổi tiếng:**\n• **Bánh Mì Phượng** — 2B Nguyễn Huệ (hơn 50 năm)\n• **Cao Lầu Bá Lễ** — 80 Trần Cao Vân\n• **Morning Glory** — 106 Nguyễn Thị Minh Khai\n\n**Mẹo:**\n• Bánh Mì Phượng bán sáng (hết lúc 11h)\n• Cao Lầu chỉ ngon khi ăn ở Hội An!\n\n💡 Bạn đi Hội An để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["sapa ăn gì", "sapa an gi", "sapa đặc sản", "sapa dac san", "thắng cố", "lợn cắp ghẻ"],
+      "answer": "🍖 **Ẩm thực Sapa — Đặc sản vùng cao Tây Bắc:**\n\n**Món ngon không thể bỏ qua:**\n• **Thắng Cố** — thịt ngựa hầm, đặc sản người H'Mông\n• **Lợn Cắp Ghẻ** — lợn sữa nướng nguyên con trên than hồng\n• **Cá Tầm** — nuôi ở Sapa, thịt trắng thơm\n• **Rượu Đắng** — rượu thuốc bản, uống với trứng\n• **Xôi Ngũ Sắc** — màu từ lá rừng\n• **Thịt Trâu Gác Bếp** — thịt trâu hun khói\n\n**Quán ngon:**\n• **Quán H'mông** — ở chợ Sapa\n• **Sapa O'Chảy** — ẩm thực vùng cao nguyên\n• **Red Dao House** — đồ ăn của người Dao\n\n**Mẹo:** Đi chợ Sapa cuối tuần (thứ 7, Chủ Nhật) để ăn đặc sản và mua đồ về!\n\n💡 Bạn đi Sapa để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["phú quốc ăn gì", "phu quoc an gi", "phú quốc đặc sản", "phu quoc dac san", "gỏi cá trích", "nước mắm phú quốc"],
+      "answer": "🦐 **Ẩm thực Phú Quốc — Thiên đường hải sản:**\n\n**Đặc sản nổi tiếng:**\n• **Gỏi Cá Trích** — cá trích tươi, chua cay ngọt\n• **Nước Mắm Phú Quốc** — nổi tiếng khắp thế giới\n• **Tiêu Sọ Phú Quốc** — đặc sản gia vị\n• **Ghẹ Phú Quốc** — ghẹ tươi, thịt ngọt\n• **Cá Thu Phú Quốc** — nấu canh chua cực ngon\n\n**Quán ngon nổi tiếng:**\n• **Dinh Cố** — chuyên gỏi cá trích\n• **Quán ăn đường Bạch Đằng** — hải sản giá sinh viên\n• **Chợ Đêm Dinh Cậu** — ẩm thực đường phố\n\n**Mẹo:**\n• Mua nước mắm Phú Quốc ở cơ sở sản xuất để được giá tốt\n• Hải sản ở Dương Đông (trung tâm) giá hợp lý hơn\n\n💡 Bạn đi Phú Quốc để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["đà lạt ăn gì", "da lat an gi", "đà lạt đặc sản", "da lat dac san", "cà phê mèo", "bánh tráng nướng"],
+      "answer": "☕ **Ẩm thực Đà Lạt — Ngọt ngào và thơm mát:**\n\n**Món ngon đặc trưng:**\n• **Cà Phê Mèo** — cà phê rang mè, thơm lừng\n• **Bánh Tráng Nướng** — ăn với trứng, xúc xích ở Chợ Đà Lạt\n• **Sữa Đậu Nành** — sữa đậu nành nóng buổi sáng\n• **Rau Củ Đà Lạt** — rau xanh quanh năm\n• **Nước Ép Dâu** — đặc biệt vào mùa dâu (tháng 1-3)\n• **Bánh Ướt** — bánh tráng cuốn nước mắm\n\n**Quán ngon:**\n• **Cà Phê Mèo** — 25 Đường 3/4\n• **Bánh Tráng Nướng Chợ Đà Lạt** — trung tâm chợ\n• **Quán Ăn Đường 3/4** — nhiều món ngon\n\n**Mẹo:**\n• Mùa dâu (tháng 1-3) phải thử nước ép dâu!\n• Mua rau củ tươi về làm quà\n\n💡 Bạn đi Đà Lạt để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["nha trang ăn gì", "nha trang an gi", "nha trang đặc sản", "nha trang dac san", "bún sứa", "nem nướng"],
+      "answer": "🦐 **Ẩm thực Nha Trang — Hải sản tươi sống:**\n\n**Đặc sản không thể bỏ qua:**\n• **Bún Sứa** — món ăn sáng đặc trưng, nước dùng ngọt\n• **Nem Nướng Nha Trang** — nổi tiếng cả nước\n• **Yến Sào** — đặc sản cao cấp, bổ dưỡng\n• **Hải Sản Tươi Sống** — cua, ghẹ, tôm, mực\n• **Bánh Canh Chả** — bánh canh với chả\n\n**Quán ngon nổi tiếng:**\n• **Bún Sứa Bà Hạnh** — 7bis Hoàng Hoa Thám\n• **Nem Nướng Bà Hường** — 96 Hoàng Hoa Thám\n• **Hải Sản Nha Trang** — khu vực Bạch Đằng\n\n**Mẹo:**\n• Ăn hải sản ở ven biển, giá rẻ hơn trung tâm\n• Mùa cá cơm (tháng 3-4) phải thử!\n\n💡 Bạn đi Nha Trang để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    },
+    {
+      "keywords": ["hạ long ăn gì", "ha long an gi", "hạ long đặc sản", "ha long dac san", "hải sản hạ long", "sam biển"],
+      "answer": "🦀 **Ẩm thực Hạ Long — Hải sản vịnh ngọt:**\n\n**Đặc sản vùng vịnh:**\n• **Sam Biển** — sam (bề bề) hấp, nấu canh cực ngon\n• **Ghẹ** — ghẹ xanh tươi, thịt chắc\n• **Ngao, Sò, Ốc** — hải sản giá sinh viên\n• **Cua** — cua gạch, cua thịt\n• **Cá** — cá kho, cá hấp, cá chiên\n\n**Quán ngon:**\n• **Khu Ẩm Thực Hạ Long** — Bãi Chálice\n• **Hải Sản Tuấn Anh** — đường Hùng Thắng\n• **Quán Cô Lan** — hải sản tươi, giá sinh viên\n\n**Mẹo:**\n• Đi trưa (11-12h) giá rẻ hơn tối\n• Ăn hải sản ở bãi tắi, tươi và rẻ hơn phố\n\n💡 Bạn đi Hạ Long để ăn hay để du lịch? Mình gợi ý cả 2 nhé!"
+    }
+  ]
+}

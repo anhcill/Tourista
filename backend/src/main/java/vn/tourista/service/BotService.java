@@ -52,7 +52,7 @@ public class BotService {
     private final ChatbotFaqService faqService;
     private final BookingLookupService bookingLookupService;
     private final RecommendationStateService recommendationStateService;
-    private final TourRecommendationFlowService tourRecommendationFlowService;
+    private final ChatbotTourFlowService tourRecommendationFlowService;
     private final AiChatbotService aiChatbotService;
     private final ChatbotNlpService nlpService;
 

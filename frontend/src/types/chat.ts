@@ -5,8 +5,10 @@ export type ContentType =
   | 'IMAGE'
   | 'BOOKING_DETAILS'
   | 'TOUR_CARDS'
+  | 'HOTEL_CARDS'
   | 'SCENARIO_CHOICE'
   | 'FAQ_MENU'
+  | 'HOTEL_PROMPT'
   | 'SYSTEM_LOG'
   | 'TYPING';
 
@@ -75,6 +77,32 @@ export interface TourCardItem {
   avgRating?: number;
   reviewCount?: number;
   imageUrl?: string | null;
+}
+
+export interface HotelCardItem {
+  id: number;
+  name: string;
+  slug?: string;
+  cityVi: string;
+  address?: string;
+  starRating: number;
+  avgRating?: number;
+  reviewCount?: number;
+  minPricePerNight: number;
+  imageUrl?: string | null;
+}
+
+export interface HotelPromptChoice {
+  id: string;
+  emoji: string;
+  label: string;
+  payload: string;
+}
+
+export interface HotelPromptMetadata {
+  question: string;
+  subtitle?: string;
+  choices: HotelPromptChoice[];
 }
 
 export interface BookingDetailsMetadata {

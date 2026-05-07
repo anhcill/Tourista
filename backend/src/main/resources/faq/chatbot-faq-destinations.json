@@ -1,0 +1,54 @@
+{
+  "category": "destinations",
+  "description": "Câu hỏi về điểm đến: thời tiết, kinh nghiệm, đặc sản",
+  "rules": [
+    {
+      "keywords": ["thời tiết", "thoi tiet", "mùa", "mua du lich", "mùa du lịch", "nên đi", "nen di", "thích hợp", "thich hop", "khí hậu", "khi hau", "thời tiết ở đâu", "thoi tiet o dau"],
+      "answer": "🌤️ **Thời tiết & mùa du lịch Việt Nam:**\n\n• **Đà Nẵng:** Tháng 3–8 lý tưởng — tránh tháng 9–12 (mưa bão)\n• **Phú Quốc:** Tháng 11–4 lý tưởng — tránh tháng 5–10 (mưa)\n• **Sapa:** Tháng 9–11 và 3–5 lý tưởng — tránh tháng 6–8 (mưa trượt)\n• **Đà Lạt:** Quanh năm đẹp — tránh tháng 7–8 (mưa nhiều)\n• **Hà Nội:** Tháng 10–4 thoáng mát — tránh tháng 5–9 (nóng, ẩm)\n• **Hội An:** Tháng 2–8 lý tưởng — tránh tháng 10–12 (lũ)\n• **Nha Trang:** Tháng 2–9 lý tưởng — tránh tháng 10–12\n• **Huế:** Tháng 2–8 lý tưởng — tránh tháng 9–12 (mưa)\n\nBạn muốn đi địa điểm nào? Mình gợi ý tour phù hợp ngay!"
+    },
+    {
+      "keywords": ["kinh nghiệm", "kinh nghiem", "mẹo", "meo", "tip", "tips", "lưu ý", "luu y", "nên biết", "nen biet", "cẩm nang", "cam nang", "mẹo du lịch", "meo du lich"],
+      "answer": "📚 **Kinh nghiệm du lịch hữu ích:**\n\n🏖️ **Biển (Đà Nẵng, Phú Quốc, Nha Trang):** Tránh mùa mưa (tháng 9-12), đặt sớm ít nhất 2 tuần\n🏔️ **Núi (Sapa, Đà Lạt):** Mang áo ấm ngay cả mùa hè, giày chống trượt\n🌆 **Phố cổ (Hà Nội, Hội An, Huế):** Sáng sớm hoặc chiều tối để tránh nắng và đông người\n\n**Bí kíp tiết kiệm:**\n• Đặt sớm 1-2 tháng: giá tốt hơn 15-30%\n• Đi giữa tuần: rẻ hơn cuối tuần đáng kể\n• Nhóm 4+ người: thường được giảm giá nhóm\n\nBạn đang dự định đến đâu? Mình gợi ý cụ thể hơn nhé! 🗺️"
+    },
+    {
+      "keywords": ["phương tiện", "phuong tien", "đi bằng gì", "di bang gi", "máy bay", "may bay", "tàu", "tau", "xe", "đi lại", "di lai", "di chuyển", "di chuyen", "transport", "đến bằng gì", "den bang gi"],
+      "answer": "✈️🚗 **Phương tiện di chuyển đến điểm du lịch:**\n\n• **Đà Nẵng / Hội An:** Máy bay → Taxi/Grab (20-30 phút)\n• **Sapa:** Tàu hỏa đến Lào Cai → Xe ôm/limousine (40 phút)\n• **Phú Quốc:** Máy bay trực tiếp / Tàu cao tốc từ Hà Tiên\n• **Nha Trang:** Máy bay → Taxi/Grab (30 phút)\n• **Đà Lạt:** Máy bay → Taxi/Grab (30 phút)\n• **Hà Nội:** Máy bay / Tàu hỏa / Xe khách\n• **Huế:** Máy bay / Tàu hỏa từ Đà Nẵng (2.5 giờ)\n\n**Mẹo tiết kiệm:**\n• Đặt combo vé máy bay + khách sạn để được giảm 10-20%\n• Nhóm 4+ người nên thu xe riêng sẽ rẻ hơn taxi\n• Tour thường đã bao gồm xe đưa đón trong lịch trình\n\n💡 Bạn đang muốn đến điểm nào? Mình tư vấn cụ thể hơn nhé!"
+    },
+    {
+      "keywords": ["hà nội", "ha noi", "thủ đô", "thu do", "hanoi"],
+      "answer": "🏯 **Hà Nội — Thủ đô ngàn năm văn hiến**\n\n**Điểm nổi bật:**\n• Phố cổ 36 phố phường — khu phố cổ 1000 năm tuổi\n• Hồ Hoàn Kiếm — trái tim Hà Nội\n• Hoàng thành Thăng Long — di sản UNESCO\n• Văn Miếu Quốc Tử Giám — đệ nhất tường đại học\n• Chợ Đồng Xuân — chợ truyền thống\n\n**Nên đi khi nào:** Tháng 10–4 (thoáng mát)\n**Ở mấy ngày:** 2-3 ngày\n**Mẹo:** Đi bộ phố cổ buổi sáng sớm hoặc tối, tránh nắng trưa!\n\n💡 Bạn muốn đi Hà Nội không? Mình gợi ý tour phù hợp nhé!"
+    },
+    {
+      "keywords": ["huế", "hue", "thành phố huế", "thanh pho hue", "cố đô huế"],
+      "answer": "🏯 **Huế — Cố đô ngàn năm văn hiến**\n\n**Điểm nổi bật:**\n• Kinh thành Huế — công trình kiến trúc đồ sộ thời Nguyễn\n• Đại Nội — hoàng cung cuối cùng của Việt Nam\n• Lăng tẩm các vua Nguyễn — Minh Mạng, Khải Định\n• Chùa Thiên Mu — ngôi chùa 400 năm tuổi\n• Sông Hương — biểu tượng thơ mộng của Huế\n\n**Đặc sản Huế:**\n• Bún bò Huế — món ăn đặc trưng\n• Bánh ép Huế — giòn rụm\n• Cơm hến — món dân dã\n• Trà sen — hương vị Huế\n\n**Nên đi khi nào:** Tháng 2–8 (tránh mùa mưa)\n**Ở mấy ngày:** 1-2 ngày là đủ\n\n💡 Muốn đi Huế không? Mình gợi ý tour cho bạn nhé!"
+    },
+    {
+      "keywords": ["đà nẵng", "da nang", "da nang", "tour đà nẵng"],
+      "answer": "🌊 **Đà Nẵng — Thành phố đáng sống nhất Việt Nam**\n\n**Điểm nổi bật:**\n• Bãi biển Mỹ Khê — top 6 bãi biển đẹp nhất thế giới\n• Cầu Rồng — biểu tượng của Đà Nẵng\n• Bà Nà Hills — \"Châu Âu thu nhỏ\" với làng Pháp, cầu Vàng\n• Ngũ Hành Sơn — 5 ngọn núi đá vôi\n• Bán đảo Sơn Trà — nơi sinh sống của voọc chà vá\n\n**Đặc sản Đà Nẵng:**\n• Mì Quảng — món ăn đường phố nổi tiếng\n• Bún Chả Cá — nước dùng ngọt thanh\n• Bánh Tráng Cuốn Thịt Heo\n• Bánh Xèo\n\n**Nên đi khi nào:** Tháng 3–8\n**Kết hợp:** Đi Đà Nẵng + Hội An rất gần (30 phút)\n\n💡 Bạn muốn đi Đà Nẵng không? Mình gợi ý tour phù hợp nhé!"
+    },
+    {
+      "keywords": ["hội an", "hoi an", "phố cổ hội an", "pho co hoi an", "ancient town"],
+      "answer": "🏮 **Hội An — Phố cổ lung linh**\n\n**Điểm nổi bật:**\n• Phố cổ Hội An — UNESCO World Heritage\n• Chùa Cầu — cầu Nhật Bản hơn 400 năm tuổi\n• Hội quán Phước Kiến — kiến trúc Trung Hoa\n• Làng rau Trà Quế — yên bình\n• Bãi biển Cửa Đại — cát trắng mịn\n\n**Đặc sản Hội An:**\n• Cao Lầu — món đặc biệt chỉ có ở Hội An\n• Bánh Mì Phượng — \"bánh mì ngon nhất thế giới\"\n• Hoành Sơn — mì dai giòn\n• Vạn Kiếu — hoa quả dầm đặc biệt\n\n**Nên đi khi nào:** Tháng 2–8\n**Mẹo:** Đi phố cổ vào buổi tối — đèn lồng lung linh cực đẹp!\n\n💡 Kết hợp Đà Nẵng + Hội An cực hay, bạn muốn combo không?"
+    },
+    {
+      "keywords": ["sapa", "sa pa", "mùa nước", "fansipan", "leo núi"],
+      "answer": "🏔️ **Sapa — Thiên đường của trekker**\n\n**Điểm nổi bật:**\n• Fansipan — nóc nhà Đông Dương (3.143m)\n• Ruộng bậc thang — cảnh đẹp nổi tiếng thế giới\n• Thị trấn Sapa — khí hậu mát mẻ quanh năm\n• Bản Cát Cát — làng dân tộc H'Mông\n• Nhà thờ Đá — biểu tượng Sapa\n\n**Đặc sản Sapa:**\n• Thắng Cố — món ăn đặc trưng của người H'Mông\n• Lợn Cắp Ghẻ — lợn sữa nướng\n• Cá Tầm — đặc sản vùng cao\n• Rượu Đắng — rượu thuốc bản địa\n\n**Nên đi khi nào:** Tháng 9–11 (ruộng bậc thang vàng), tháng 3–5 (lúa xanh)\n**Lưu ý:** Mang áo ấm quanh năm, kể cả mùa hè!\n\n💡 Bạn muốn đi Sapa không? Trek nhẹ hay chinh phục Fansipan?"
+    },
+    {
+      "keywords": ["phú quốc", "phu quoc", "đảo ngọc", "dao ngoc", "phu quoc island"],
+      "answer": "🏝️ **Phú Quốc — Đảo Ngọc với biển xanh cát trắng**\n\n**Điểm nổi bật:**\n• Vinpearl Safari — vườn thú mở lớn nhất Việt Nam\n• Vinpearl Land — công viên giải trí\n• Grand World — khu phức hợp giải trí mới\n• Hòn Thơm — có cáp treo vượt biển dài nhất thế giới\n• Bãi Sao — bãi biển đẹp nhất đảo\n• Chợ đêm Phú Quốc — nhộn nhịp về đêm\n\n**Đặc sản Phú Quốc:**\n• Gỏi Cá Trích — món ngon nổi tiếng\n• Nước Mắm Phú Quốc — nổi tiếng khắp thế giới\n• Tiêu Sọ Phú Quốc — đặc sản địa phương\n• Hải Sản tươi sống — giá rẻ bất ngờ\n\n**Nên đi khi nào:** Tháng 11–4 (mùa khô, biển đẹp nhất)\n\n💡 Bạn muốn đi Phú Quốc không? Mình gợi ý tour phù hợp nhé!"
+    },
+    {
+      "keywords": ["đà lạt", "da lat", "thành phố ngàn hoa", "thanh pho ngan hoa", "da lat city"],
+      "answer": "🌸 **Đà Lạt — Thành phố ngàn hoa, lãng mạn bậc nhất**\n\n**Điểm nổi bật:**\n• Hồ Xuân Hương — trái tim Đà Lạt\n• Đồi Chè Cầu Đất — view đồi chè bạt ngàn\n• Thung Lũng Tình Yêu — biểu tượng lãng mạn\n• Đường Hồ Tuyền Lâm — cực kỳ chill\n• Chợ Đà Lạt — nơi bán hoa và đặc sản\n\n**Đặc sản Đà Lạt:**\n• Cà phê Mèo — cà phê đặc biệt\n• Bánh tráng nướng — món ăn đường phố\n• Rau củ Đà Lạt — tươi ngon quanh năm\n• Nước ép dâu — đặc sản mùa đông\n\n**Nên đi khi nào:** Tháng 10–3 (hoa nở, mát mẻ)\n**Mẹo:** Thuê xe máy đi quanh thành phố cực thích!\n\n💡 Bạn muốn đi Đà Lạt không? Mình gợi ý tour cho bạn!"
+    },
+    {
+      "keywords": ["nha trang", "nha trang", "biển nha trang", "bien nha trang"],
+      "answer": "🌊 **Nha Trang — Hòn Ngọc Viễn Đông**\n\n**Điểm nổi bật:**\n• Vinpearl Land — công viên giải trí trên đảo\n• Hòn Mun — điểm lặn biển đẹp nhất\n• Tháp Trầm Hương — biểu tượng thành phố\n• Chùa Long Sơn — tượng Phật Bà trắng lớn\n• Bãi Trung tâm — bãi biển nhộn nhịp\n\n**Đặc sản Nha Trang:**\n• Bún Sứa — món ăn đặc trưng\n• Nem Nướng Nha Trang — nổi tiếng cả nước\n• Yến Sào — đặc sản cao cấp\n• Hải sản tươi sống — giá cả hợp lý\n\n**Nên đi khi nào:** Tháng 2–9\n**Mẹo:** Đi scuba diving hoặc snorkeling ở Hòn Mun cực đã!\n\n💡 Bạn muốn đi Nha Trang không? Mình gợi ý tour phù hợp nhé!"
+    },
+    {
+      "keywords": ["vịnh hạ long", "vinh ha long", "hạ long", "ha long", "ha long bay"],
+      "answer": "⛵ **Vịnh Hạ Long — Kỳ quan thế giới**\n\n**Điểm nổi bật:**\n• Vịnh Hạ Long — 1.969 hòn đảo đá vôi\n• Hang Sửng Sốt — hang động đẹp nhất vịnh\n• Đảo Ti Tốp — bãi tắm nhỏ xinh\n• Làng chài Vông Vi — cuộc sống yên bình\n• Du thuyền qua đêm — trải nghiệm độc đáo\n\n**Đặc sản Hạ Long:**\n• Hải sản tươi sống — cua, ghẹ, tôm\n• Sam Biển — đặc sản vịnh\n• Ngao, sò, ốc — hải sản giá sinh viên\n\n**Nên đi khi nào:** Tháng 10–4 (nắng đẹp)\n**Mẹo:** Đặt du thuyền qua đêm để ngắm hoàng hôn và bình minh trên vịnh!\n\n💡 Bạn muốn đi Hạ Long không? Mình gợi ý tour phù hợp nhé!"
+    }
+  ]
+}

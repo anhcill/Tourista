@@ -1,0 +1,83 @@
+# ============================================================
+# AI CONFIGURATION - TOURISTA STUDIO
+# ============================================================
+# File này chứa tất cả config liên quan đến AI model
+# Chỉ cần thay đổi trong file này để switch sang model khác
+# ============================================================
+
+ai:
+  # ----- PROVIDER: BEEKNOEE (OpenAI-compatible, powered by Zhipu/DeepSeek) -----
+  provider: beeknoee
+
+  beeknoee:
+    enabled: true
+    # API Key - lấy từ https://platform.beeknoee.com
+    api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff82a8b5ea082484f63b60d64792af5ef8d}
+    # Endpoint
+    api-url: https://platform.beeknoee.com/api/v1/chat/completions
+    # Model - đổi ở đây:
+    #   - deepseek/deepseek-v3
+    #   - deepseek/deepseek-v4-pro
+    #   - glm-4-flash
+    #   - glm-4.7-flash
+    #   - qwen/qwen-2.5-plus
+    #   - gpt-5.4-mini ⭐ (model mới)
+    model: gpt-5.4-mini
+    # Reasoning mode (cho model hỗ trợ): on, off, auto
+    reasoning: off
+    # Timeout & tokens
+    timeout-seconds: 60
+    max-tokens: 2000
+    # Temperature (0= deterministic, 1= creative)
+    temperature: 0.7
+
+  # ----- PROVIDER: OPENAI (Alternative) -----
+  openai:
+    enabled: false
+    api-key: ${OPENAI_API_KEY:}
+    api-url: https://api.openai.com/v1/chat/completions
+    model: gpt-4o-mini
+    timeout-seconds: 60
+    max-tokens: 2000
+    temperature: 0.7
+
+  # ----- PROVIDER: GEMINI (Google - Alternative) -----
+  gemini:
+    enabled: false
+    api-key: ${GEMINI_API_KEY:}
+    # Endpoint format: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+    api-url: https://generativelanguage.googleapis.com/v1beta/models
+    model: gemini-2.0-flash
+    timeout-seconds: 60
+    max-tokens: 2000
+
+  # ----- PROVIDER: ANTHROPIC CLAUDE (Alternative) -----
+  claude:
+    enabled: false
+    api-key: ${CLAUDE_API_KEY:}
+    api-url: https://api.anthropic.com/v1/messages
+    model: claude-3-5-haiku-20241022
+    max-tokens: 1024
+    temperature: 0.7
+
+  # ----- CHATBOT PROMPTS -----
+  chatbot:
+    system-prompt: Ban la tro ly du lich AI cua nen tang Tourista Studio. Tra loi ngan gon, thân thiện, dung emoji phu hop. Chi tra loi ve du lich, tour, khach san, diem den Viet Nam.
+    max-context-messages: 8
+    # Khi nào gợi ý hotel cùng với tour
+    suggest-hotels-with-tour: true
+    # Khi nào gợi ý tour cùng với hotel
+    suggest-tours-with-hotel: true
+
+  # ----- TRAVEL PLANNER PROMPTS -----
+  travel-planner:
+    rewrite-temperature: 0.8
+    follow-up-count: 4
+    # Seasonal suggestions
+    seasonal-enabled: true
+
+  # ----- SEMAPHORE (Concurrency Control) -----
+  # Giới hạn request đồng thời (tránh quá tải API)
+  semaphore:
+    permits: 1
+    wait-seconds: 5

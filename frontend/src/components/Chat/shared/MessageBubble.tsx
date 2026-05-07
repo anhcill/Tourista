@@ -6,8 +6,10 @@ import { useSelector } from 'react-redux';
 const useAppSelector: (selector: (state: any) => unknown) => unknown = useSelector as any;
 /* eslint-enable */
 import TourResultCard from '../TourResultCard/TourResultCard';
+import HotelResultCard from '../HotelResultCard/HotelResultCard';
 import BookingItineraryCard from '../BookingItineraryCard/BookingItineraryCard';
 import FaqMenuCard from '../FaqMenuCard/FaqMenuCard';
+import HotelPromptCard from '../HotelPromptCard/HotelPromptCard';
 import { formatClock, parseSafeMarkdown, isOwnMessage } from '../../../utils/chat/formatters';
 import styles from './MessageBubble.module.css';
 
@@ -104,6 +106,63 @@ const MessageBubble = React.memo(({ msg, showDateLabel, onFaqSelect }: MessageBu
         );
     }
 
+    // Hotel cards
+    if (msg.contentType === 'HOTEL_CARDS') {
+        return (
+            <>
+                {showDateLabel && (
+                    <div className={styles.dateSeparator}>
+                        <span>{showDateLabel}</span>
+                    </div>
+                )}
+                <div className={`${styles.bubble} ${styles.bubbleBot}`}>
+                    {!isOwn && <div className={styles.botAvatar}>🌴</div>}
+                    <div className={`${styles.bubbleContent} ${styles.bubbleContentBot}`}>
+                        {msg.content && (
+                            <div className={styles.bubbleText}>
+                                {(msg.content || '').split('\n').map((line, i) => (
+                                    <p key={i}>{parseSafeMarkdown(line)}</p>
+                                ))}
+                            </div>
+                        )}
+                        <HotelResultCard metadata={msg.metadata} />
+                        <span className={styles.bubbleTime}>{formatClock(msg.createdAt)}</span>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // Hotel prompt
+    if (msg.contentType === 'HOTEL_PROMPT') {
+        return (
+            <>
+                {showDateLabel && (
+                    <div className={styles.dateSeparator}>
+                        <span>{showDateLabel}</span>
+                    </div>
+                )}
+                <div className={`${styles.bubble} ${styles.bubbleBot}`}>
+                    {!isOwn && <div className={styles.botAvatar}>🌴</div>}
+                    <div className={`${styles.bubbleContent} ${styles.bubbleContentBot}`}>
+                        {msg.content && (
+                            <div className={styles.bubbleText}>
+                                {(msg.content || '').split('\n').map((line, i) => (
+                                    <p key={i}>{parseSafeMarkdown(line)}</p>
+                                ))}
+                            </div>
+                        )}
+                        <HotelPromptCard
+                            metadata={msg.metadata}
+                            onChoice={onFaqSelect || (() => {})}
+                        />
+                        <span className={styles.bubbleTime}>{formatClock(msg.createdAt)}</span>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
     // FAQ menu card
     if (msg.contentType === 'FAQ_MENU' || msg.contentType === 'SCENARIO_CHOICE') {
         return (
@@ -135,6 +194,26 @@ const MessageBubble = React.memo(({ msg, showDateLabel, onFaqSelect }: MessageBu
     }
 
     // Plain text / AI text message
+    if (msg.contentType === 'TYPING') {
+        return (
+            <>
+                {showDateLabel && (
+                    <div className={styles.dateSeparator}>
+                        <span>{showDateLabel}</span>
+                    </div>
+                )}
+                <div className={`${styles.bubble} ${styles.bubbleBot}`}>
+                    {!isOwn && <div className={styles.botAvatar}>🌴</div>}
+                    <div className={`${styles.bubbleContent} ${styles.bubbleContentBot} ${styles.typingBubble}`}>
+                        <div className={styles.dot} />
+                        <div className={styles.dot} />
+                        <div className={styles.dot} />
+                    </div>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
             {showDateLabel && (

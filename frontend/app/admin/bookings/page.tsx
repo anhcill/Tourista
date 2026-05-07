@@ -19,6 +19,7 @@ import type {
   AdminBookingType,
 } from '../types';
 import styles from './page.module.css';
+import './booking-modal.css';
 
 type BookingStatusFilter = 'ALL' | AdminBookingStatus;
 type BookingTypeFilter = 'ALL' | AdminBookingType;
@@ -157,6 +158,7 @@ export default function AdminBookingsPage() {
     setTypeFilter('ALL');
     setPaymentFilter('ALL');
     setPage(1);
+    void loadBookings();
   };
 
   const submitStatusUpdate = async () => {
@@ -265,6 +267,7 @@ export default function AdminBookingsPage() {
             onChange={(event) => {
               setStatusFilter(event.target.value as BookingStatusFilter);
               setPage(1);
+              void loadBookings();
             }}
           >
             {STATUS_OPTIONS.map((status) => (
@@ -280,6 +283,7 @@ export default function AdminBookingsPage() {
             onChange={(event) => {
               setTypeFilter(event.target.value as BookingTypeFilter);
               setPage(1);
+              void loadBookings();
             }}
           >
             {TYPE_OPTIONS.map((type) => (
@@ -295,6 +299,7 @@ export default function AdminBookingsPage() {
             onChange={(event) => {
               setPaymentFilter(event.target.value as PaymentStatusFilter);
               setPage(1);
+              void loadBookings();
             }}
           >
             {PAYMENT_OPTIONS.map((paymentStatus) => (
@@ -457,9 +462,9 @@ export default function AdminBookingsPage() {
       </article>
 
       {selectedBooking ? (
-        <div className={styles.modalBackdrop} role="presentation" onClick={() => setSelectedBooking(null)}>
+        <div className="admin-modal-backdrop" role="presentation" onClick={() => setSelectedBooking(null)} data-modal="bookings">
           <div
-            className={styles.modal}
+            className="admin-modal"
             role="dialog"
             aria-modal="true"
             aria-label="Chi tiết đơn đặt chỗ"
@@ -467,65 +472,64 @@ export default function AdminBookingsPage() {
           >
             <h3>Chi tiết đơn đặt chỗ</h3>
 
-            <dl className={styles.detailGrid}>
+            <div className="admin-modal-body">
               <div>
-                <dt>Mã đơn</dt>
-                <dd>{selectedBooking.bookingCode}</dd>
+                <dl className="admin-detail-grid">
+                  <div className="admin-detail-item">
+                    <dt>Mã đơn</dt>
+                    <dd>{selectedBooking.bookingCode}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Loại đơn</dt>
+                    <dd>{selectedBooking.bookingType}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Khách hàng</dt>
+                    <dd>{selectedBooking.guestName}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Email</dt>
+                    <dd>{selectedBooking.guestEmail}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Dịch vụ</dt>
+                    <dd>{selectedBooking.serviceName}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Thành phố</dt>
+                    <dd>{selectedBooking.serviceCity}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Thời gian</dt>
+                    <dd>{bookingDateRange(selectedBooking)}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Ngày tạo</dt>
+                    <dd>{formatDateTime(selectedBooking.createdAt)}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Trạng thái</dt>
+                    <dd>{STATUS_LABELS[selectedBooking.status]}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Thanh toán</dt>
+                    <dd>{PAYMENT_LABELS[selectedBooking.paymentStatus]}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Tổng tiền</dt>
+                    <dd>{formatAmount(selectedBooking.totalAmount, selectedBooking.currency)}</dd>
+                  </div>
+                  <div className="admin-detail-item">
+                    <dt>Ghi chú</dt>
+                    <dd>{selectedBooking.note || '-'}</dd>
+                  </div>
+                </dl>
               </div>
-              <div>
-                <dt>Loại đơn</dt>
-                <dd>{selectedBooking.bookingType}</dd>
-              </div>
-              <div>
-                <dt>Khách hàng</dt>
-                <dd>{selectedBooking.guestName}</dd>
-              </div>
-              <div>
-                <dt>Email</dt>
-                <dd>{selectedBooking.guestEmail}</dd>
-              </div>
-              <div>
-                <dt>Dịch vụ</dt>
-                <dd>{selectedBooking.serviceName}</dd>
-              </div>
-              <div>
-                <dt>Thành phố</dt>
-                <dd>{selectedBooking.serviceCity}</dd>
-              </div>
-              <div>
-                <dt>Thời gian</dt>
-                <dd>{bookingDateRange(selectedBooking)}</dd>
-              </div>
-              <div>
-                <dt>Ngày tạo</dt>
-                <dd>{formatDateTime(selectedBooking.createdAt)}</dd>
-              </div>
-              <div>
-                <dt>Trạng thái</dt>
-                <dd>{STATUS_LABELS[selectedBooking.status]}</dd>
-              </div>
-              <div>
-                <dt>Thanh toán</dt>
-                <dd>{PAYMENT_LABELS[selectedBooking.paymentStatus]}</dd>
-              </div>
-              <div>
-                <dt>Tổng tiền</dt>
-                <dd>{formatAmount(selectedBooking.totalAmount, selectedBooking.currency)}</dd>
-              </div>
-              <div>
-                <dt>Ghi chú</dt>
-                <dd>{selectedBooking.note || '-'}</dd>
-              </div>
-            </dl>
 
-            <div className={styles.modalActions}>
-              <div className={styles.statusUpdateBox}>
-                <label className={styles.modalFieldLabel} htmlFor="booking-next-status">
-                  Cập nhật trạng thái
-                </label>
+              <div className="admin-status-panel">
+                <p className="admin-status-panel-title">Cập nhật trạng thái</p>
                 <select
                   id="booking-next-status"
-                  className={styles.modalSelect}
                   value={nextStatus}
                   onChange={(event) => setNextStatus(event.target.value as AdminBookingStatus)}
                   disabled={updatingStatus}
@@ -537,32 +541,32 @@ export default function AdminBookingsPage() {
                   ))}
                 </select>
 
-                <label className={styles.modalFieldLabel} htmlFor="booking-status-reason">
+                <label htmlFor="booking-status-reason">
                   Lý do thao tác (bắt buộc)
                 </label>
                 <textarea
                   id="booking-status-reason"
-                  className={styles.modalTextarea}
                   rows={3}
                   value={updateReason}
                   onChange={(event) => setUpdateReason(event.target.value)}
                   placeholder="Ví dụ: Đã liên hệ khách và xác nhận hoàn tiền"
                   disabled={updatingStatus}
                 />
+
+                <div className="admin-status-actions">
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={submitStatusUpdate}
+                    disabled={updatingStatus}
+                  >
+                    {updatingStatus ? 'Đang cập nhật...' : 'Xác nhận cập nhật'}
+                  </button>
+                  <button type="button" className="btn-ghost" onClick={() => setSelectedBooking(null)}>
+                    Đóng
+                  </button>
+                </div>
               </div>
-
-              <button
-                type="button"
-                className={styles.primaryButton}
-                onClick={submitStatusUpdate}
-                disabled={updatingStatus}
-              >
-                {updatingStatus ? 'Đang cập nhật...' : 'Xác nhận cập nhật'}
-              </button>
-
-              <button type="button" className={styles.ghostButton} onClick={() => setSelectedBooking(null)}>
-                Đóng
-              </button>
             </div>
           </div>
         </div>

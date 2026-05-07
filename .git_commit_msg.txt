@@ -1,21 +1,14 @@
-feat: add welcome voucher WELCOME500K, switch chatbot to DeepSeek-v4-pro, fix bot send button
+feat: rewrite BotChatWidget — no WebSocket, no chat, pure service panel UI
+
+New behavior:
+- Service panel with 6 buttons: Tour Hot, Tra cu Booking, Thanh toan, Huy/Hoan tien, Lien he, FAQ
+- Booking lookup form: enter code TRS-YYYYMMDD-XXXXXX -> show booking details immediately
+- FAQ accordion with 5 common Q&A
+- Back button to return home from any view
+- All via REST API (no WebSocket, no 3-dot lag)
 
 Backend:
-- Add WelcomeVoucherController + WelcomeVoucherService for WELCOME500K voucher
-- Add welcome_voucher_claimed column to users table
-- Switch beeknoee model from gemini-flash to deepseek/deepseek-v4-pro with reasoning off
-- Add WelcomeVoucherResponse DTO
+- Add GET /api/chat/booking endpoint for booking lookup
+- Add GET /api/chat/tours/hot for hot tour cards
 
-Frontend:
-- Add WelcomeVoucherBanner component with claim logic
-- Fix BotChatWidget send button: remove isWsReady guard blocking message send
-- Add welcomeVoucherApi, useWelcomeVoucher hook
-- Update TopAnnouncementBar with welcome voucher CTA
-- Add PromoPopup and FloatingGiftWidget for promo display
-- Add MessageBubble shared component for chat
-- Update AppShellClient to integrate welcome voucher
-- Add admin chat panel (AdminChatController, adminChatApi)
-
-Database:
-- ALTER TABLE users ADD COLUMN welcome_voucher_claimed BOOLEAN DEFAULT FALSE
-- INSERT/UPDATE promotions WELCOME500K (500K fixed discount, min order 500K, valid 2027)
+BREAKING: removes chatbot AI chat + WebSocket entirely
