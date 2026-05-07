@@ -6,12 +6,14 @@ import {
     FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaWallet,
     FaUmbrellaBeach, FaMountain, FaUtensils, FaCamera, FaPlane,
     FaRegLightbulb, FaCheck, FaSpinner, FaChevronRight,
-    FaHeart, FaShoppingCart, FaBed, FaCar, FaGem, FaSuitcaseRolling
+    FaHeart, FaShoppingCart, FaBed, FaCar, FaGem, FaSuitcaseRolling,
+    FaComments, FaTimes
 } from 'react-icons/fa';
-import { MdFamilyRestroom, MdBusiness } from 'react-icons/md';
+import { MdFamilyRestroom, MdBusiness, MdSmartToy } from 'react-icons/md';
 import { IoMdFlash } from 'react-icons/io';
 import { toast } from 'react-toastify';
 import travelPlanApi from '@/api/travelPlanApi';
+import AIPanel from '@/components/AI/AIPanel';
 import styles from './page.module.css';
 
 const INTEREST_OPTIONS = [
@@ -84,6 +86,7 @@ export default function AITravelPlannerPage() {
     const [loading, setLoading] = useState(false);
     const [plan, setPlan] = useState<TravelPlan | null>(null);
     const [activeDay, setActiveDay] = useState(0);
+    const [showChat, setShowChat] = useState(false);
 
     const [form, setForm] = useState({
         destination: '',
@@ -313,6 +316,11 @@ export default function AITravelPlannerPage() {
                                 <div className={styles.emptyIcon}>🗺️</div>
                                 <h3>Chưa có lịch trình</h3>
                                 <p>Điền thông tin bên trái và nhấn "Tạo lịch trình AI" để nhận gợi ý lịch trình hoàn hảo cho chuyến đi của bạn.</p>
+                                
+                                {/* Chat CTA */}
+                                <button className={styles.chatCta} onClick={() => setShowChat(true)}>
+                                    <FaComments /> Hoặc chat với AI Assistant
+                                </button>
                             </div>
                         ) : (
                             <div className={styles.planResult}>
@@ -438,6 +446,26 @@ export default function AITravelPlannerPage() {
                     </section>
                 </div>
             </div>
+
+            {/* Chat Button */}
+            {!showChat && (
+                <button className={styles.chatFloatingBtn} onClick={() => setShowChat(true)}>
+                    <FaComments />
+                    <span>Chat với AI</span>
+                </button>
+            )}
+
+            {/* AI Chat Panel */}
+            {showChat && (
+                <div className={styles.chatOverlay}>
+                    <div className={styles.chatContainer}>
+                        <button className={styles.chatCloseBtn} onClick={() => setShowChat(false)}>
+                            <FaTimes />
+                        </button>
+                        <AIPanel isOpen={true} onClose={() => setShowChat(false)} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
