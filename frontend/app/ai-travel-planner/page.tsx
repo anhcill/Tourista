@@ -7,7 +7,7 @@ import {
     FaUmbrellaBeach, FaMountain, FaUtensils, FaCamera, FaPlane,
     FaRegLightbulb, FaCheck, FaSpinner, FaChevronRight,
     FaHeart, FaShoppingCart, FaBed, FaCar, FaGem, FaSuitcaseRolling,
-    FaComments, FaTimes
+    FaComments
 } from 'react-icons/fa';
 import { MdFamilyRestroom, MdBusiness, MdSmartToy } from 'react-icons/md';
 import { IoMdFlash } from 'react-icons/io';
@@ -447,25 +447,16 @@ export default function AITravelPlannerPage() {
                 </div>
             </div>
 
-            {/* Chat Button */}
-            {!showChat && (
-                <button className={styles.chatFloatingBtn} onClick={() => setShowChat(true)}>
-                    <FaComments />
-                    <span>Chat với AI</span>
-                </button>
-            )}
-
-            {/* AI Chat Panel */}
-            {showChat && (
-                <div className={styles.chatOverlay}>
-                    <div className={styles.chatContainer}>
-                        <button className={styles.chatCloseBtn} onClick={() => setShowChat(false)}>
-                            <FaTimes />
-                        </button>
-                        <AIPanel isOpen={true} onClose={() => setShowChat(false)} />
-                    </div>
-                </div>
-            )}
+            {/* AI Chat Widget - Floating at corner */}
+            <div className={styles.chatWidgetWrapper}>
+                <AIPanel isOpen={showChat} onClose={() => setShowChat(false)} />
+                {!showChat && (
+                    <button className={styles.chatFloatingBtn} onClick={() => setShowChat(true)}>
+                        <FaComments />
+                        <span>Chat với AI</span>
+                    </button>
+                )}
+            </div>
         </div>
     );
 }

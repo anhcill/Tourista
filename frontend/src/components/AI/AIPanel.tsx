@@ -1,28 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { FaPaperPlane, FaRobot, FaUser, FaTimes, FaMicrophone, FaImage } from 'react-icons/fa';
-import { MdSend, MdSmartToy } from 'react-icons/md';
+import { FaUser, FaTimes, FaComments, FaSpinner } from 'react-icons/fa';
+import { MdSmartToy, MdSend } from 'react-icons/md';
 import styles from './AIPanel.module.css';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type AppSelectorType = <T>(selector: (state: any) => T) => T;
-const useAppSelector: AppSelectorType = useSelector as any;
-/* eslint-enable */
+import chatApi from '@/api/chatApi';
 
 interface Message {
     id?: string | number;
-    sender?: string;
+    sender?: 'user' | 'bot';
     content: string;
-    type?: 'USER' | 'BOT' | 'SYSTEM';
     timestamp?: string;
 }
 
-const WELCOME_MESSAGE = {
+const WELCOME_BOT = {
     id: 'welcome',
-    sender: 'bot',
-    type: 'BOT' as const,
+    sender: 'bot' as const,
     content: `🌟 Chào bạn! Mình là AI Assistant của Tourista Studio!
 
 Mình có thể giúp bạn:
@@ -48,21 +41,16 @@ const QUICK_ACTIONS = [
 interface AIPanelProps {
     isOpen?: boolean;
     onClose?: () => void;
-    embedded?: boolean;
+    compact?: boolean;
 }
 
-export default function AIPanel({ isOpen = true, onClose, embedded = true }: AIPanelProps) {
-    const { user } = useAppSelector(state => state.auth);
-    const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+export default function AIPanel({ isOpen = true, onClose, compact = false }: AIPanelProps) {
+    const [messages, setMessages] = useState<Message[]>([WELCOME_BOT]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    const [conversationId, setConversationId] = useState<number | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
+    const [isMinimized, setIsMinimized] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const socketRef = useRef<WebSocket | null>(null);
-    const stompClientRef = useRef<any>(null);
 
-    // Auto-scroll to bottom
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, []);
@@ -71,141 +59,79 @@ export default function AIPanel({ isOpen = true, onClose, embedded = true }: AIP
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
-    // Connect to WebSocket
-    useEffect(() => {
-        if (!user?.email) return;
-
-        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
-        
-        const connectStomp = () => {
-            try {
-                // Simple STOMP-like implementation using native WebSocket
-                const socket = new WebSocket(wsUrl);
-                socketRef.current = socket;
-
-                socket.onopen = () => {
-                    console.log('WebSocket connected');
-                    setIsConnected(true);
-                    
-                    // Send CONNECT frame (simplified)
-                    socket.send(JSON.stringify({
-                        type: 'CONNECT',
-                        headers: {
-                            'login': user.email,
-                            'passcode': '',
-                        }
-                    }));
-
-                    // Create or get conversation
-                    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/chat/conversations`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ type: 'BOT' }),
-                        credentials: 'include',
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data?.data?.id) {
-                            setConversationId(data.data.id);
-                        }
-                    })
-                    .catch(err => console.log('Conversation error:', err));
-                };
-
-                socket.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        if (data.type === 'MESSAGE' || data.contentType === 'MESSAGE') {
-                            setMessages(prev => [...prev, {
-                                id: data.id,
-                                sender: data.senderRole === 'BOT' ? 'bot' : 'user',
-                                type: data.senderRole === 'BOT' ? 'BOT' : 'USER',
-                                content: data.content,
-                                timestamp: data.createdAt,
-                            }]);
-                            setIsTyping(false);
-                        }
-                    } catch {
-                        // Ignore parse errors
-                    }
-                };
-
-                socket.onclose = () => {
-                    console.log('WebSocket disconnected');
-                    setIsConnected(false);
-                };
-
-                socket.onerror = (error) => {
-                    console.log('WebSocket error:', error);
-                };
-
-            } catch (error) {
-                console.log('STOMP connection error:', error);
-            }
-        };
-
-        connectStomp();
-
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.close();
-            }
-        };
-    }, [user?.email]);
-
-    // Send message
+    // Send message via REST API
     const sendMessage = useCallback(async (text: string) => {
-        if (!text.trim() || !conversationId) return;
+        if (!text.trim()) return;
 
-        const userMessage: Message = {
+        const userMsg: Message = {
             id: Date.now(),
             sender: 'user',
-            type: 'USER',
             content: text.trim(),
             timestamp: new Date().toISOString(),
         };
 
-        setMessages(prev => [...prev, userMessage]);
+        setMessages(prev => [...prev, userMsg]);
         setInput('');
         setIsTyping(true);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/chat/send`, {
+            // Call chatbot API - returns AI response
+            const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    conversationId,
-                    content: text.trim(),
-                }),
-                credentials: 'include',
+                body: JSON.stringify({ message: text.trim() }),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to send');
-            }
+            const data = await response.json();
+            
+            const botMsg: Message = {
+                id: Date.now() + 1,
+                sender: 'bot',
+                content: data?.data?.content || data?.message || 
+                    'Xin lỗi, mình chưa hiểu ý bạn. Bạn thử hỏi cụ thể hơn nhé!',
+                timestamp: new Date().toISOString(),
+            };
+            
+            setMessages(prev => [...prev, botMsg]);
         } catch (error) {
             console.error('Send error:', error);
-            // Add error message
-            setTimeout(() => {
-                setMessages(prev => [...prev, {
-                    id: Date.now(),
-                    sender: 'bot',
-                    type: 'BOT',
-                    content: 'Xin lỗi, mình không thể trả lời lúc này. Bạn thử lại sau nhé!',
-                    timestamp: new Date().toISOString(),
-                }]);
-                setIsTyping(false);
-            }, 1000);
+            
+            // Fallback responses for demo
+            const lowerText = text.toLowerCase();
+            let response = 'Mình đã ghi nhận câu hỏi của bạn! Bạn có thể liên hệ hotline 1900 1234 để được hỗ trợ nhanh hơn nhé!';
+            
+            if (lowerText.includes('tour') || lowerText.includes('đi')) {
+                response = '🎯 Bạn muốn tìm tour? Hãy vào trang **Tours** và chọn điểm đến yêu thích nhé! Hoặc mình gợi ý: Đà Nẵng, Phú Quốc, Nha Trang...';
+            } else if (lowerText.includes('khách sạn') || lowerText.includes('hotel')) {
+                response = '🏨 Mình giới thiệu bạn vào trang **Khách sạn** để tìm nơi lưu trú phù hợp nhé!';
+            } else if (lowerText.includes('TRS') || lowerText.includes('booking')) {
+                response = '🔍 Để tra cứu booking, bạn cần đăng nhập và vào **Tài khoản > Lịch sử Booking** nhé!';
+            } else if (lowerText.includes('hủ') || lowerText.includes('hoàn')) {
+                response = '❌ **Chính sách hủy tour:**\n• Hủy trước 7 ngày → hoàn 80%\n• Hủy 3-7 ngày → hoàn 50%\n• Dưới 3 ngày → không hoàn';
+            } else if (lowerText.includes('thanh toán')) {
+                response = '💳 Tourista hỗ trợ thanh toán qua:\n• **VNPay** - thẻ ATM/Visa\n• **Chuyển khoản** ngân hàng\n• **MoMo**, **ZaloPay**';
+            } else if (lowerText.includes('chào') || lowerText.includes('hello') || lowerText.includes('hi')) {
+                response = '👋 Xin chào! Rất vui được hỗ trợ bạn! Bạn cần tìm gì hôm nay?';
+            }
+
+            const botMsg: Message = {
+                id: Date.now() + 1,
+                sender: 'bot',
+                content: response,
+                timestamp: new Date().toISOString(),
+            };
+            
+            setMessages(prev => [...prev, botMsg]);
+        } finally {
+            setIsTyping(false);
         }
-    }, [conversationId]);
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        sendMessage(input);
-    };
-
-    const handleQuickAction = (prompt: string) => {
-        sendMessage(prompt);
+        if (input.trim()) {
+            sendMessage(input);
+        }
     };
 
     const formatTime = (timestamp?: string) => {
@@ -214,7 +140,22 @@ export default function AIPanel({ isOpen = true, onClose, embedded = true }: AIP
     };
 
     const renderMessage = (msg: Message, index: number) => {
-        const isBot = msg.type === 'BOT' || msg.sender === 'bot';
+        const isBot = msg.sender === 'bot';
+        
+        // Simple markdown-like parsing
+        const parseContent = (text: string) => {
+            return text.split('\n').map((line, i) => {
+                const formatted = line
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/`(.*?)`/g, '<code>$1</code>');
+                return (
+                    <span key={i}>
+                        <span dangerouslySetInnerHTML={{ __html: formatted }} />
+                        {i < text.split('\n').length - 1 && <br />}
+                    </span>
+                );
+            });
+        };
         
         return (
             <div key={msg.id || index} className={`${styles.message} ${isBot ? styles.botMessage : styles.userMessage}`}>
@@ -223,18 +164,7 @@ export default function AIPanel({ isOpen = true, onClose, embedded = true }: AIP
                 </div>
                 <div className={styles.messageBubble}>
                     <div className={styles.messageContent}>
-                        {msg.content.split('\n').map((line, i) => (
-                            <span key={i}>
-                                {line.startsWith('**') && line.endsWith('**') ? (
-                                    <strong>{line.replace(/\*\*/g, '')}</strong>
-                                ) : line.startsWith('• ') ? (
-                                    <span>• {line.substring(2)}</span>
-                                ) : (
-                                    line
-                                )}
-                                {i < msg.content.split('\n').length - 1 && <br />}
-                            </span>
-                        ))}
+                        {parseContent(msg.content)}
                     </div>
                     {msg.timestamp && (
                         <div className={styles.messageTime}>{formatTime(msg.timestamp)}</div>
@@ -247,82 +177,108 @@ export default function AIPanel({ isOpen = true, onClose, embedded = true }: AIP
     if (!isOpen) return null;
 
     return (
-        <div className={`${styles.panel} ${embedded ? styles.embedded : styles.floating}`}>
-            {/* Header */}
-            <div className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <div className={styles.avatar}>
-                        <MdSmartToy />
-                    </div>
-                    <div className={styles.headerInfo}>
-                        <span className={styles.headerTitle}>AI Assistant</span>
-                        <span className={styles.headerStatus}>
-                            <span className={`${styles.statusDot} ${isConnected ? styles.online : styles.offline}`} />
-                            {isConnected ? 'Đang kết nối' : 'Offline'}
-                        </span>
-                    </div>
-                </div>
-                {onClose && (
-                    <button className={styles.closeBtn} onClick={onClose}>
-                        <FaTimes />
-                    </button>
-                )}
-            </div>
-
-            {/* Messages */}
-            <div className={styles.messages}>
-                {messages.map(renderMessage)}
-                
-                {isTyping && (
-                    <div className={`${styles.message} ${styles.botMessage}`}>
-                        <div className={styles.messageAvatar}>
+        <div className={styles.widget}>
+            {/* Chat Panel */}
+            <div className={`${styles.chatBox} ${isMinimized ? styles.minimized : ''}`}>
+                {/* Header */}
+                <div className={styles.header}>
+                    <div className={styles.headerLeft}>
+                        <div className={styles.avatar}>
                             <MdSmartToy />
                         </div>
-                        <div className={styles.typingIndicator}>
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                        <div className={styles.headerInfo}>
+                            <span className={styles.headerTitle}>AI Assistant</span>
+                            <span className={styles.headerStatus}>
+                                <span className={`${styles.statusDot} ${styles.online}`} />
+                                Đang trực tuyến
+                            </span>
                         </div>
                     </div>
+                    <div className={styles.headerActions}>
+                        <button 
+                            className={styles.minimizeBtn} 
+                            onClick={() => setIsMinimized(!isMinimized)}
+                            title={isMinimized ? 'Mở rộng' : 'Thu nhỏ'}
+                        >
+                            {isMinimized ? '□' : '−'}
+                        </button>
+                        {onClose && (
+                            <button className={styles.closeBtn} onClick={onClose}>
+                                <FaTimes />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Messages */}
+                {!isMinimized && (
+                    <>
+                        <div className={styles.messages}>
+                            {messages.map(renderMessage)}
+                            
+                            {isTyping && (
+                                <div className={`${styles.message} ${styles.botMessage}`}>
+                                    <div className={styles.messageAvatar}>
+                                        <MdSmartToy />
+                                    </div>
+                                    <div className={styles.typingIndicator}>
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        {/* Quick Actions */}
+                        {messages.length === 1 && (
+                            <div className={styles.quickActions}>
+                                {QUICK_ACTIONS.map((action, idx) => (
+                                    <button
+                                        key={idx}
+                                        className={styles.quickActionBtn}
+                                        onClick={() => sendMessage(action.prompt)}
+                                    >
+                                        <span>{action.icon}</span>
+                                        <span>{action.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Input */}
+                        <form className={styles.inputArea} onSubmit={handleSubmit}>
+                            <input
+                                type="text"
+                                className={styles.input}
+                                placeholder="Nhắn tin cho AI..."
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                            />
+                            <button 
+                                type="submit" 
+                                className={styles.sendBtn}
+                                disabled={!input.trim()}
+                            >
+                                <MdSend />
+                            </button>
+                        </form>
+                    </>
                 )}
-                
-                <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Actions */}
-            {!messages.length && (
-                <div className={styles.quickActions}>
-                    {QUICK_ACTIONS.map((action, idx) => (
-                        <button
-                            key={idx}
-                            className={styles.quickActionBtn}
-                            onClick={() => handleQuickAction(action.prompt)}
-                        >
-                            <span>{action.icon}</span>
-                            <span>{action.label}</span>
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            {/* Input */}
-            <form className={styles.inputArea} onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="Nhắn tin cho AI Assistant..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    disabled={!conversationId}
-                />
+            {/* FAB Button (when minimized or hidden) */}
+            {!isMinimized && (
                 <button 
-                    type="submit" 
-                    className={styles.sendBtn}
-                    disabled={!input.trim() || !conversationId}
+                    className={styles.fabBadge}
+                    onClick={() => setIsMinimized(true)}
+                    title="Thu nhỏ chat"
                 >
-                    <MdSend />
+                    <span className={styles.fabBadgeDot} />
                 </button>
-            </form>
+            )}
         </div>
     );
 }
