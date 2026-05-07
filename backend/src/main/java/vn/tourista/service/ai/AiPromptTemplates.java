@@ -151,7 +151,7 @@ public class AiPromptTemplates {
         String today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
                 .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         String monthName = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
-                .getMonth().getDisplayName(java.time.TextStyle.FULL, new java.util.Locale("vi"));
+                .getMonth().getDisplayName(java.time.format.TextStyle.FULL, new java.util.Locale("vi"));
 
         // 1. System role with date
         sb.append("Bạn là trợ lý du lịch AI của nền tảng Tourista Studio.\n");

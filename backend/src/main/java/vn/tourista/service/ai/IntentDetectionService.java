@@ -69,8 +69,7 @@ public class IntentDetectionService {
 
     // FAQ keywords for destination-specific questions (goes to AI, not hardcoded FAQ)
     private static final List<KeywordPattern> DESTINATION_QUESTION_PATTERNS = List.of(
-            new KeywordPattern(List.of("có gì", "co gi", "chơi gì", "choi gi", "giải trí", "giai tri", "vui gì", "vui gi", "thăm", "tham quan", "tham thanh", "đi đâu", "di dau", "điểm hay", "diem hay", "gì ngon", "gi ngon", "đặc sản", "dac san", "nên ăn", "nen an", "nên chơi", "nen choi", "nên đi", "nen di", "ở đâu", "o dau", "hấp dẫn", "hap dan", "đẹp", "dep", "nổi tiếng", "noi tieng", "cần làm gì", "can lam gi", "làm gì", "lam gi")),
-            Intent.CHITCHAT)
+            new KeywordPattern(List.of("có gì", "co gi", "chơi gì", "choi gi", "giải trí", "giai tri", "vui gì", "vui gi", "thăm", "tham quan", "tham thanh", "đi đâu", "di dau", "điểm hay", "diem hay", "gì ngon", "gi ngon", "đặc sản", "dac san", "nên ăn", "nen an", "nên chơi", "nen choi", "nên đi", "nen di", "ở đâu", "o dau", "hấp dẫn", "hap dan", "đẹp", "dep", "nổi tiếng", "noi tieng", "cần làm gì", "can lam gi", "làm gì", "lam gi"), Intent.CHITCHAT)
     );
 
     private static final List<KeywordPattern> EMOTION_PATTERNS = List.of(
