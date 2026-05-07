@@ -4,50 +4,47 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaWallet,
-    FaSuitcaseRolling, FaUmbrellaBeach, FaMountain, FaUtensils,
-    FaCamera, FaPlane, FaRegLightbulb, FaCheck, FaSpinner,
-    FaChevronRight, FaRegClock, FaRegMoneyBillAlt,
-    FaHeart, FaShoppingCart, FaBed, FaCar, FaGem
+    FaUmbrellaBeach, FaMountain, FaUtensils, FaCamera, FaPlane,
+    FaRegLightbulb, FaCheck, FaSpinner, FaChevronRight,
+    FaHeart, FaShoppingCart, FaBed, FaCar, FaGem, FaSuitcaseRolling
 } from 'react-icons/fa';
 import { MdFamilyRestroom, MdBusiness } from 'react-icons/md';
+import { IoMdFlash } from 'react-icons/io';
 import { toast } from 'react-toastify';
 import travelPlanApi from '@/api/travelPlanApi';
 import styles from './page.module.css';
 
 const INTEREST_OPTIONS = [
-    { value: 'beach', label: 'Biển', icon: <FaUmbrellaBeach /> },
-    { value: 'nature', label: 'Thiên nhiên', icon: <FaMountain /> },
-    { value: 'food', label: 'Ẩm thực', icon: <FaUtensils /> },
-    { value: 'culture', label: 'Văn hóa', icon: <FaCamera /> },
-    { value: 'adventure', label: 'Phiêu lưu', icon: <FaPlane /> },
-    { value: 'shopping', label: 'Mua sắm', icon: <FaShoppingCart /> },
+    { value: 'beach', label: 'Biển', icon: '🏖️' },
+    { value: 'nature', label: 'Thiên nhiên', icon: '⛰️' },
+    { value: 'food', label: 'Ẩm thực', icon: '🍜' },
+    { value: 'culture', label: 'Văn hóa', icon: '🏛️' },
+    { value: 'adventure', label: 'Phiêu lưu', icon: '🧗' },
+    { value: 'shopping', label: 'Mua sắm', icon: '🛍️' },
 ];
 
 const TRIP_TYPES = [
-    { value: 'RELAX', label: 'Nghỉ dưỡng', icon: <FaUmbrellaBeach /> },
-    { value: 'ADVENTURE', label: 'Phiêu lưu', icon: <FaMountain /> },
-    { value: 'FAMILY', label: 'Gia đình', icon: <MdFamilyRestroom /> },
-    { value: 'ROMANTIC', label: 'Lãng mạn', icon: <FaHeart /> },
-    { value: 'BUSINESS', label: 'Công tác', icon: <MdBusiness /> },
+    { value: 'RELAX', label: 'Nghỉ dưỡng', icon: '😌' },
+    { value: 'ADVENTURE', label: 'Phiêu lưu', icon: '🚀' },
+    { value: 'FAMILY', label: 'Gia đình', icon: '👨‍👩‍👧‍👦' },
+    { value: 'ROMANTIC', label: 'Lãng mạn', icon: '💑' },
+    { value: 'BUSINESS', label: 'Công tác', icon: '💼' },
 ];
 
 const BUDGET_OPTIONS = [
-    { value: 'THAP', label: 'Tiết kiệm', sub: '< 2 triệu/người', icon: <FaRegMoneyBillAlt /> },
-    { value: 'TRUNG_BINH', label: 'Trung bình', sub: '2-10 triệu/người', icon: <FaWallet /> },
-    { value: 'CAO', label: 'Cao cấp', sub: '> 10 triệu/người', icon: <FaGem /> },
+    { value: 'THAP', label: 'Tiết kiệm', sub: '< 2 triệu', icon: '💰' },
+    { value: 'TRUNG_BINH', label: 'Trung bình', sub: '2-10 triệu', icon: '💵' },
+    { value: 'CAO', label: 'Cao cấp', sub: '> 10 triệu', icon: '💎' },
 ];
 
-const POPULAR_DESTINATIONS = [
-    'Đà Nẵng', 'Hội An', 'Phú Quốc', 'Nha Trang', 'Hà Nội',
-    'Hồ Chí Minh', 'Sa Pa', 'Cần Thơ', 'Vũng Tàu', 'Huế',
-];
+const POPULAR_DESTINATIONS = ['Đà Nẵng', 'Hội An', 'Phú Quốc', 'Nha Trang', 'Hà Nội', 'TP HCM', 'Sa Pa', 'Huế'];
 
-const ACTIVITY_ICONS: Record<string, React.ReactElement> = {
-    sight_seeing: <FaCamera />,
-    food: <FaUtensils />,
-    transport: <FaCar />,
-    accommodation: <FaBed />,
-    shopping: <FaShoppingCart />,
+const ACTIVITY_ICONS: Record<string, string> = {
+    sight_seeing: '📸',
+    food: '🍽️',
+    transport: '🚗',
+    accommodation: '🏨',
+    shopping: '🛒',
 };
 
 type PlanActivity = {
@@ -88,23 +85,14 @@ export default function AITravelPlannerPage() {
     const [plan, setPlan] = useState<TravelPlan | null>(null);
     const [activeDay, setActiveDay] = useState(0);
 
-    const [form, setForm] = useState<{
-        destination: string;
-        checkIn: string;
-        checkOut: string;
-        adults: number;
-        children: number;
-        budget: string;
-        interests: string[];
-        tripType: string;
-    }>({
+    const [form, setForm] = useState({
         destination: '',
         checkIn: '',
         checkOut: '',
         adults: 2,
         children: 0,
         budget: 'TRUNG_BINH',
-        interests: [],
+        interests: [] as string[],
         tripType: 'RELAX',
     });
 
@@ -114,7 +102,7 @@ export default function AITravelPlannerPage() {
 
     const toggleInterest = (value: string) => {
         setForm((prev) => {
-            const current: string[] = prev.interests || [];
+            const current = prev.interests || [];
             const next = current.includes(value)
                 ? current.filter((i) => i !== value)
                 : [...current, value];
@@ -163,21 +151,23 @@ export default function AITravelPlannerPage() {
 
     return (
         <div className={styles.page}>
+            {/* Hero Section */}
             <div className={styles.heroSection}>
                 <div className={styles.heroContent}>
                     <div className={styles.heroIcon}>
-                        <FaRegLightbulb />
+                        <IoMdFlash />
                     </div>
                     <h1 className={styles.heroTitle}>AI Travel Planner</h1>
                     <p className={styles.heroSubtitle}>
-                        Để trí tuệ nhân tạo lập lịch trình du lịch hoàn hảo cho bạn — miễn phí, tức thì
+                        Để trí tuệ nhân tạo thiết kế lịch trình hoàn hảo cho bạn — miễn phí, tức thì, cá nhân hóa
                     </p>
                 </div>
             </div>
 
+            {/* Main Content */}
             <div className={styles.mainContainer}>
                 <div className={styles.layout}>
-                    {/* LEFT — Form */}
+                    {/* Left - Form */}
                     <aside className={styles.formSection}>
                         <form onSubmit={handleSubmit} className={styles.form}>
                             <h2 className={styles.formTitle}>Tạo lịch trình của bạn</h2>
@@ -238,17 +228,17 @@ export default function AITravelPlannerPage() {
                                 <div className={styles.formGroup}>
                                     <label className={styles.label}><FaUsers /> Người lớn</label>
                                     <div className={styles.counter}>
-                                        <button type="button" onClick={() => updateField('adults', Math.max(1, (form.adults || 1) - 1))}>−</button>
-                                        <span>{form.adults || 1}</span>
-                                        <button type="button" onClick={() => updateField('adults', (form.adults || 1) + 1)}>+</button>
+                                        <button type="button" onClick={() => updateField('adults', Math.max(1, form.adults - 1))}>−</button>
+                                        <span>{form.adults}</span>
+                                        <button type="button" onClick={() => updateField('adults', form.adults + 1)}>+</button>
                                     </div>
                                 </div>
                                 <div className={styles.formGroup}>
                                     <label className={styles.label}><FaUsers /> Trẻ em</label>
                                     <div className={styles.counter}>
-                                        <button type="button" onClick={() => updateField('children', Math.max(0, (form.children || 0) - 1))}>−</button>
-                                        <span>{form.children || 0}</span>
-                                        <button type="button" onClick={() => updateField('children', (form.children || 0) + 1)}>+</button>
+                                        <button type="button" onClick={() => updateField('children', Math.max(0, form.children - 1))}>−</button>
+                                        <span>{form.children}</span>
+                                        <button type="button" onClick={() => updateField('children', form.children + 1)}>+</button>
                                     </div>
                                 </div>
                             </div>
@@ -272,7 +262,7 @@ export default function AITravelPlannerPage() {
                                 </div>
                             </div>
 
-                            {/* Trip type */}
+                            {/* Trip Type */}
                             <div className={styles.formGroup}>
                                 <label className={styles.label}><FaRegLightbulb /> Loại chuyến đi</label>
                                 <div className={styles.chipGrid}>
@@ -297,7 +287,7 @@ export default function AITravelPlannerPage() {
                                         <button
                                             key={opt.value}
                                             type="button"
-                                            className={`${styles.chip} ${(form.interests || []).includes(opt.value) ? styles.chipActive : ''}`}
+                                            className={`${styles.chip} ${form.interests.includes(opt.value) ? styles.chipActive : ''}`}
                                             onClick={() => toggleInterest(opt.value)}
                                         >
                                             {opt.icon} {opt.label}
@@ -310,19 +300,19 @@ export default function AITravelPlannerPage() {
                                 {loading ? (
                                     <><FaSpinner className={styles.spinner} /> Đang tạo lịch trình...</>
                                 ) : (
-                                    <><FaRegLightbulb /> Tạo lịch trình AI ngay</>
+                                    <><IoMdFlash /> Tạo lịch trình AI ngay</>
                                 )}
                             </button>
                         </form>
                     </aside>
 
-                    {/* RIGHT — Plan Results */}
+                    {/* Right - Results */}
                     <section className={styles.resultSection}>
                         {!plan ? (
                             <div className={styles.emptyState}>
-                                <div className={styles.emptyIcon}><FaMapMarkerAlt /></div>
+                                <div className={styles.emptyIcon}>🗺️</div>
                                 <h3>Chưa có lịch trình</h3>
-                                <p>Điền thông tin bên trái và nhấn &ldquo;Tạo lịch trình AI&rdquo; để nhận gợi ý lịch trình hoàn hảo cho chuyến đi của bạn.</p>
+                                <p>Điền thông tin bên trái và nhấn "Tạo lịch trình AI" để nhận gợi ý lịch trình hoàn hảo cho chuyến đi của bạn.</p>
                             </div>
                         ) : (
                             <div className={styles.planResult}>
@@ -330,17 +320,19 @@ export default function AITravelPlannerPage() {
                                 <div className={styles.planHeader}>
                                     <div className={styles.planMeta}>
                                         <h2 className={styles.planDest}>{plan.destination}</h2>
-                                        <span className={styles.planDuration}><FaRegClock /> {plan.tripDuration}</span>
+                                        <span className={styles.planDuration}>
+                                            <FaCalendarAlt /> {plan.tripDuration}
+                                        </span>
                                     </div>
                                     {plan.summary && (
                                         <p className={styles.planSummary}>{plan.summary}</p>
                                     )}
                                 </div>
 
-                                {/* Day tabs */}
+                                {/* Day Tabs */}
                                 {plan.dayPlans && plan.dayPlans.length > 0 && (
                                     <div className={styles.dayTabs}>
-                                        {plan.dayPlans.map((day: DayPlan, idx: number) => (
+                                        {plan.dayPlans.map((day, idx) => (
                                             <button
                                                 key={idx}
                                                 className={`${styles.dayTab} ${activeDay === idx ? styles.dayTabActive : ''}`}
@@ -353,7 +345,7 @@ export default function AITravelPlannerPage() {
                                     </div>
                                 )}
 
-                                {/* Day content */}
+                                {/* Day Content */}
                                 {plan.dayPlans && plan.dayPlans[activeDay] && (
                                     <div className={styles.dayContent}>
                                         <h3 className={styles.dayTitle}>
@@ -361,14 +353,14 @@ export default function AITravelPlannerPage() {
                                         </h3>
 
                                         <div className={styles.activitiesList}>
-                                            {(plan.dayPlans[activeDay].activities || []).map((act: PlanActivity, idx: number) => (
+                                            {(plan.dayPlans[activeDay].activities || []).map((act, idx) => (
                                                 <div key={idx} className={`${styles.activityCard} ${styles[`activity_${act.type || 'sight_seeing'}`]}`}>
                                                     <div className={styles.activityTime}>{act.time || '--:--'}</div>
                                                     <div className={styles.activityDot} />
                                                     <div className={styles.activityBody}>
                                                         <div className={styles.activityHeader}>
                                                             <span className={styles.activityTypeIcon}>
-                                                                {ACTIVITY_ICONS[act.type || 'sight_seeing'] || <FaCamera />}
+                                                                {ACTIVITY_ICONS[act.type || 'sight_seeing'] || '📸'}
                                                             </span>
                                                             <strong className={styles.activityTitle}>{act.title}</strong>
                                                             {act.estimatedCost != null && act.estimatedCost > 0 && (
@@ -397,14 +389,14 @@ export default function AITravelPlannerPage() {
                                     </div>
                                 )}
 
-                                {/* Packing list */}
+                                {/* Packing List */}
                                 {plan.packingList && plan.packingList.length > 0 && (
                                     <div className={styles.packingSection}>
                                         <h3 className={styles.sectionTitle}>
                                             <FaSuitcaseRolling /> Đồ dùng cần mang
                                         </h3>
                                         <div className={styles.packingGrid}>
-                                            {plan.packingList.map((item: string, idx: number) => (
+                                            {plan.packingList.map((item, idx) => (
                                                 <div key={idx} className={styles.packingItem}>
                                                     <FaCheck className={styles.checkIcon} />
                                                     <span>{item}</span>
@@ -419,7 +411,7 @@ export default function AITravelPlannerPage() {
                                     <div className={styles.tipsSection}>
                                         {plan.weatherNote && (
                                             <div className={styles.tipCard}>
-                                                <h4><FaUmbrellaBeach /> Thời tiết</h4>
+                                                <h4>🌤️ Thời tiết</h4>
                                                 <p>{plan.weatherNote}</p>
                                             </div>
                                         )}
