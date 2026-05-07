@@ -16,6 +16,9 @@ import vn.tourista.repository.ConversationRepository;
 import vn.tourista.repository.ConversationSessionRepository;
 import vn.tourista.service.AiService;
 import vn.tourista.service.ChatService;
+import vn.tourista.service.ai.LocationUnderstandingService;
+
+import java.util.regex.Pattern;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,6 +45,7 @@ public class AiChatbotService {
     private final ChatbotNlpService nlpService;
     private final TourRecommendationQueryService tourQueryService;
     private final AiService aiService;
+    private final LocationUnderstandingService locationService;
     private final ChatMessageRepository chatMessageRepository;
     private final ConversationRepository conversationRepository;
     private final ConversationSessionRepository conversationSessionRepository;
@@ -55,14 +59,20 @@ public class AiChatbotService {
                                  String conversationContext) {
         String canonical = nlpService.normalize(nlpService.canonicalize(normalizeInput(inputText)));
 
-        // Bước 1: Thử FAQ rules trước (fast path)
-        String faqAnswer = faqService.findMatchingAnswer(canonical);
-        if (faqAnswer != null) {
-            pushBotText(conversationId, clientEmail, faqAnswer);
-            return;
+        // Skip FAQ fast path if input mentions "thời tiết" (let AI answer naturally
+        // with location-aware response) or if it contains a known location
+        boolean skipFaq = containsWeatherKeyword(inputText) || locationService.containsLocation(inputText);
+
+        // Bước 1: Thử FAQ rules trước (fast path), skip nếu có "thời tiết" hoặc location
+        if (!skipFaq) {
+            String faqAnswer = faqService.findMatchingAnswer(canonical);
+            if (faqAnswer != null) {
+                pushBotText(conversationId, clientEmail, faqAnswer);
+                return;
+            }
         }
 
-        // Bước 2: Không khớp rule → gọi AI với DB context
+        // Bước 2: Không khớp rule hoặc có location → gọi AI với DB context
         pushTypingIndicator(conversationId, clientEmail);
 
         // Query dữ liệu thật từ DB
@@ -272,5 +282,20 @@ public class AiChatbotService {
             if (text.contains(kw)) return true;
         }
         return false;
+    }
+
+    private boolean containsWeatherKeyword(String text) {
+        if (text == null) return false;
+        String lower = text.toLowerCase();
+        return lower.contains("thời tiết") || lower.contains("thoi tiet") ||
+               lower.contains("mùa") || lower.contains("mua") ||
+               lower.contains("nhiệt độ") || lower.contains("nhiet do") ||
+               lower.contains("trời") || lower.contains("troi") ||
+               lower.contains("có gì") || lower.contains("co gi") ||
+               lower.contains("món ngon") || lower.contains("mon ngon") ||
+               lower.contains("đặc sản") || lower.contains("dac san") ||
+               lower.contains("ăn ngon") || lower.contains("an ngon") ||
+               lower.contains("quán") || lower.contains("quan") ||
+               lower.contains("nhà hàng") || lower.contains("nha hang");
     }
 }
