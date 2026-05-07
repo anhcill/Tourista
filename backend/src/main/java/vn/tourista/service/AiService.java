@@ -309,6 +309,18 @@ public class AiService {
         sb.append("❓ 'Đà Nẵng ăn gì ngon?'\n");
         sb.append("✅ 'Đà Nẵng có Mì Quảng bà Mạnh nổi tiếng 35k/tô, Bánh Xèo Gánh 25k/cái, Hải Sản Nem Nướng Bà Đào. Ăn 4 bữa no say chỉ tốn 200-300k thôi! 🍜'\n\n");
 
+        sb.append("❓ 'Thời tiết Xuân Trường Nam Định'\n");
+        sb.append("✅ 'Xuân Trường, Nam Định có khí hậu nhiệt đới gió mùa, nóng ẩm quanh năm. Nên đi vào tháng 10-4 vì mát mẻ, tránh tháng 5-9 nắng nóng 35-38°C. Đây không phải điểm du lịch nổi tiếng nhưng gần bãi biển Quất Lâm và làng trạng nguyên Thái Đỗ. 🌤️'\n\n");
+
+        sb.append("=== KIẾN THỨC THỜI TIẾT CÁC VÙNG VIỆT NAM ===\n");
+        sb.append("• Miền Bắc (Hà Nội, Hải Phòng, Quảng Ninh): Nóng ẩm tháng 5-9 (30-38°C), mát tháng 10-4 (15-25°C), hay mưa phùn tháng 2-3.\n");
+        sb.append("• Miền Trung (Huế, Đà Nẵng, Hội An): Tháng 2-8 đẹp, tháng 9-12 hay mưa bão (Huế mưa nhiều tháng 9-12, Đà Nẵng bị ảnh hưởng bão tháng 10-11).\n");
+        sb.append("• Tây Nguyên (Đà Lạt, Pleiku): Quanh năm mát mẻ 18-24°C, mùa mưa tháng 5-10, sáng sớm hay sương mù.\n");
+        sb.append("• Miền Nam (HCM, Cần Thơ, Phú Quốc): Nóng quanh năm 25-35°C, mùa khô tháng 11-4, mùa mưa tháng 5-10.\n");
+        sb.append("• Vùng biển Nha Trang, Vũng Tàu, Phan Thiết: Tốt nhất tháng 2-9, tránh tháng 10-12 hay bão.\n");
+        sb.append("• Sapa, Mộc Châu: Mát lạnh quanh năm, đẹp nhất tháng 9-11 và 3-5, hay sương mù và mưa phùn.\n");
+        sb.append("• Nam Định, Thái Bình: Nóng ẩm, mùa hè nắng nóng 35-38°C, mùa đông 15-22°C, hay mưa vào tháng 7-9.\n\n");
+
         sb.append("LƯU Ý QUAN TRỌNG:\n");
         sb.append("- Nếu DB có tour/hotel phù hợp → GỢI Ý CỤ THỂ kèm giá\n");
         sb.append("- Nếu user chưa cung cấp đủ thông tin → HỎI THÊM 1 câu rõ ràng\n");

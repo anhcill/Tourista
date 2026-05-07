@@ -278,7 +278,6 @@ public class ChatService {
                        lower.contains("món ngon") || lower.contains("mon ngon") ||
                        lower.contains("đặc sản") || lower.contains("dac san") ||
                        lower.contains("ăn ngon") || lower.contains("an ngon") ||
-                       lower.contains("quán") || lower.contains("quan") ||
                        lower.contains("nhà hàng") || lower.contains("nha hang");
         }
 
