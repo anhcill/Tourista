@@ -135,9 +135,19 @@ public class ChatbotFaqService {
             return false;
         }
         for (String kw : keywords) {
-            if (text.contains(kw)) return true;
+            if (kw == null || kw.isBlank()) continue;
+            if (kw.length() <= 4) {
+                if (matchesWholeWord(text, kw)) return true;
+            } else {
+                if (text.contains(kw)) return true;
+            }
         }
         return false;
+    }
+
+    private boolean matchesWholeWord(String text, String word) {
+        String pattern = "(?<=[\\s,.!?;:'\"-]|^)" + Pattern.quote(word) + "(?=[\\s,.!?;:'\"-]|$)";
+        return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(text).find();
     }
 
     private String normalizeInput(String text) {

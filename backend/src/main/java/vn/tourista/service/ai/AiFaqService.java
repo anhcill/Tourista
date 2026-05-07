@@ -53,10 +53,25 @@ public class AiFaqService {
     }
 
     private boolean containsAny(String text, List<String> keywords) {
+        if (text == null || text.isBlank() || keywords == null || keywords.isEmpty()) {
+            return false;
+        }
         for (String kw : keywords) {
-            if (text.contains(kw)) return true;
+            if (kw == null || kw.isBlank()) continue;
+            // Use word boundary for short keywords (<=3 chars) to avoid false matches
+            if (kw.length() <= 3) {
+                if (matchesWholeWord(text, kw)) return true;
+            } else {
+                if (text.contains(kw)) return true;
+            }
         }
         return false;
+    }
+
+    private boolean matchesWholeWord(String text, String word) {
+        // Match word boundaries: space, start/end of string, punctuation
+        String pattern = "(?<=[\\s,.!?;:'\"-]|^)" + Pattern.quote(word) + "(?=[\\s,.!?;:'\"-]|$)";
+        return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(text).find();
     }
 
     // ----- FAQ Data Record -----

@@ -51,7 +51,7 @@ public class AiFaqData {
                 
                 // Tra cứu booking
                 new AiFaqService.FaqRule(
-                        List.of("tra cuu", "xem booking", "ma dat", "đặt chỗ", "lich su", "booking"),
+                        List.of("tra cuu", "xem booking", "xem lich su", "lich su dat cho", "lich su booking"),
                         "🔍 **Tra cứu booking:**\n\nGửi mã đặt cho mình theo định dạng **TRS-YYYYMMDD-XXXXXX** để xem chi tiết lịch trình."),
                 
                 // Liên hệ
@@ -69,9 +69,9 @@ public class AiFaqData {
                         List.of("chao", "hello", "hi", "xin chao", "xin chào", "hey"),
                         "👋 Chào bạn! Mình là trợ lý Tourista Studio.\n\nMình có thể giúp bạn tra cứu booking, gợi ý tour, tìm khách sạn và giải đáp thắc mắc về chính sách nhé!"),
                 
-                // Gợi ý tour
+                // Gợi ý tour - phải là whole word "tour" hoặc cụm dài hơn
                 new AiFaqService.FaqRule(
-                        List.of("goi y tour", "goi i tour", "suggest tour", "de xuat tour", "tour", "du lich"),
+                        List.of("goi y tour", "goi i tour", "suggest tour", "de xuat tour", "di tour", "dat tour"),
                         """
                                 🗺️ **Mình có thể gợi ý tour cho bạn!**
                                 
@@ -84,7 +84,7 @@ public class AiFaqData {
                 
                 // Tìm khách sạn
                 new AiFaqService.FaqRule(
-                        List.of("khach san", "hotel", "noi that", "nghi duong", "cho o", "noi nghi"),
+                        List.of("khach san", "tim khach san", "dat khach san", "book khach san"),
                         """
                                 🏨 **Mình giúp bạn tìm khách sạn!**
                                 
@@ -94,11 +94,6 @@ public class AiFaqData {
                                 • **Số sao** (ví dụ: 4 sao)
                                 
                                 Hoặc nhắn đơn giản: **"tìm khách sạn Đà Nẵng dưới 1 triệu"** nhé!"""),
-                
-                // Thời tiết
-                new AiFaqService.FaqRule(
-                        List.of("thoi tiet", "weather", "mua", "nong", "lanh"),
-                        "🌤️ **Về thời tiết:**\n\nMình có thể cho bạn biết thời tiết chung của các vùng miền, nhưng để có thông tin chính xác, bạn nên kiểm tra app thời tiết nhé!\n\nBạn muốn hỏi thời tiết ở đâu?"),
                 
                 // Ẩm thực
                 new AiFaqService.FaqRule(

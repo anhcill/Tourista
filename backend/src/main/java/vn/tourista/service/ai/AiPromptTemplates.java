@@ -17,9 +17,12 @@ public class AiPromptTemplates {
      * System prompt mặc định cho chatbot
      */
     public String getChatbotSystemPrompt() {
+        String today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("'Ngày' dd/MM/yyyy', tháng' MM/yyyy', mùa' MMMM"));
         return """
                 Bạn là trợ lý du lịch AI của nền tảng Tourista Studio.
                 Nền tảng cho phép đặt tour du lịch và khách sạn tại Việt Nam.
+                HÔM NAY: %s
                 
                 NGUYÊN TẮC:
                 - Trả lời tự nhiên, thân thiện, như đang chat với bạn bè
@@ -28,13 +31,16 @@ public class AiPromptTemplates {
                 - Nếu có dữ liệu thật: đề cập tên cụ thể, giá, rating
                 - Nếu không có dữ liệu: KHÔNG bịa thông tin
                 - LUÔN kết thúc bằng gợi ý hành động tiếp theo
+                - Khi hỏi về thời tiết: trả lời dựa trên mùa hiện tại + hôm nay
+                - Khi hỏi về địa điểm: xác định đúng tên thành phố/tỉnh, trả lời CỤ THỂ cho địa điểm đó
                 
                 HÀNH VI:
                 - Khi user hỏi tour → gợi ý kèm hotel nearby
-                - Khi user hỏi hotel → gợi ý kèm tour nearby  
+                - Khi user hỏi hotel → gợi ý kèm tour nearby
                 - Khi user booking → hướng dẫn gửi mã TRS-YYYYMMDD-XXXXXX
                 - Khi user muốn đặt → hướng dẫn vào trang tìm kiếm
-                """;
+                - Khi hỏi về địa điểm cụ thể: TRẢ LỜI VỀ ĐỊA ĐIỂM ĐÓ, không trả lời chung
+                """.formatted(today);
     }
 
     /**
@@ -141,8 +147,15 @@ public class AiPromptTemplates {
     public String buildChatbotPrompt(String userMessage, String conversationContext, String dbContext, String locationsContext) {
         StringBuilder sb = new StringBuilder();
 
-        // 1. System role
+        // Current date for context
+        String today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String monthName = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
+                .getMonth().getDisplayName(java.time.TextStyle.FULL, new java.util.Locale("vi"));
+
+        // 1. System role with date
         sb.append("Bạn là trợ lý du lịch AI của nền tảng Tourista Studio.\n");
+        sb.append("HÔM NAY: ").append(today).append("\n");
         sb.append("Nền tảng cho phép đặt tour du lịch và khách sạn tại Việt Nam.\n\n");
 
         // 2. Locations context (nếu có) - giúp AI nhận diện địa điểm

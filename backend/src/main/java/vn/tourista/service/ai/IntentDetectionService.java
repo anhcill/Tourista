@@ -67,6 +67,12 @@ public class IntentDetectionService {
             new KeywordPattern(List.of("visa", "hộ chiếu", "passport", "làm hộ chiếu"), Intent.FAQ)
     );
 
+    // FAQ keywords for destination-specific questions (goes to AI, not hardcoded FAQ)
+    private static final List<KeywordPattern> DESTINATION_QUESTION_PATTERNS = List.of(
+            new KeywordPattern(List.of("có gì", "co gi", "chơi gì", "choi gi", "giải trí", "giai tri", "vui gì", "vui gi", "thăm", "tham quan", "tham thanh", "đi đâu", "di dau", "điểm hay", "diem hay", "gì ngon", "gi ngon", "đặc sản", "dac san", "nên ăn", "nen an", "nên chơi", "nen choi", "nên đi", "nen di", "ở đâu", "o dau", "hấp dẫn", "hap dan", "đẹp", "dep", "nổi tiếng", "noi tieng", "cần làm gì", "can lam gi", "làm gì", "lam gi")),
+            Intent.CHITCHAT)
+    );
+
     private static final List<KeywordPattern> EMOTION_PATTERNS = List.of(
             new KeywordPattern(List.of("cảm ơn", "cam on", "thanks", "thank", "tốt", "hay", "wow", "tuyệt", "tuyệt vời", "perfect", "excellent"), Intent.PRAISE),
             new KeywordPattern(List.of("tệ", "bad", "失望", "không hài lòng", "phàn nàn", "khiếu nại", "sao lại", "tại sao", "làm ăn", "dở", "dở", " không được"), Intent.COMPLAINT)
@@ -122,23 +128,28 @@ public class IntentDetectionService {
             return Intent.TOUR_RECOMMENDATION;
         }
 
-        // 5. Check FAQ
+        // 5. Check destination-specific questions (route to AI with location context)
+        if (matchesAny(normalized, DESTINATION_QUESTION_PATTERNS)) {
+            return Intent.CHITCHAT;
+        }
+
+        // 6. Check FAQ
         if (matchesAny(normalized, FAQ_PATTERNS)) {
             return Intent.FAQ;
         }
 
-        // 6. Check emotions
+        // 7. Check emotions
         if (matchesAny(normalized, EMOTION_PATTERNS)) {
             if (isComplaint(normalized)) return Intent.COMPLAINT;
             return Intent.PRAISE;
         }
 
-        // 7. Check cancel intent
+        // 8. Check cancel intent
         if (isCancelIntent(normalized)) {
             return Intent.CANCEL;
         }
 
-        // 8. Check if it's a question (likely FAQ or chat)
+        // 9. Check if it's a question (likely FAQ or chat)
         if (isQuestion(normalized)) {
             return Intent.CHITCHAT;
         }
