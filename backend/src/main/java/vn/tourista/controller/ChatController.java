@@ -7,12 +7,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.tourista.dto.request.CreateConversationRequest;
+import vn.tourista.dto.request.SendMessageRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.BotBookingResponse;
 import vn.tourista.dto.response.ChatMessageResponse;
 import vn.tourista.dto.response.ConversationResponse;
 import vn.tourista.dto.response.TourCardItem;
+import vn.tourista.entity.ChatMessage;
+import vn.tourista.entity.Conversation;
+import vn.tourista.service.BotService;
 import vn.tourista.service.ChatService;
+import vn.tourista.service.chatbot.AiChatbotService;
 import vn.tourista.service.chatbot.BookingLookupService;
 import vn.tourista.service.chatbot.TourRecommendationQueryService;
 
@@ -31,6 +36,8 @@ public class ChatController {
     private final ChatService chatService;
     private final BookingLookupService bookingLookupService;
     private final TourRecommendationQueryService tourRecommendationQueryService;
+    private final BotService botService;
+    private final AiChatbotService aiChatbotService;
 
     /**
      * GET /api/chat/conversations
@@ -131,5 +138,66 @@ public class ChatController {
         }
         List<TourCardItem> cards = tourRecommendationQueryService.buildTourCards(ids);
         return ResponseEntity.ok(ApiResponse.ok("Lấy tour hot thành công", cards));
+    }
+
+    /**
+     * POST /api/chat/message
+     * Gửi tin nhắn đến chatbot AI (REST endpoint cho AIPanel).
+     * - Tự động tạo hoặc lấy BOT conversation nếu không có conversationId
+     * - Xử lý đồng bộ: IntentDetection → FAQ/Recommendation/AI → Trả về response ngay
+     */
+    @PostMapping("/message")
+    public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
+            Principal principal,
+            @Valid @RequestBody SendMessageRequest request) {
+
+        String userEmail = principal != null ? principal.getName() : null;
+        String message = request.getMessage().trim();
+
+        if (message.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Tin nhắn không được rỗng."));
+        }
+
+        Long conversationId = request.getConversationId();
+
+        // Nếu chưa có conversationId → tạo BOT conversation mới
+        // Tìm user đã đăng nhập, hoặc tạo conversation ẩn danh
+        String chatEmail = userEmail != null ? userEmail : "anonymous_" + System.currentTimeMillis() + "@tourista.vn";
+
+        if (conversationId == null) {
+            CreateConversationRequest convReq = new CreateConversationRequest();
+            convReq.setType(Conversation.ConversationType.BOT);
+            ConversationResponse conv = chatService.findOrCreateConversation(chatEmail, convReq);
+            conversationId = conv.getId();
+        }
+
+        // Lấy conversation context cho AI
+        String conversationContext = aiChatbotService.buildConversationContext(conversationId);
+
+        // Xây dựng DB context
+        String dbContext = "";
+        try {
+            dbContext = tourRecommendationQueryService.buildDbContextForChatbot(message, message.toLowerCase());
+        } catch (Exception e) {
+            dbContext = "";
+        }
+
+        // Lưu tin nhắn user vào DB
+        chatService.saveUserMessage(conversationId, chatEmail, message);
+
+        // Gọi AI đồng bộ - không dùng @Async
+        String aiResponse = chatService.askAiSync(message, conversationContext, dbContext);
+
+        if (aiResponse != null && !aiResponse.isBlank()) {
+            // Lưu response của bot
+            ChatMessage savedBotMsg = chatService.saveBotMessage(conversationId, aiResponse, ChatMessage.ContentType.AI_TEXT, null);
+            return ResponseEntity.ok(ApiResponse.ok("OK", ChatMessageResponse.from(savedBotMsg)));
+        } else {
+            // AI không trả lời được → fallback FAQ default
+            String fallback = chatbotFaqService.getDefaultAnswer();
+            ChatMessage savedBotMsg = chatService.saveBotMessage(conversationId, fallback, ChatMessage.ContentType.TEXT, null);
+            return ResponseEntity.ok(ApiResponse.ok("OK", ChatMessageResponse.from(savedBotMsg)));
+        }
     }
 }

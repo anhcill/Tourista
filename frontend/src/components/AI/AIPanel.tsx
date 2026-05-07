@@ -49,6 +49,7 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
+    const [conversationId, setConversationId] = useState<number | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = useCallback(() => {
@@ -59,7 +60,7 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
-    // Send message via REST API
+    // Send message via REST API - kết nối với backend AI chatbot
     const sendMessage = useCallback(async (text: string) => {
         if (!text.trim()) return;
 
@@ -75,31 +76,52 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
         setIsTyping(true);
 
         try {
-            // Call chatbot API - returns AI response
+            // Gọi API /api/chat/message - backend sẽ xử lý AI và trả về response
             const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text.trim() }),
+                body: JSON.stringify({
+                    message: text.trim(),
+                    conversationId: conversationId,
+                }),
             });
 
             const data = await response.json();
-            
+
+            // Backend trả về: { success: true, data: ChatMessageResponse }
+            // ChatMessageResponse: { id, conversationId, content, contentType, createdAt, ... }
+            let botContent = '';
+
+            if (data?.success && data?.data) {
+                botContent = data.data.content || '';
+                // Lưu conversationId nếu có (dùng cho lần gửi tiếp theo)
+                if (data.data.conversationId && !conversationId) {
+                    setConversationId(data.data.conversationId);
+                }
+            } else if (data?.message) {
+                // Lỗi có message
+                botContent = data.message;
+            }
+
+            if (!botContent || botContent.trim() === '') {
+                botContent = 'Xin lỗi, mình chưa hiểu ý bạn. Bạn thử hỏi cụ thể hơn nhé!';
+            }
+
             const botMsg: Message = {
                 id: Date.now() + 1,
                 sender: 'bot',
-                content: data?.data?.content || data?.message || 
-                    'Xin lỗi, mình chưa hiểu ý bạn. Bạn thử hỏi cụ thể hơn nhé!',
+                content: botContent,
                 timestamp: new Date().toISOString(),
             };
-            
+
             setMessages(prev => [...prev, botMsg]);
         } catch (error) {
             console.error('Send error:', error);
-            
-            // Fallback responses for demo
+
+            // Fallback response khi API lỗi
             const lowerText = text.toLowerCase();
             let response = 'Mình đã ghi nhận câu hỏi của bạn! Bạn có thể liên hệ hotline 1900 1234 để được hỗ trợ nhanh hơn nhé!';
-            
+
             if (lowerText.includes('tour') || lowerText.includes('đi')) {
                 response = '🎯 Bạn muốn tìm tour? Hãy vào trang **Tours** và chọn điểm đến yêu thích nhé! Hoặc mình gợi ý: Đà Nẵng, Phú Quốc, Nha Trang...';
             } else if (lowerText.includes('khách sạn') || lowerText.includes('hotel')) {
@@ -120,12 +142,12 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
                 content: response,
                 timestamp: new Date().toISOString(),
             };
-            
+
             setMessages(prev => [...prev, botMsg]);
         } finally {
             setIsTyping(false);
         }
-    }, []);
+    }, [conversationId]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

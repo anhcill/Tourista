@@ -31,6 +31,10 @@ public class ChatService {
         private final UserRepository userRepository;
         private final BookingRepository bookingRepository;
         private final SimpMessagingTemplate messagingTemplate;
+        private final vn.tourista.service.AiService aiService;
+        private final vn.tourista.service.chatbot.ChatbotFaqService chatbotFaqService;
+        private final vn.tourista.service.chatbot.ChatbotNlpService chatbotNlpService;
+        private final vn.tourista.service.chatbot.TourRecommendationQueryService tourRecommendationQueryService;
 
         // =====================================================================
         // CONVERSATION
@@ -59,6 +63,7 @@ public class ChatService {
 
         /**
          * Tạo mới hoặc lấy lại conversation đã tồn tại (find-or-create).
+         * Hỗ trợ cả user anonymous (client = null).
          */
         @Transactional
         public ConversationResponse findOrCreateConversation(String clientEmail, CreateConversationRequest req) {
@@ -66,9 +71,15 @@ public class ChatService {
 
                 // Trường hợp BOT: mỗi client chỉ có 1 phiên BOT
                 if (req.getType() == Conversation.ConversationType.BOT) {
-                        List<Conversation> botConversations = conversationRepository
-                                        .findByClientAndTypeOrderByUpdatedAtDesc(client,
-                                                        Conversation.ConversationType.BOT);
+                        List<Conversation> botConversations;
+                        if (client != null) {
+                                botConversations = conversationRepository
+                                                .findByClientAndTypeOrderByUpdatedAtDesc(client,
+                                                                Conversation.ConversationType.BOT);
+                        } else {
+                                // Anonymous user - tạo conversation mới mà không cần client
+                                botConversations = List.of();
+                        }
 
                         Conversation existing;
                         if (botConversations != null && !botConversations.isEmpty()) {
@@ -76,10 +87,12 @@ public class ChatService {
                         } else {
                                 Conversation c = Conversation.builder()
                                                 .type(Conversation.ConversationType.BOT)
-                                                .client(client)
+                                                .client(client) // null cho anonymous
                                                 .build();
                                 Conversation saved = conversationRepository.save(c);
-                                saveAndPushBotGreeting(saved, client.getFullName());
+                                if (client != null) {
+                                        saveAndPushBotGreeting(saved, client.getFullName());
+                                }
                                 existing = saved;
                         }
 
@@ -171,15 +184,19 @@ public class ChatService {
         /**
          * Lưu tin nhắn text từ user (P2P hoặc Bot input).
          * WebSocket controller gọi method này, sau đó push về phía nhận.
+         * Hỗ trợ cả user anonymous (không đăng nhập).
          */
         @Transactional
         public ChatMessage saveUserMessage(Long conversationId, String senderEmail, String content) {
-                User sender = getUserByEmail(senderEmail);
-                Conversation conv = getConversation(conversationId, sender);
+                Conversation conv = getConversationForAi(conversationId);
+                if (conv == null) {
+                        throw new RuntimeException("Conversation không tồn tại: " + conversationId);
+                }
 
+                User sender = getUserByEmail(senderEmail);
                 ChatMessage msg = ChatMessage.builder()
                                 .conversation(conv)
-                                .sender(sender)
+                                .sender(sender) // null nếu anonymous
                                 .contentType(ChatMessage.ContentType.TEXT)
                                 .content(content)
                                 .isRead(false)
@@ -218,13 +235,74 @@ public class ChatService {
                 return saved;
         }
 
+        /**
+         * Xử lý AI chatbot đồng bộ (không dùng @Async) - dùng cho REST endpoint.
+         * Priority: FAQ rules → AI chatbot with DB context → Fallback menu.
+         */
+        public String askAiSync(String userMessage, String conversationContext, String dbContext) {
+                try {
+                        String canonical = chatbotNlpService.normalize(
+                                chatbotNlpService.canonicalize(userMessage.toLowerCase().trim()));
+
+                        // Bước 1: Thử FAQ rules trước (fast path)
+                        String faqAnswer = chatbotFaqService.findMatchingAnswer(canonical);
+                        if (faqAnswer != null && !faqAnswer.isBlank()) {
+                                return faqAnswer;
+                        }
+
+                        // Bước 2: Không khớp rule → gọi AI với DB context
+                        String aiResponse = aiService.askChatbot(userMessage, conversationContext, dbContext);
+                        if (aiResponse != null && !aiResponse.isBlank()) {
+                                return aiResponse;
+                        }
+
+                        // Bước 3: AI lỗi → fallback menu
+                        return buildFallbackResponse(canonical);
+                } catch (Exception e) {
+                        log.error("askAiSync: error processing message '{}': {}", userMessage, e.getMessage());
+                        return chatbotFaqService.getDefaultAnswer();
+                }
+        }
+
+        /**
+         * Xây dựng fallback response khi AI không trả lời được.
+         */
+        private String buildFallbackResponse(String canonical) {
+                if (canonical.contains("thoi tiet") || canonical.contains("weather")) {
+                        return "🌤️ Mình có thể cho bạn biết thời tiết chung của các vùng miền, nhưng để có thông tin chính xác, bạn nên kiểm tra app thời tiết nhé!\n\nBạn muốn hỏi thời tiết ở đâu?";
+                }
+                if (canonical.contains("visa") || canonical.contains("passport") || canonical.contains("ho chieu")) {
+                        return "🛂 Về visa/hộ chiếu, mình gợi ý bạn liên hệ đại sứ quán để cập nhật thông tin mới nhất nhé!";
+                }
+                if (canonical.contains("an uong") || canonical.contains("am thuc") || canonical.contains("mon ngon")) {
+                        return "🍜 Mỗi điểm đến có món ăn đặc trưng riêng, bạn muốn hỏi về ẩm thực ở đâu?";
+                }
+                return """
+                        🤔 Mình chưa hiểu rõ yêu cầu của bạn.
+
+                        Bạn có thể thử:
+                        • 🔍 **Tra cứu booking:** gửi mã TRS-YYYYMMDD-XXXXXX
+                        • 🗺️ **Gợi ý tour:** nhắn ngân sách + số người
+                        • 🏨 **Tìm khách sạn:** nhắn địa điểm + ngân sách
+                        """;
+        }
+
         // =====================================================================
         // PRIVATE HELPERS
         // =====================================================================
 
         private User getUserByEmail(String email) {
+                if (email == null || email.isBlank() || email.contains("anonymous")) {
+                        // Trả về null cho anonymous - caller phải xử lý
+                        return null;
+                }
                 return userRepository.findByEmail(email)
-                                .orElseThrow(() -> new RuntimeException("User không tồn tại: " + email));
+                                .orElse(null);
+        }
+
+        private Conversation getConversationForAi(Long conversationId) {
+                return conversationRepository.findById(conversationId)
+                                .orElse(null);
         }
 
         private Conversation getConversation(Long conversationId, User requester) {
@@ -282,7 +360,10 @@ public class ChatService {
                 String snippet = lastMsg.map(ChatMessage::getContent).orElse(null);
                 String lastType = lastMsg.map(m -> m.getContentType().name()).orElse(null);
                 var lastAt = lastMsg.map(ChatMessage::getCreatedAt).orElse(null);
-                long unread = chatMessageRepository.countUnreadInConversation(conv, me);
+                long unread = 0;
+                if (me != null) {
+                        unread = chatMessageRepository.countUnreadInConversation(conv, me);
+                }
 
                 return ConversationResponse.from(conv, viewingAsClient, snippet, lastType, lastAt, unread);
         }
