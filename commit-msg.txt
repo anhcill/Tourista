@@ -1,9 +1,7 @@
-fix: axios interceptor redirect loop + cleanup stale doc files
+git commit -m "fix: connect AI chatbot to REST API endpoint
 
-- axiosClient: only redirect to /login on 401 when user actually had a token
-- useChatWebSocket: remove TypeScript 'as any' syntax from .js files
-- chat.ts: add TYPING to ContentType union
-- BotChatWidget: fix TYPING filter now that type includes it
-- ThemeProvider, TourCard: minor fixes
-- Remove stale ERD/docs files
-- Add Payment entity + repository + schema for new payment feature
+- Add POST /api/chat/message endpoint to ChatController for AIPanel
+- Add SendMessageRequest DTO for chat message payload
+- Add askAiSync() to ChatService: FAQ matching -> AI Beeknoee -> fallback
+- Support anonymous users (no login required)
+- Update AIPanel.tsx to send conversationId and parse response correctly"
