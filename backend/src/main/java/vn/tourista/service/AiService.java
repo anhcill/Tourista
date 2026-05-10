@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import jakarta.annotation.PostConstruct;
 
 /**
  * AiService — Unified AI service using Beeknoee (OpenAI-compatible API, powered by Zhipu GLM).
@@ -27,27 +28,37 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AiService {
 
-    @Value("${beeknoee.api-key:}")
+    @Value("${ai.beeknoee.api-key:}")
     private String apiKey;
 
-    @Value("${beeknoee.api-url:https://platform.beeknoee.com/api/v1/chat/completions}")
+    @Value("${ai.beeknoee.api-url:https://platform.beeknoee.com/api/v1/chat/completions}")
     private String apiUrl;
 
-    @Value("${beeknoee.model:glm-4.7-flash}")
+    @Value("${ai.beeknoee.model:glm-4.7-flash}")
     private String model;
 
-    @Value("${beeknoee.timeout-seconds:60}")
+    @Value("${ai.beeknoee.timeout-seconds:20}")
     private int timeoutSeconds;
 
-    @Value("${beeknoee.max-tokens:500}")
+    @Value("${ai.beeknoee.max-tokens:2000}")
     private int maxTokens;
 
-    // Semaphore to serialize AI requests (Beeknoee free tier allows only 1 concurrent request)
-    private final Semaphore aiSemaphore = new Semaphore(1);
+    @Value("${ai.semaphore.permits:3}")
+    private int semaphorePermits;
+
+    // Semaphore to limit concurrent AI requests
+    private Semaphore aiSemaphore;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
+
+    @PostConstruct
+    public void init() {
+        this.aiSemaphore = new Semaphore(semaphorePermits > 0 ? semaphorePermits : 3);
+        log.info("AiService initialized: provider=beeknoee, model={}, maxTokens={}, timeout={}s, permits={}",
+                model, maxTokens, timeoutSeconds, semaphorePermits);
+    }
 
     /**
      * Check if AI is configured and ready.
