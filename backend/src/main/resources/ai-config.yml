@@ -7,7 +7,7 @@
 
 ai:
   # ----- PROVIDER ĐANG DÙNG -----
-  provider: beeknoee
+  provider: openai
 
   beeknoee:
     enabled: true
@@ -20,14 +20,14 @@ ai:
     #   - deepseek/deepseek-v3
     model: gemini-3-flash
     reasoning: off
-    timeout-seconds: 20
+    timeout-seconds: 60
     max-tokens: 2000
     temperature: 0.7
 
   # ----- PROVIDER: OPENAI (Alternative) -----
   openai:
-    enabled: false
-    api-key: ${OPENAI_API_KEY:}
+    enabled: true
+    api-key: sk-bee-d32a3f4bc08544b4945bee85e9bb3ff8a3f8e81d15874c74a7c96074744dd964
     api-url: https://api.openai.com/v1/chat/completions
     model: gpt-4o-mini
     timeout-seconds: 60

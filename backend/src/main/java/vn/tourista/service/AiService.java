@@ -84,9 +84,9 @@ public class AiService {
             return null;
         }
 
-        // Fail fast — don't make user wait more than 5s for the AI slot
+        // Wait up to 20s for an available slot
         try {
-            if (!aiSemaphore.tryAcquire(5, TimeUnit.SECONDS)) {
+            if (!aiSemaphore.tryAcquire(20, TimeUnit.SECONDS)) {
                 log.warn("AiService: Could not acquire semaphore (AI busy), skipping request");
                 return null;
             }
