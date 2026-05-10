@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.tourista.dto.response.TourCardItem;
 import vn.tourista.entity.Tour;
 import vn.tourista.repository.CityRepository;
@@ -133,10 +134,11 @@ public class TourRecommendationQueryService {
         return buildDefaultAlternativeSuggestion(cityQuery);
     }
 
-    /**
-     * Xây dựng context từ DB thật để gửi cho AI chatbot.
-     */
-    public String buildDbContextForChatbot(String inputText, String canonical) {
+        /**
+         * Xây dựng context từ DB thật để gửi cho AI chatbot.
+         */
+        @Transactional(readOnly = true)
+        public String buildDbContextForChatbot(String inputText, String canonical) {
         StringBuilder ctx = new StringBuilder();
 
         // Cities

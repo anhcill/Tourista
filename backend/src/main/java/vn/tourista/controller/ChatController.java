@@ -19,10 +19,13 @@ import vn.tourista.service.BotService;
 import vn.tourista.service.ChatService;
 import vn.tourista.service.chatbot.AiChatbotService;
 import vn.tourista.service.chatbot.BookingLookupService;
+import vn.tourista.service.chatbot.ChatbotNlpService;
 import vn.tourista.service.chatbot.TourRecommendationQueryService;
 
 import java.security.Principal;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * REST API cho Chat (lịch sử và quản lý conversation).
@@ -38,6 +41,7 @@ public class ChatController {
     private final TourRecommendationQueryService tourRecommendationQueryService;
     private final BotService botService;
     private final AiChatbotService aiChatbotService;
+    private final ChatbotNlpService chatbotNlpService;
 
     /**
      * GET /api/chat/conversations
@@ -46,6 +50,9 @@ public class ChatController {
      */
     @GetMapping("/conversations")
     public ResponseEntity<ApiResponse<List<ConversationResponse>>> getMyConversations(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.ok(ApiResponse.ok("Lấy danh sách hội thoại thành công", List.of()));
+        }
         List<ConversationResponse> result = chatService.getMyConversations(principal.getName());
         return ResponseEntity.ok(ApiResponse.ok("Lấy danh sách hội thoại thành công", result));
     }
@@ -186,6 +193,33 @@ public class ChatController {
         // Lưu tin nhắn user vào DB
         chatService.saveUserMessage(conversationId, chatEmail, message);
 
+        // Trích xuất booking code nếu có → lookup trực tiếp, không qua AI
+        String bookingCode = chatbotNlpService.extractBookingCode(message);
+        if (bookingCode != null) {
+            String botResponse;
+            if (userEmail == null) {
+                // Chưa đăng nhập → nhắc đăng nhập trước, không cần lookup
+                botResponse = "🔍 Bạn cần **đăng nhập** để tra cứu mã **" + bookingCode + "**.\n\n"
+                        + "Vui lòng đăng nhập tài khoản đã đặt tour rồi gửi lại mã nhé!";
+            } else {
+                BookingLookupService.LookupResult lookup =
+                        bookingLookupService.lookupBooking(bookingCode, userEmail);
+                if (lookup.isSuccess()) {
+                    botResponse = buildBookingResponseText(lookup.response());
+                } else if (lookup.isNotFound()) {
+                    botResponse = "🔍 Mình không tìm thấy mã đặt chỗ **" + bookingCode + "**.\n\n"
+                            + "Bạn kiểm tra lại mã trong email xác nhận nhé. Mã có format: **TRS-YYYYMMDD-XXXXX**";
+                } else if (lookup.isForbidden()) {
+                    botResponse = "🔒 Mình không có quyền xem thông tin mã **" + bookingCode + "**.\n\n"
+                            + "Bạn cần đăng nhập tài khoản đã đặt tour để tra cứu nhé!";
+                } else {
+                    botResponse = "🤕 Có lỗi khi tra cứu mã **" + bookingCode + "**. Bạn thử lại sau nhé!";
+                }
+            }
+            ChatMessage savedBotMsg = chatService.saveBotMessage(conversationId, botResponse, ChatMessage.ContentType.AI_TEXT, null);
+            return ResponseEntity.ok(ApiResponse.ok("OK", ChatMessageResponse.from(savedBotMsg)));
+        }
+
         // Gọi AI đồng bộ - không dùng @Async
         String aiResponse = chatService.askAiSync(message, conversationContext, dbContext);
 
@@ -197,5 +231,94 @@ public class ChatController {
             // AI không trả lời được → chatService.askAiSync đã trả fallback rồi
             return ResponseEntity.ok(ApiResponse.ok("OK", null));
         }
+    }
+
+    /**
+     * Build readable text from BotBookingResponse.
+     */
+    private String buildBookingResponseText(BotBookingResponse b) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("🔍 Thông tin đặt chỗ **").append(b.getBookingCode()).append("**\n\n");
+
+        if ("TOUR".equals(b.getBookingType())) {
+            sb.append("🗺️ **Tour:** ").append(b.getTourTitle()).append("\n");
+            if (b.getDepartureDate() != null) {
+                sb.append("📅 **Khởi hành:** ").append(b.getDepartureDate()).append("\n");
+            }
+            if (b.getDurationDays() != null) {
+                sb.append("⏱️ **Thời gian:** ").append(b.getDurationDays()).append(" ngày");
+                if (b.getDurationNights() != null) sb.append(" ").append(b.getDurationNights()).append(" đêm");
+                sb.append("\n");
+            }
+            if (b.getNumAdults() != null) {
+                sb.append("👥 **Người lớn:** ").append(b.getNumAdults());
+                if (b.getNumChildren() != null && b.getNumChildren() > 0) sb.append(" | **Trẻ em:** ").append(b.getNumChildren());
+                sb.append("\n");
+            }
+            if (b.getHighlights() != null && !b.getHighlights().isEmpty()) {
+                sb.append("✨ **Điểm nhấn:** ").append(b.getHighlights()).append("\n");
+            }
+            if (b.getIncludes() != null && !b.getIncludes().isEmpty()) {
+                sb.append("✅ **Bao gồm:** ").append(b.getIncludes()).append("\n");
+            }
+            if (b.getExcludes() != null && !b.getExcludes().isEmpty()) {
+                sb.append("❌ **Không bao gồm:** ").append(b.getExcludes()).append("\n");
+            }
+            if (b.getItinerary() != null && !b.getItinerary().isEmpty()) {
+                sb.append("\n📋 **Lịch trình:**\n");
+                for (BotBookingResponse.ItineraryDay day : b.getItinerary()) {
+                    sb.append("• Ngày ").append(day.getDay()).append(": ").append(day.getTitle()).append("\n");
+                }
+            }
+        } else {
+            sb.append("🏨 **Khách sạn:** ").append(b.getHotelName()).append("\n");
+            if (b.getHotelAddress() != null) {
+                sb.append("📍 **Địa chỉ:** ").append(b.getHotelAddress()).append("\n");
+            }
+            if (b.getRoomTypeName() != null) {
+                sb.append("🛏️ **Loại phòng:** ").append(b.getRoomTypeName()).append("\n");
+            }
+            if (b.getCheckInDate() != null && b.getCheckOutDate() != null) {
+                sb.append("📅 **Check-in:** ").append(b.getCheckInDate()).append(" → **Check-out:** ").append(b.getCheckOutDate());
+                if (b.getNights() != null) sb.append(" (").append(b.getNights()).append(" đêm)");
+                sb.append("\n");
+            }
+            if (b.getAdults() != null) {
+                sb.append("👥 **Người lớn:** ").append(b.getAdults());
+                if (b.getChildren() != null && b.getChildren() > 0) sb.append(" | **Trẻ em:** ").append(b.getChildren());
+                sb.append("\n");
+            }
+            if (b.getCheckInTime() != null) sb.append("🕐 **Giờ nhận phòng:** ").append(b.getCheckInTime()).append("\n");
+            if (b.getCheckOutTime() != null) sb.append("🕐 **Giờ trả phòng:** ").append(b.getCheckOutTime()).append("\n");
+        }
+
+        // Status
+        String statusText = switch (b.getStatus()) {
+            case "PENDING" -> "⏳ Đang chờ xác nhận";
+            case "CONFIRMED" -> "✅ Đã xác nhận";
+            case "CANCELLED" -> "❌ Đã hủy";
+            case "COMPLETED" -> "🎉 Hoàn thành";
+            default -> b.getStatus();
+        };
+        sb.append("\n📌 **Trạng thái:** ").append(statusText).append("\n");
+
+        if (b.getTotalAmount() != null) {
+            String formatted = b.getTotalAmount().toString();
+            try { formatted = NumberFormat.getNumberInstance(new Locale("vi", "VN")).format(b.getTotalAmount()); } catch (Exception ignored) {}
+            sb.append("💰 **Tổng tiền:** ").append(formatted).append(" VND\n");
+        }
+
+        if (b.getSpecialRequests() != null && !b.getSpecialRequests().isBlank()) {
+            sb.append("📝 **Yêu cầu đặc biệt:** ").append(b.getSpecialRequests()).append("\n");
+        }
+
+        if (b.getPartner() != null && b.getPartner().getName() != null) {
+            sb.append("\n📞 **Liên hệ đối tác:** ").append(b.getPartner().getName());
+            if (b.getPartner().getPhone() != null) sb.append(" — ").append(b.getPartner().getPhone());
+            sb.append("\n");
+        }
+
+        sb.append("\n💡 Bạn cần hỗ trợ gì thêm không?");
+        return sb.toString();
     }
 }

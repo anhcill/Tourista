@@ -5,6 +5,7 @@ import { FaUser, FaTimes, FaComments, FaSpinner } from 'react-icons/fa';
 import { MdSmartToy, MdSend } from 'react-icons/md';
 import styles from './AIPanel.module.css';
 import chatApi from '@/api/chatApi';
+import { getAccessToken } from '@/utils/authStorage';
 
 interface Message {
     id?: string | number;
@@ -77,9 +78,13 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
 
         try {
             // Gọi API /api/chat/message - backend sẽ xử lý AI và trả về response
+            const token = getAccessToken();
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             const response = await fetch('/api/chat/message', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({
                     message: text.trim(),
                     conversationId: conversationId,
@@ -204,6 +209,12 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
             <div className={`${styles.chatBox} ${isMinimized ? styles.minimized : ''}`}>
                 {/* Header */}
                 <div className={styles.header}>
+                    <img
+                        src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80"
+                        alt="Travel banner"
+                        className={styles.headerBg}
+                    />
+                    <div className={styles.headerOverlay} />
                     <div className={styles.headerLeft}>
                         <div className={styles.avatar}>
                             <MdSmartToy />

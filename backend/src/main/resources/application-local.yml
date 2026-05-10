@@ -1,0 +1,31 @@
+# ===== CLOUDINARY =====
+cloudinary:
+  cloud-name: demo
+  api-key: 616862271251394
+  api-secret: bpxq5nzgWG2MzxQTUcmOfqtr1E4
+
+# ===== JWT =====
+app:
+  jwt:
+    secret: A8kNV8BhXZuHAqvo/Ma7Y47H54ccGKYXJrCfKLJ3apMOk1xnS3/o5HDJYFHjuXPcm5lFgexL9+oCUbPiPMuIig==
+  frontend-url: http://localhost:3000
+  cors:
+    allowed-origins: http://localhost:3000
+  email:
+    brevo-api-key: ${BREVO_API_KEY:}
+
+# ===== DATABASE =====
+spring:
+  datasource:
+    url: jdbc:mysql://interchange.proxy.rlwy.net:38550/railway?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&autoReconnect=true&zeroDateTimeBehavior=convertToNull
+    username: root
+    password: SZhkpiaBKssdXIyGLhTxbLQzGVlOnZBD
+
+# ===== SERVER =====
+server:
+  port: 8080
+
+# ===== AI CONFIG =====
+ai:
+  provider: gemini
+  gemini-api-key: ${GEMINI_API_KEY:}

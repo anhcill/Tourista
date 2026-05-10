@@ -6,39 +6,6 @@ import tourApi from '@/api/tourApi';
 import TourCard from '@/components/Tours/TourCard/TourCard';
 import styles from './page.module.css';
 
-/* ── Types ────────────────────────────────────────────────── */
-type FeaturedTour = {
-  id: number;
-  title: string;
-  city: string;
-  coverImage: string | null;
-  durationDays: number;
-  durationNights: number;
-  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
-  avgRating: number;
-  reviewCount: number;
-  pricePerAdult: number;
-  pricePerChild: number;
-  nearestDepartureDate: string | null;
-  availableSlots: number;
-};
-
-type TourCardItem = {
-  id: number;
-  title: string;
-  location: string;
-  image: string | null;
-  durationDays: number;
-  durationNights: number;
-  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
-  rating: number;
-  reviewCount: number;
-  priceAdult: number;
-  priceChild: number;
-  nearestDepartureDate: string;
-  availableSlots: number;
-};
-
 /* ── Static data ──────────────────────────────────────────── */
 
 /** Hero slideshow — 5 Vietnam/SEA travel photos (Unsplash) */
@@ -107,7 +74,7 @@ export default function ToursLandingPage() {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
 
-  const [featuredTours, setFeaturedTours] = useState<TourCardItem[]>([]);
+  const [featuredTours, setFeaturedTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -117,19 +84,19 @@ export default function ToursLandingPage() {
         setLoading(true);
         setError('');
         const response = await tourApi.getFeaturedTours({ limit: 4 });
-        const rawTours: FeaturedTour[] = Array.isArray(response?.data) ? response.data : [];
+        const rawTours = Array.isArray(response?.data) ? response.data : [];
         const mapped = rawTours.map((item) => ({
           id: item.id,
           title: item.title,
-          location: item.city,
-          image: item.coverImage,
+          city: item.city || 'Việt Nam',
+          coverImage: item.coverImage,
           durationDays: Number(item.durationDays || 1),
           durationNights: Number(item.durationNights || 0),
           difficulty: (item.difficulty || 'EASY') as 'EASY' | 'MEDIUM' | 'HARD',
-          rating: Number(item.avgRating || 0),
+          avgRating: Number(item.avgRating || 0),
           reviewCount: Number(item.reviewCount || 0),
-          priceAdult: Number(item.pricePerAdult || 0),
-          priceChild: Number(item.pricePerChild || 0),
+          pricePerAdult: Number(item.pricePerAdult || 0),
+          pricePerChild: Number(item.pricePerChild || 0),
           nearestDepartureDate: item.nearestDepartureDate || '',
           availableSlots: Number(item.availableSlots || 0),
         }));

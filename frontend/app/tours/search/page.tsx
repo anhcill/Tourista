@@ -85,7 +85,7 @@ function TourFilterSidebar({
   onChange,
   onReset,
 }: {
-  filters: { minPrice: number; maxPrice: number; durationMin: number; durationMax: number; difficulty: string };
+  filters: { minPrice: number; maxPrice: number; durationMin: number; durationMax: number; difficulty: string; minRating: number };
   onChange: (f: typeof filters) => void;
   onReset: () => void;
 }) {
@@ -167,6 +167,20 @@ function TourFilterSidebar({
           ))}
         </div>
       </FilterSection>
+
+      <FilterSection title="⭐ Đánh giá tối thiểu" defaultOpen={false}>
+        <div className={styles.ratingPills}>
+          {[0, 3, 3.5, 4, 4.5].map((r) => (
+            <button
+              key={r}
+              className={`${styles.ratingPill} ${local.minRating === r ? styles.ratingPillActive : ''}`}
+              onClick={() => patch({ minRating: r })}
+            >
+              {r === 0 ? 'Tất cả' : `${r}+ ⭐`}
+            </button>
+          ))}
+        </div>
+      </FilterSection>
     </aside>
   );
 }
@@ -174,13 +188,13 @@ function TourFilterSidebar({
 /* ════════════════════════════════════════════════════════════
    MAIN SEARCH INNER
    ════════════════════════════════════════════════════════════ */
-const DEFAULT_FILTERS = { minPrice: 0, maxPrice: 10000000, durationMin: 1, durationMax: 14, difficulty: '' };
+const DEFAULT_FILTERS = { minPrice: 0, maxPrice: 10000000, durationMin: 1, durationMax: 14, difficulty: '', minRating: 0 };
 
 function TourSearchInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [tours, setTours] = useState<TourCardItem[]>([]);
+  const [tours, setTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [localFilters, setLocalFilters] = useState(DEFAULT_FILTERS);
@@ -247,41 +261,42 @@ function TourSearchInner() {
 
   useEffect(() => {
     const fetchTours = async () => {
-      if (!query.city) {
-        setLoading(false);
-        setError('Vui lòng nhập điểm đến để tìm tour.');
-        setTours([]);
-        return;
-      }
       try {
         setLoading(true);
         setError('');
-        const response = await tourApi.searchTours({
-          city: query.city,
-          departureDate: query.departureDate,
-          adults: query.adults,
-          children: query.children,
-          sort,
-          minPrice: localFilters.minPrice,
-          maxPrice: localFilters.maxPrice,
-          durationMin: localFilters.durationMin,
-          durationMax: localFilters.durationMax,
-          difficulty: localFilters.difficulty || undefined,
-        });
-        // API returns: { success, message, data: [...] } (axios interceptor already unwraps)
-        const rawTours: ApiTourSummary[] = Array.isArray(response?.data) ? response.data : [];
+        let rawTours;
+        if (!query.city) {
+          // Fallback: show all active tours when no city is specified
+          const response = await tourApi.getTours({ limit: 50 });
+          rawTours = Array.isArray(response?.data) ? response.data : [];
+        } else {
+          const response = await tourApi.searchTours({
+            city: query.city,
+            departureDate: query.departureDate,
+            adults: query.adults,
+            children: query.children,
+            sort,
+            minPrice: localFilters.minPrice,
+            maxPrice: localFilters.maxPrice,
+            durationMin: localFilters.durationMin,
+            durationMax: localFilters.durationMax,
+            difficulty: localFilters.difficulty || undefined,
+            minRating: localFilters.minRating > 0 ? localFilters.minRating : undefined,
+          });
+          rawTours = Array.isArray(response?.data) ? response.data : [];
+        }
         const mapped = rawTours.map((item) => ({
           id: item.id,
           title: item.title,
-          location: item.city,
-          image: item.coverImage,
+          city: item.city || 'Việt Nam',
+          coverImage: item.coverImage,
           durationDays: Number(item.durationDays || 1),
           durationNights: Number(item.durationNights || 0),
           difficulty: (item.difficulty || 'EASY') as 'EASY' | 'MEDIUM' | 'HARD',
-          rating: Number(item.avgRating || 0),
+          avgRating: Number(item.avgRating || 0),
           reviewCount: Number(item.reviewCount || 0),
-          priceAdult: Number(item.pricePerAdult || 0),
-          priceChild: Number(item.pricePerChild || 0),
+          pricePerAdult: Number(item.pricePerAdult || 0),
+          pricePerChild: Number(item.pricePerChild || 0),
           nearestDepartureDate: item.nearestDepartureDate || '',
           availableSlots: Number(item.availableSlots || 0),
         }));

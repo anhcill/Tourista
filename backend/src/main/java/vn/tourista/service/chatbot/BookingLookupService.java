@@ -47,10 +47,10 @@ public class BookingLookupService {
 
         Booking booking = bookingOpt.get();
 
-        // 2. Bảo mật — chỉ chủ booking mới được xem
-        boolean ownedByRequester = bookingRepository
-                .findByBookingCodeAndUser_Email(booking.getBookingCode(), clientEmail)
-                .isPresent();
+        // 2. Bảo mật — so sánh email trực tiếp (không phân biệt hoa thường)
+        boolean ownedByRequester = booking.getUser() != null
+                && clientEmail != null
+                && booking.getUser().getEmail().equalsIgnoreCase(clientEmail);
 
         if (!ownedByRequester) {
             return LookupResult.forbidden();

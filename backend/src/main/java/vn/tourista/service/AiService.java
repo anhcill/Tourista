@@ -265,68 +265,39 @@ public class AiService {
 
     private String buildChatbotPrompt(String userMessage, String conversationContext, String dbContext) {
         StringBuilder sb = new StringBuilder();
+
+        String today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
         sb.append("Bạn là trợ lý du lịch AI của nền tảng Tourista Studio.\n");
+        sb.append("HÔM NAY: ").append(today).append("\n");
         sb.append("Nền tảng cho phép đặt tour du lịch và khách sạn tại Việt Nam.\n\n");
 
-        // DB context
         if (dbContext != null && !dbContext.isBlank()) {
             sb.append("=== DỮ LIỆU TỪ HỆ THỐNG ===\n");
             sb.append(dbContext);
             sb.append("\n\n");
         }
 
-        // Conversation history
         if (conversationContext != null && !conversationContext.isBlank()) {
             sb.append("=== LỊCH SỬ HỘI THOẠI GẦN ĐÂY ===\n");
             sb.append(conversationContext);
             sb.append("\n\n");
         }
 
-        // Current question
         sb.append("=== CÂU HỎI HIỆN TẠI ===\n");
         sb.append(userMessage);
         sb.append("\n\n");
 
-        sb.append("YÊU CẦU BẮT BUỘC:\n");
-        sb.append("1. TRẢ LỜI TỰ NHIÊN: Như đang chat với bạn bè, không phải đọc báo cáo\n");
-        sb.append("2. DÙNG EMOJI: 🏖️ biển, 🏨 khách sạn, 🍜 ẩm thực, ✈️ di chuyển, ⭐ đánh giá, 👨‍👩‍👧‍👦 gia đình\n");
-        sb.append("3. TRÍCH DẪN CỤ THỂ: Tên tour, giá, rating từ DB nếu có (VD: 'Tour Mùa Hè Xanh 4.8★ chỉ từ 2.5tr')\n");
-        sb.append("4. GỢI Ý KHÁCH SẠN KÈM: Khi hỏi địa điểm → luôn đề cập khách sạn gần đó (VD: 'Tại Đà Nẵng có khách sạn ABC 4★ từ 800k/đêm')\n");
-        sb.append("5. SO SÁNH RÕ RÀNG: Khi user hỏi so sánh → dùng bảng, bullet points\n");
-        sb.append("6. FILTER ĐA ĐIỀU KIỆN: Khi user hỏi 'khách sạn có bể bơi + gần biển + dưới 1tr' → liệt kê thỏa điều kiện\n");
-        sb.append("7. TRẢ LỜI NGẮN: Dưới 300 từ, tập trung vào câu hỏi\n");
-        sb.append("8. KHÔNG BỊA THÔNG TIN: Không hinvent giá, tên, địa chỉ nếu không có trong DB\n");
-        sb.append("9. GỢI Ý HÀNH ĐỘNG: Kết thúc bằng 1 câu hướng dẫn cụ thể (VD: 'Gửi mình mã booking để kiểm tra nhé!')\n");
-        sb.append("10. VỚI CÂU HỎI LẠ: Trả lời dựa trên kiến thức du lịch Việt Nam, không bảo là mình không biết\n\n");
-
-        sb.append("VÍ DỤ CÁCH TRẢ LỜI:\n");
-        sb.append("❓ 'Đà Nẵng vs Nha Trang đi đâu vui hơn?'\n");
-        sb.append("✅ 'Hai nơi đều xinh nhưng khác nhau nè! 🏖️ Đà Nẵng: hiện đại, nhiều cầu rồng, Bà Nà Hills. Nha Trang: yên tĩnh hơn, lặn biển đẹp. Bạn thích sôi động hay chill?'\n\n");
-
-        sb.append("❓ 'Khách sạn gần biển có bể bơi giá rẻ'\n");
-        sb.append("✅ 'Mình tìm được vài khách sạn phù hợp: [A] 3★ gần biển Mỹ Khê 450k/đêm, [B] 4★ có bể bơi view biển 680k/đêm. Bạn muốn chọn cái nào?'\n\n");
-
-        sb.append("❓ 'Đà Nẵng ăn gì ngon?'\n");
-        sb.append("✅ 'Đà Nẵng có Mì Quảng bà Mạnh nổi tiếng 35k/tô, Bánh Xèo Gánh 25k/cái, Hải Sản Nem Nướng Bà Đào. Ăn 4 bữa no say chỉ tốn 200-300k thôi! 🍜'\n\n");
-
-        sb.append("❓ 'Thời tiết Xuân Trường Nam Định'\n");
-        sb.append("✅ 'Xuân Trường, Nam Định có khí hậu nhiệt đới gió mùa, nóng ẩm quanh năm. Nên đi vào tháng 10-4 vì mát mẻ, tránh tháng 5-9 nắng nóng 35-38°C. Đây không phải điểm du lịch nổi tiếng nhưng gần bãi biển Quất Lâm và làng trạng nguyên Thái Đỗ. 🌤️'\n\n");
-
-        sb.append("=== KIẾN THỨC THỜI TIẾT CÁC VÙNG VIỆT NAM ===\n");
-        sb.append("• Miền Bắc (Hà Nội, Hải Phòng, Quảng Ninh): Nóng ẩm tháng 5-9 (30-38°C), mát tháng 10-4 (15-25°C), hay mưa phùn tháng 2-3.\n");
-        sb.append("• Miền Trung (Huế, Đà Nẵng, Hội An): Tháng 2-8 đẹp, tháng 9-12 hay mưa bão (Huế mưa nhiều tháng 9-12, Đà Nẵng bị ảnh hưởng bão tháng 10-11).\n");
-        sb.append("• Tây Nguyên (Đà Lạt, Pleiku): Quanh năm mát mẻ 18-24°C, mùa mưa tháng 5-10, sáng sớm hay sương mù.\n");
-        sb.append("• Miền Nam (HCM, Cần Thơ, Phú Quốc): Nóng quanh năm 25-35°C, mùa khô tháng 11-4, mùa mưa tháng 5-10.\n");
-        sb.append("• Vùng biển Nha Trang, Vũng Tàu, Phan Thiết: Tốt nhất tháng 2-9, tránh tháng 10-12 hay bão.\n");
-        sb.append("• Sapa, Mộc Châu: Mát lạnh quanh năm, đẹp nhất tháng 9-11 và 3-5, hay sương mù và mưa phùn.\n");
-        sb.append("• Nam Định, Thái Bình: Nóng ẩm, mùa hè nắng nóng 35-38°C, mùa đông 15-22°C, hay mưa vào tháng 7-9.\n\n");
-
-        sb.append("LƯU Ý QUAN TRỌNG:\n");
-        sb.append("- Nếu DB có tour/hotel phù hợp → GỢI Ý CỤ THỂ kèm giá\n");
-        sb.append("- Nếu user chưa cung cấp đủ thông tin → HỎI THÊM 1 câu rõ ràng\n");
-        sb.append("- Nếu không có data phù hợp → Trả lời kiến thức chung + gợi ý hành động\n");
-        sb.append("- Nếu user hỏi về booking cụ thể → Yêu cầu mã TRS-\n");
-        sb.append("- Luôn thể hiện SỰ NHIỆT TÌNH, như đang giúp bạn thân chọn tour vậy! 😊\n");
+        sb.append("TRẢ LỜI TỰ NHIÊN:\n");
+        sb.append("- Chat như đang nói chuyện với bạn thân, không phải đọc tài liệu\n");
+        sb.append("- Dùng emoji phù hợp: 🏖️ biển, 🏨 khách sạn, 🍜 ẩm thực, 🗺️ du lịch\n");
+        sb.append("- Nếu có data thực từ hệ thống → trích dẫn cụ thể: tên, giá, rating\n");
+        sb.append("- Nếu hỏi địa điểm → trả lời về địa điểm đó: thời tiết, ẩm thực, hoạt động\n");
+        sb.append("- Nếu hỏi so sánh → so sánh tự nhiên, nêu ưu nhược từng nơi\n");
+        sb.append("- Nếu hỏi thời tiết → trả lời theo mùa hiện tại và địa điểm cụ thể\n");
+        sb.append("- Nếu câu hỏi lạ → trả lời dựa trên kiến thức du lịch Việt Nam\n");
+        sb.append("- Kết thúc bằng gợi ý hành động cụ thể\n\n");
 
         return sb.toString();
     }

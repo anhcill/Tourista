@@ -8,16 +8,14 @@ import styles from './TopAnnouncementBar.module.css';
 const STORAGE_KEY = 'tv_announcement_closed';
 
 const TopAnnouncementBar = () => {
-    const [isVisible, setIsVisible] = useState(() => {
-        // Đọc từ localStorage khi khởi tạo — tránh bị flash khi Next.js re-render
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem(STORAGE_KEY) !== '1';
-        }
-        return true;
-    });
+    const [isVisible, setIsVisible] = useState(true);
     const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 0, seconds: 0 });
 
     useEffect(() => {
+        // Đọc từ localStorage sau khi hydrate để tránh mismatch
+        if (localStorage.getItem(STORAGE_KEY) === '1') {
+            setIsVisible(false);
+        }
         // Lấy ngày kết thúc ảo: +12 tiếng kể từ lúc mở
         const endTime = new Date().getTime() + 12 * 60 * 60 * 1000;
 

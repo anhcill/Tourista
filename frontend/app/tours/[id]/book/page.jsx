@@ -116,7 +116,7 @@ function TourBookingInner() {
     if (draft?.form) {
       setForm((prev) => ({ ...prev, ...draft.form }));
       setRecoveredDraftAt(Number(draft.savedAt || Date.now()));
-      toast.info('Da khoi phuc ban nhap dat tour gan nhat.');
+      toast.info('Đã khôi phục bản nháp đặt tour gần nhất.');
     } else {
       setRecoveredDraftAt(null);
     }
@@ -174,7 +174,9 @@ function TourBookingInner() {
   const childPrice = Number(tour?.pricePerChild || 0);
   const originalAmount = adultPrice * adults + childPrice * children;
   const promoDiscount = appliedPromo ? Number(appliedPromo.discountAmount || 0) : 0;
-  const totalAmount = Math.max(0, originalAmount - promoDiscount);
+  const subtotalAfterDiscount = Math.max(0, originalAmount - promoDiscount);
+  const vatAmount = Math.round(subtotalAfterDiscount * 0.10);
+  const totalAmount = subtotalAfterDiscount + vatAmount;
 
   const setField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -257,7 +259,7 @@ function TourBookingInner() {
   const handleClearSavedDraft = () => {
     clearTourBookingDraft(draftContext);
     setRecoveredDraftAt(null);
-    toast.info('Da xoa ban nhap luu tru cho hanh trinh nay.');
+    toast.info('Đã xóa bản nháp lưu trữ cho hành trình này.');
   };
 
   /* ── STATES ── */
@@ -269,7 +271,7 @@ function TourBookingInner() {
     </div>
   );
 
-  const coverImg = Array.isArray(tour.images) && tour.images[0] ? tour.images[0] : FALLBACK_IMAGE;
+  const coverImg = tour?.coverImage || (Array.isArray(tour?.images) && tour.images[0]) || FALLBACK_IMAGE;
 
   return (
     <div className={styles.pageWrapper}>
@@ -373,72 +375,6 @@ function TourBookingInner() {
                 </ul>
               </div>
             </div>
-          </section>
-
-          {/* ══════════ RIGHT COL ══════════ */}
-          <aside className={styles.rightCol}>
-            <div className={styles.recoveryBanner}>
-              <p className={styles.recoveryText}>
-                He thong tu dong luu ban nhap dat tour de ban tiep tuc neu roi trang giua chung.
-              </p>
-              {recoveredDraftAt && (
-                <p className={styles.recoveryMeta}>
-                  Da khoi phuc ban nhap luc {new Date(recoveredDraftAt).toLocaleString('vi-VN')}.
-                </p>
-              )}
-              {hasDraftableProgress && (
-                <button type="button" className={styles.recoveryBtn} onClick={handleClearSavedDraft}>
-                  Xoa ban nhap da luu
-                </button>
-              )}
-            </div>
-
-            {/* Price summary */}
-            <div className={styles.block}>
-              <div className={styles.blockHeader}>
-                <div className={styles.blockIcon}>💰</div>
-                <h2 className={styles.blockTitle}>Tổng quan thanh toán</h2>
-              </div>
-              <div className={styles.blockBody}>
-                <div className={styles.summaryRow}>
-                  <span className={styles.summaryRowLabel}>Giá người lớn</span>
-                  <span className={styles.summaryRowValue}>{formatVnd(adultPrice)} × {adults}</span>
-                </div>
-                {children > 0 && (
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryRowLabel}>Giá trẻ em</span>
-                    <span className={styles.summaryRowValue}>{formatVnd(childPrice)} × {children}</span>
-                  </div>
-                )}
-                <div className={styles.summaryRow}>
-                  <span className={styles.summaryRowLabel}>Tổng khách</span>
-                  <span className={styles.summaryRowValue}>{totalGuests} người</span>
-                </div>
-                {promoDiscount > 0 && (
-                  <div className={styles.summaryRow}>
-                    <span className={styles.summaryRowLabel}>Mã khuyến mãi ({appliedPromo?.code})</span>
-                    <span className={styles.summaryRowValue} style={{ color: '#dc2626', fontWeight: 700 }}>
-                      -{formatVnd(promoDiscount)}
-                    </span>
-                  </div>
-                )}
-                <div className={styles.totalRow}>
-                  <span className={styles.totalLabel}>Tổng thanh toán</span>
-                  <span className={styles.totalAmount}>{formatVnd(totalAmount)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Promotion Selector */}
-            <div className={styles.block}>
-              <PromotionSelector
-                appliesTo="TOUR"
-                orderAmount={originalAmount}
-                selectedPromo={appliedPromo}
-                onApply={(promo) => setAppliedPromo(promo)}
-                onRemove={() => setAppliedPromo(null)}
-              />
-            </div>
 
             {/* Booking form */}
             <div className={styles.block}>
@@ -487,8 +423,83 @@ function TourBookingInner() {
                 </div>
               </div>
             </div>
+          </section>
 
-            {/* Payment methods */}
+          {/* ══════════ RIGHT COL (STICKY) ══════════ */}
+          <div className={styles.stickyWrapper}>
+            <aside className={styles.rightCol}>
+            <div className={styles.recoveryBanner}>
+              <p className={styles.recoveryText}>
+                Hệ thống tự động lưu bản nháp đặt tour để bạn tiếp tục nếu rời trang giữa chừng.
+              </p>
+              {recoveredDraftAt && (
+                <p className={styles.recoveryMeta}>
+                  Đã khôi phục bản nháp lúc {new Date(recoveredDraftAt).toLocaleString('vi-VN')}.
+                </p>
+              )}
+              {hasDraftableProgress && (
+                <button type="button" className={styles.recoveryBtn} onClick={handleClearSavedDraft}>
+                  Xóa bản nháp đã lưu
+                </button>
+              )}
+            </div>
+
+            {/* Price summary — always visible */}
+            <div className={styles.block}>
+              <div className={styles.blockHeader}>
+                <div className={styles.blockIcon}>💰</div>
+                <h2 className={styles.blockTitle}>Tổng quan thanh toán</h2>
+              </div>
+              <div className={styles.blockBody}>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryRowLabel}>Giá người lớn</span>
+                  <span className={styles.summaryRowValue}>{formatVnd(adultPrice)} × {adults}</span>
+                </div>
+                {children > 0 && (
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryRowLabel}>Giá trẻ em</span>
+                    <span className={styles.summaryRowValue}>{formatVnd(childPrice)} × {children}</span>
+                  </div>
+                )}
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryRowLabel}>Tổng khách</span>
+                  <span className={styles.summaryRowValue}>{totalGuests} người</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryRowLabel}>Tổng cộng</span>
+                  <span className={styles.summaryRowValue}>{formatVnd(originalAmount)}</span>
+                </div>
+                {promoDiscount > 0 && (
+                  <div className={styles.summaryRow}>
+                    <span className={styles.summaryRowLabel}>Mã khuyến mãi ({appliedPromo?.code})</span>
+                    <span className={styles.summaryRowValue} style={{ color: '#dc2626', fontWeight: 700 }}>
+                      -{formatVnd(promoDiscount)}
+                    </span>
+                  </div>
+                )}
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryRowLabel}>Thuế VAT (10%)</span>
+                  <span className={styles.summaryRowValue}>{formatVnd(vatAmount)}</span>
+                </div>
+                <div className={styles.totalRow}>
+                  <span className={styles.totalLabel}>Tổng thanh toán</span>
+                  <span className={styles.totalAmount}>{formatVnd(totalAmount)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Promotion Selector */}
+            <div className={styles.block}>
+              <PromotionSelector
+                appliesTo="TOUR"
+                orderAmount={originalAmount}
+                selectedPromo={appliedPromo}
+                onApply={(promo) => setAppliedPromo(promo)}
+                onRemove={() => setAppliedPromo(null)}
+              />
+            </div>
+
+            {/* Payment methods + submit — always visible */}
             <div className={styles.block}>
               <div className={styles.blockHeader}>
                 <div className={styles.blockIcon}>💳</div>
@@ -566,7 +577,8 @@ function TourBookingInner() {
                 </p>
               </div>
             </div>
-          </aside>
+            </aside>
+          </div>
         </div>
       </main>
     </div>

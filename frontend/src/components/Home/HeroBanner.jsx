@@ -7,28 +7,28 @@ import { IoLocationSharp } from 'react-icons/io5';
 import styles from './HeroBanner.module.css';
 import useHotelAutocomplete from '@/hooks/useHotelAutocomplete';
 
-/* ── Gradient Background Slides ── */
+/* ── Image Background Slides ── */
 const SLIDES = [
     {
-        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+        image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80',
         title: 'Khám Phá Việt Nam',
         subtitle: 'Hành trình đáng nhớ bắt đầu từ đây',
         icon: '🌴',
     },
     {
-        gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 50%, #00b4db 100%)',
+        image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
         title: 'Thiên Đường Nhiệt Đới',
         subtitle: 'Bãi biển tuyệt đẹp đang chờ đón bạn',
         icon: '🏖️',
     },
     {
-        gradient: 'linear-gradient(135deg, #fc4a1a 0%, #f7b733 50%, #ff6b6b 100%)',
+        image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80',
         title: 'Phiêu Lưu Không Giới Hạn',
         subtitle: 'Trải nghiệm độc đáo, kỷ niệm trọn vẹn',
         icon: '✈️',
     },
     {
-        gradient: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
+        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&q=80',
         title: 'Nghỉ Dưỡng Xa Hoa',
         subtitle: 'Resort 5 sao, dịch vụ đẳng cấp',
         icon: '🏨',
@@ -61,24 +61,6 @@ const HeroBanner = ({ compact = false }) => {
 
     const destinationSuggestions = useHotelAutocomplete(searchValue);
     const showSuggestions = isSearchFocused && searchValue.trim() && destinationSuggestions.length > 0;
-
-    // Floating particles - use client-side only
-    useEffect(() => {
-        if (compact || typeof window === 'undefined') return;
-        const container = document.getElementById('particles-container');
-        if (!container) return;
-        for (let i = 0; i < 20; i++) {
-            const particle = document.createElement('div');
-            particle.className = styles.particle;
-            particle.style.left = `${Math.random() * 100}%`;
-            particle.style.animationDelay = `${Math.random() * 10}s`;
-            particle.style.animationDuration = `${15 + Math.random() * 10}s`;
-            container.appendChild(particle);
-        }
-        return () => {
-            if (container) container.innerHTML = '';
-        };
-    }, [compact]);
 
     // Auto-rotate slides
     const goTo = useCallback((index) => {
@@ -123,30 +105,18 @@ const HeroBanner = ({ compact = false }) => {
 
     return (
         <section className={`${styles.heroBanner} ${compact ? styles.compact : ''}`}>
-            {/* Animated gradient background */}
+            {/* Animated image background */}
             {!compact && (
-                <div className={styles.gradientBg}>
+                <div className={styles.imageBg}>
                     {SLIDES.map((slide, i) => (
                         <div
                             key={i}
-                            className={`${styles.gradientSlide} ${i === current ? styles.active : ''}`}
-                            style={{ background: slide.gradient }}
+                            className={`${styles.imageSlide} ${i === current ? styles.active : ''}`}
+                            style={{ backgroundImage: `url(${slide.image})` }}
                         />
                     ))}
-                    <div className={styles.gradientOverlay} />
+                    <div className={styles.imageOverlay} />
                 </div>
-            )}
-
-            {/* Floating particles */}
-            {!compact && <div id="particles-container" className={styles.particles} />}
-
-            {/* Decorative shapes */}
-            {!compact && (
-                <>
-                    <div className={styles.shape1} />
-                    <div className={styles.shape2} />
-                    <div className={styles.shape3} />
-                </>
             )}
 
             {/* Content */}

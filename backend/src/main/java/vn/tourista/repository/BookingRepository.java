@@ -186,4 +186,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpec
               AND td.departureDate < :targetDate
             """)
     List<Booking> findConfirmedTourBookingsBeforeDate(@Param("targetDate") LocalDate targetDate);
+
+    // ===== Duplicate booking check =====
+    // Kiểm tra user đã có booking chưa bị hủy cho cùng tour + cùng ngày khởi hành chưa
+    @Query("""
+            SELECT COUNT(b) > 0 FROM Booking b
+            JOIN BookingTourDetail td ON td.booking = b
+            WHERE b.user.id = :userId
+              AND td.tour.id = :tourId
+              AND td.departureDate = :departureDate
+              AND b.status <> 'CANCELLED'
+            """)
+    boolean existsActiveTourBookingForUserAndTour(
+            @Param("userId") Long userId,
+            @Param("tourId") Long tourId,
+            @Param("departureDate") LocalDate departureDate);
 }

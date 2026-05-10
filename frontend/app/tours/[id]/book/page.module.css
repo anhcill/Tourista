@@ -130,7 +130,7 @@
 .page {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 28px 24px 64px;
+  padding: 28px 24px 80px;
 }
 
 .layout {
@@ -140,11 +140,23 @@
   align-items: start;
 }
 
-.leftCol,
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 .rightCol {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+/* Sticky wrapper — makes the entire right column sticky */
+.stickyWrapper {
+  position: sticky;
+  top: 0;
+  height: fit-content;
 }
 
 .recoveryBanner {
@@ -634,6 +646,16 @@
 @media (max-width: 1024px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .stickyWrapper {
+    position: static;
+  }
+
+  .rightCol {
+    position: static;
+    max-height: none;
+    overflow: visible;
   }
 }
 

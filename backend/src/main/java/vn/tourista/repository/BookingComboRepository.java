@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import vn.tourista.entity.Booking;
 import vn.tourista.entity.BookingCombo;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,4 +25,8 @@ public interface BookingComboRepository extends JpaRepository<BookingCombo, Long
     int decrementSlot(@Param("comboId") Long comboId, @Param("quantity") int quantity);
 
     Optional<BookingCombo> findByBookingId(Long bookingId);
+
+    List<BookingCombo> findByBooking_IdIn(List<Long> bookingIds);
+
+    Optional<BookingCombo> findByBooking(Booking booking);
 }

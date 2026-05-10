@@ -16,6 +16,7 @@ import vn.tourista.dto.response.CreateVnpayPaymentResponse;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -104,32 +105,38 @@ public class ComboPackageServiceImpl implements ComboPackageService {
             throw new RuntimeException("Combo nay da het slot.");
         }
 
-        // 5. Load or create user
+        // 5. Calculate pricing with VAT 10%
+        int guestCount = request.getGuestCount() != null ? request.getGuestCount() : 1;
+        BigDecimal subtotal = combo.getComboPrice().multiply(BigDecimal.valueOf(guestCount));
+        BigDecimal vatAmount = subtotal.multiply(BigDecimal.valueOf(0.10)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalAmount = subtotal.add(vatAmount);
+
+        // 6. Load or create user
         User user = null;
         if (userEmail != null && !userEmail.isBlank()) {
             user = userRepository.findByEmail(userEmail).orElse(null);
         }
 
-        // 6. Create Booking entity
+        // 7. Create Booking entity
         Booking booking = Booking.builder()
                 .bookingCode(generateBookingCode())
                 .user(user != null ? user : createGuestUser(request.getGuestName(), request.getGuestEmail()))
-                .bookingType(Booking.BookingType.HOTEL) // reuse HOTEL type; COMBO type not added yet
+                .bookingType(Booking.BookingType.COMBO)
                 .status(Booking.BookingStatus.PENDING)
                 .guestName(request.getGuestName())
                 .guestEmail(request.getGuestEmail())
                 .guestPhone(request.getGuestPhone() != null ? request.getGuestPhone() : "")
-                .subtotal(combo.getComboPrice())
+                .subtotal(subtotal)
                 .discountAmount(BigDecimal.ZERO)
-                .taxAmount(BigDecimal.ZERO)
-                .totalAmount(combo.getComboPrice())
+                .taxAmount(vatAmount)
+                .totalAmount(totalAmount)
                 .currency("VND")
                 .specialRequests(request.getNote())
                 .build();
 
         booking = bookingRepository.save(booking);
 
-        // 7. Create BookingCombo record
+        // 8. Create BookingCombo record
         BookingCombo bookingCombo = BookingCombo.builder()
                 .booking(booking)
                 .comboPackage(combo)
@@ -137,22 +144,22 @@ public class ComboPackageServiceImpl implements ComboPackageService {
                 .guestEmail(request.getGuestEmail())
                 .guestPhone(request.getGuestPhone())
                 .bookingDate(request.getBookingDate() != null ? request.getBookingDate() : now)
-                .guestCount(request.getGuestCount() != null ? request.getGuestCount() : 1)
+                .guestCount(guestCount)
                 .nights(request.getNights() != null ? request.getNights() : 1)
-                .totalAmount(combo.getComboPrice())
+                .totalAmount(totalAmount)
                 .paymentStatus("PENDING")
                 .paymentMethod(request.getPaymentMethod())
                 .build();
 
         bookingComboRepository.save(bookingCombo);
 
-        // 8. Decrement slot atomically
+        // 9. Decrement slot atomically
         int decremented = comboRepository.decrementSlots(request.getComboId(), 1);
         if (decremented == 0) {
             throw new RuntimeException("Het slot combo. Vui long thu lai sau.");
         }
 
-        // 9. Generate payment URL if VNPAY
+        // 10. Generate payment URL if VNPAY
         String paymentUrl = null;
         if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
             try {
@@ -175,7 +182,7 @@ public class ComboPackageServiceImpl implements ComboPackageService {
             }
         }
 
-        // 10. Build response
+        // 11. Build response
         return CreateComboBookingResponse.builder()
                 .bookingId(booking.getId())
                 .comboId(combo.getId())

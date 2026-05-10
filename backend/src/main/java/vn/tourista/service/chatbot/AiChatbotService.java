@@ -28,9 +28,9 @@ import java.util.List;
  * Service xử lý luồng AI chatbot — trả lời câu hỏi tự do bằng AI.
  *
  * Luồng:
- * 1. Gọi ChatbotFaqService để tìm FAQ rule (fast path)
- * 2. Nếu không khớp → gọi AI với DB context
- * 3. Nếu AI lỗi → fallback về FAQ menu
+ * 1. Gọi AI với DB context và lịch sử hội thoại (tự nhiên, không FAQ gò bó)
+ * 2. Nếu AI lỗi → fallback menu với gợi ý tự nhiên
+ * Các luồng khác (Gợi ý tour, khách sạn, tra cứu booking...) vẫn hoạt động bình thường.
  */
 @Slf4j
 @Service
@@ -52,36 +52,23 @@ public class AiChatbotService {
     private final ObjectMapper objectMapper;
 
     /**
-     * Xử lý câu hỏi tự do của user.
-     * Priority: FAQ rules → AI chatbot with DB context.
+     * Xử lý câu hỏi tự do của user — luôn gọi AI để trả lời tự nhiên.
+     * Không qua FAQ fast-path, giữ nguyên các luồng khác (tour/hotel/booking lookup).
      */
     public void processAiChatbot(Long conversationId, String inputText, String clientEmail,
                                  String conversationContext) {
-        String canonical = nlpService.normalize(nlpService.canonicalize(normalizeInput(inputText)));
-
-        // Skip FAQ fast path if input mentions "thời tiết" (let AI answer naturally
-        // with location-aware response) or if it contains a known location
-        boolean skipFaq = containsWeatherKeyword(inputText) || locationService.containsLocation(inputText);
-
-        // Bước 1: Thử FAQ rules trước (fast path), skip nếu có "thời tiết" hoặc location
-        if (!skipFaq) {
-            String faqAnswer = faqService.findMatchingAnswer(canonical);
-            if (faqAnswer != null) {
-                pushBotText(conversationId, clientEmail, faqAnswer);
-                return;
-            }
-        }
-
-        // Bước 2: Không khớp rule hoặc có location → gọi AI với DB context
+        // Bước 1: Push typing indicator để frontend hiện "đang nhắn..."
         pushTypingIndicator(conversationId, clientEmail);
 
-        // Query dữ liệu thật từ DB
+        // Bước 2: Query dữ liệu thật từ DB để AI có context chính xác
+        String canonical = nlpService.normalize(nlpService.canonicalize(normalizeInput(inputText)));
         String dbContext = tourQueryService.buildDbContextForChatbot(inputText, canonical);
 
-        // Gọi AI
+        // Bước 3: Gọi AI trực tiếp, không qua FAQ
         String aiResponse = aiService.askChatbot(inputText, conversationContext, dbContext);
 
         if (aiResponse != null && !aiResponse.isBlank()) {
+            // AI trả lời thành công
             ChatMessage saved = chatService.saveBotMessage(
                     conversationId,
                     sanitize(aiResponse),
@@ -90,8 +77,8 @@ public class AiChatbotService {
             messagingTemplate.convertAndSendToUser(
                     clientEmail, "/queue/messages", ChatMessageResponse.from(saved));
         } else {
-            // AI lỗi → fallback về FAQ menu
-            pushFaqMenu(conversationId, clientEmail, inputText);
+            // AI lỗi → fallback menu gợi ý tự nhiên
+            pushNaturalFallbackMenu(conversationId, clientEmail, inputText);
         }
     }
 
@@ -113,52 +100,40 @@ public class AiChatbotService {
     }
 
     /**
-     * Push FAQ menu với các nút bấm nhanh thay vì text.
+     * Push fallback menu tự nhiên khi AI lỗi.
      */
-    public void pushFaqMenu(Long conversationId, String clientEmail, String userInput) {
+    public void pushNaturalFallbackMenu(Long conversationId, String clientEmail, String userInput) {
         try {
-            String suggestion = "";
-            String canonical = nlpService.canonicalize(normalizeInput(userInput));
+            String reply = "Hmm, mình chưa hiểu ý bạn lắm 😅. Bạn có thể thử hỏi theo cách khác, hoặc chọn một trong các chủ đề dưới đây nhé!";
 
-            if (containsAny(canonical, List.of("thoi tiet", "mua", "bien", "nong", "lanh", "mua vang"))) {
-                suggestion = "Bạn có thể hỏi về thời tiết tại điểm đến cụ thể nhé!";
-            } else if (containsAny(canonical, List.of("visa", "passport", "ho chieu", "giay to", "thu tuc"))) {
-                suggestion = "Mình gợi ý bạn liên hệ đại sứ quán để cập nhật thông tin mới nhất.";
-            } else if (containsAny(canonical, List.of("an uong", "am thuc", "mon ngon", "dac san", "nha hang"))) {
-                suggestion = "Mỗi điểm đến có món ăn đặc trưng riêng, bạn muốn hỏi về nơi nào?";
-            } else if (containsAny(canonical, List.of("cho", "mua sam", "qua", "bung tac"))) {
-                suggestion = "Bạn muốn tìm địa điểm shopping ở thành phố nào?";
-            } else {
-                suggestion = "Mình không chắc về câu hỏi này, bạn thử chọn một trong các chủ đề bên dưới nhé!";
-            }
-
-            String faqJson = """
+            String fallbackJson = """
                     {
-                      "title": "🤔 Mình có thể giúp gì?",
-                      "subtitle": "%s",
+                      "title": "🤖 Bạn cần mình giúp gì nào?",
+                      "subtitle": "Mình có thể hỗ trợ bạn nhiều thứ lắm!",
                       "items": [
-                        { "id": "faq_huy",     "emoji": "❌", "label": "Hủy/Hoàn tiền",        "payload": "chính sách hủy và hoàn tiền" },
-                        { "id": "faq_tt",      "emoji": "💳", "label": "Thanh toán",           "payload": "thanh toán" },
-                        { "id": "faq_booking",  "emoji": "🔍", "label": "Tra cứu Booking",       "payload": "tra cứu booking" },
-                        { "id": "faq_tour",     "emoji": "🗺️", "label": "Gợi ý Tour",          "payload": "gợi ý tour" },
-                        { "id": "faq_lienhe",   "emoji": "📞", "label": "Liên hệ hỗ trợ",      "payload": "liên hệ hỗ trợ" },
-                        { "id": "faq_ttbd",     "emoji": "🌤️", "label": "Thời tiết du lịch",   "payload": "thời tiết du lịch" }
+                        { "id": "act_tour",     "emoji": "🗺️",  "label": "Gợi ý Tour",         "payload": "gợi ý tour du lịch cho tôi" },
+                        { "id": "act_hotel",    "emoji": "🏨",  "label": "Tìm Khách sạn",       "payload": "tìm khách sạn cho tôi" },
+                        { "id": "faq_booking",  "emoji": "🔍",  "label": "Tra cứu Booking",       "payload": "tra cứu booking của tôi" },
+                        { "id": "faq_huy",       "emoji": "❌",  "label": "Hủy / Hoàn tiền",      "payload": "chính sách hủy và hoàn tiền" },
+                        { "id": "faq_tt",        "emoji": "💳",  "label": "Thanh toán",           "payload": "cách thanh toán" },
+                        { "id": "faq_lienhe",    "emoji": "📞",  "label": "Liên hệ hỗ trợ",      "payload": "liên hệ hỗ trợ" }
                       ]
                     }
-                    """.formatted(suggestion);
+                    """;
 
             ChatMessage saved = chatService.saveBotMessage(
                     conversationId,
-                    sanitize("🤔 Bạn cần mình giúp gì?"),
+                    sanitize(reply),
                     ChatMessage.ContentType.FAQ_MENU,
-                    sanitize(faqJson));
+                    sanitize(fallbackJson));
 
             messagingTemplate.convertAndSendToUser(
                     clientEmail, "/queue/messages", ChatMessageResponse.from(saved));
 
         } catch (Exception e) {
-            log.error("AiChatbotService: Lỗi khi push FAQ menu. conversationId={}", conversationId, e);
-            pushBotText(conversationId, clientEmail, faqService.getDefaultAnswer());
+            log.error("AiChatbotService: Lỗi khi push fallback menu. conversationId={}", conversationId, e);
+            pushBotText(conversationId, clientEmail,
+                    "Xin lỗi bạn, mình đang gặp chút sự cố. Bạn thử hỏi lại sau nhé!");
         }
     }
 

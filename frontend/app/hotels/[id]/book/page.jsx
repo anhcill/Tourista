@@ -207,7 +207,9 @@ function HotelBookingInner() {
 
   const [appliedPromo, setAppliedPromo] = useState(null);
   const promoDiscount = appliedPromo ? Number(appliedPromo.discountAmount || 0) : 0;
-  const totalPrice = Math.max(0, originalPrice - loyaltyDiscount - promoDiscount);
+  const subtotalAfterDiscount = Math.max(0, originalPrice - loyaltyDiscount - promoDiscount);
+  const vatAmount = Math.round(subtotalAfterDiscount * 0.10);
+  const totalPrice = subtotalAfterDiscount + vatAmount;
   const amountDueNow = totalPrice;
   const amountPayLater = 0;
   const requiresCardForm = formState.paymentMethod === 'card_domestic';
@@ -693,9 +695,8 @@ function HotelBookingInner() {
             {promoDiscount > 0 && (
               <div className={styles.summaryLine}><span>Mã khuyến mãi ({appliedPromo?.code})</span><strong className={styles.discount}>-{formatVnd(promoDiscount)} VND</strong></div>
             )}
+            <div className={styles.summaryLine}><span>Thuế VAT (10%)</span><strong>{formatVnd(vatAmount)} VND</strong></div>
             <div className={`${styles.summaryLine} ${styles.total}`}><span>Tổng tiền phòng</span><strong>{formatVnd(totalPrice)} VND</strong></div>
-            <div className={styles.summaryLine}><span>Thanh toán ngay (bắt buộc)</span><strong>{formatVnd(amountDueNow)} VND</strong></div>
-            <div className={styles.summaryLine}><span>Thanh toán tại khách sạn</span><strong>{formatVnd(amountPayLater)} VND</strong></div>
 
             <h3 className={styles.subTitle}>Chính sách hủy</h3>
             <p className={styles.note}>Miễn phí hủy trước 24 giờ so với giờ check-in. Sau thời điểm này có thể áp dụng phí theo điều kiện phòng.</p>

@@ -1,7 +1,7 @@
 /* ── Hero Banner Container ── */
 .heroBanner {
   position: relative;
-  min-height: 700px;
+  min-height: 520px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,116 +13,45 @@
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
 
-/* ── Animated Gradient Background ── */
-.gradientBg {
+/* ── Animated Image Background ── */
+.imageBg {
   position: absolute;
   inset: 0;
   z-index: 0;
 }
 
-.gradientSlide {
+.imageSlide {
   position: absolute;
   inset: 0;
   opacity: 0;
   transition: opacity 1.2s ease-in-out;
-  will-change: opacity, transform;
+  will-change: opacity;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   transform: scale(1.05);
 }
 
-.gradientSlide.active {
+.imageSlide.active {
   opacity: 1;
   transform: scale(1);
-  animation: gradientPulse 8s ease-in-out infinite;
+  animation: imagePulse 12s ease-in-out infinite;
 }
 
-@keyframes gradientPulse {
+@keyframes imagePulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+  50% { transform: scale(1.03); }
 }
 
-.gradientOverlay {
+.imageOverlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    135deg,
-    rgba(0, 0, 0, 0.5) 0%,
-    rgba(0, 0, 0, 0.3) 50%,
-    rgba(0, 0, 0, 0.6) 100%
+    to bottom,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.2) 40%,
+    rgba(0, 0, 0, 0.5) 100%
   );
-}
-
-/* ── Floating Particles ── */
-.particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  animation: float linear infinite;
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(100vh) rotate(0deg);
-    opacity: 0;
-  }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% {
-    transform: translateY(-100vh) rotate(720deg);
-    opacity: 0;
-  }
-}
-
-/* ── Decorative Shapes ── */
-.shape1, .shape2, .shape3 {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.3;
-  z-index: 1;
-  animation: shapeFloat 6s ease-in-out infinite;
-}
-
-.shape1 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  top: -100px;
-  right: -100px;
-  animation-delay: 0s;
-}
-
-.shape2 {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  bottom: -50px;
-  left: -50px;
-  animation-delay: 2s;
-}
-
-.shape3 {
-  width: 200px;
-  height: 200px;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  top: 50%;
-  left: 30%;
-  animation-delay: 4s;
-}
-
-@keyframes shapeFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -30px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
 }
 
 /* ── Content ── */
@@ -132,11 +61,11 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 32px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
+  gap: 28px;
 }
 
 /* ── Hero Text ── */
@@ -177,32 +106,32 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 999px;
-  padding: 8px 20px;
+  padding: 6px 16px;
   color: white;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   animation: pulse 2s ease-in-out infinite;
 }
 
 .heroTitle {
-  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 800;
   color: white;
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   line-height: 1.1;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .heroSubtitle {
-  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
   color: rgba(255, 255, 255, 0.9);
-  margin: 0 0 30px;
+  margin: 0 0 20px;
   font-weight: 400;
 }
 
@@ -548,7 +477,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  gap: 32px;
   animation: slideUp 0.8s ease-out 0.5s both;
 }
 
@@ -556,11 +485,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .statNumber {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: white;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -594,25 +523,25 @@
 
 @media (max-width: 768px) {
   .heroBanner {
-    min-height: 600px;
+    min-height: 480px;
   }
   
   .heroContent {
-    padding: 32px 16px;
-    gap: 32px;
+    padding: 24px 16px;
+    gap: 20px;
   }
   
   .heroTitle {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
   
   .heroStats {
-    gap: 24px;
+    gap: 20px;
     flex-wrap: wrap;
   }
   
   .statNumber {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
   }
   
   .statDivider {
@@ -667,9 +596,5 @@
   .searchTab {
     justify-content: flex-start;
     padding: 10px 14px;
-  }
-  
-  .shape1, .shape2, .shape3 {
-    display: none;
   }
 }

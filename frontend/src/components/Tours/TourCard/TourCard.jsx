@@ -18,20 +18,20 @@ export default function TourCard({ tour, onClick = null }) {
   const {
     id,
     title = 'Tour du lịch',
-    location = 'Việt Nam',
-    image = null,
+    city = 'Việt Nam',
+    coverImage = null,
     durationDays = 1,
     durationNights = 0,
     difficulty = 'EASY',
-    rating = 0,
+    avgRating = 0,
     reviewCount = 0,
-    priceAdult = 0,
-    priceChild = 0,
+    pricePerAdult = 0,
+    pricePerChild = 0,
     nearestDepartureDate = '',
     availableSlots = 0,
   } = tour || {};
 
-  const displayImage = image && image.trim() ? image : FALLBACK_IMAGE;
+  const displayImage = coverImage && coverImage.trim() ? coverImage : FALLBACK_IMAGE;
 
   const formatVnd = (value) =>
     Number(value || 0).toLocaleString('vi-VN') + ' đ';
@@ -73,12 +73,12 @@ export default function TourCard({ tour, onClick = null }) {
             <h3 className={styles.tourTitle}>{title}</h3>
             <p className={styles.locationRow}>
               <FaMapMarkerAlt className={styles.locationIcon} />
-              {location}
+              {city}
             </p>
           </div>
 
           <div className={styles.ratingBox}>
-            <div className={styles.ratingScore}>{Number(rating || 0).toFixed(1)}</div>
+            <div className={styles.ratingScore}>{Number(avgRating || 0).toFixed(1)}</div>
             <div className={styles.ratingInfo}>
               {reviewCount > 0
                 ? `${reviewCount.toLocaleString('vi-VN')} đánh giá`
@@ -106,11 +106,11 @@ export default function TourCard({ tour, onClick = null }) {
         <div className={styles.bottomRow}>
           <div className={styles.priceCol}>
             <span className={styles.priceLabel}>Giá từ</span>
-            <div className={styles.priceAdult}>{formatVnd(priceAdult)}</div>
+            <div className={styles.priceAdult}>{formatVnd(pricePerAdult)}</div>
             <div className={styles.priceSub}>/ người lớn</div>
-            {priceChild > 0 && (
+            {Number(pricePerChild || 0) > 0 && (
               <div className={styles.priceChild}>
-                Trẻ em: {formatVnd(priceChild)}
+                Trẻ em: {formatVnd(pricePerChild)}
               </div>
             )}
           </div>

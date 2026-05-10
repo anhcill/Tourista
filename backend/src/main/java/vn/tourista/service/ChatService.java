@@ -239,6 +239,7 @@ public class ChatService {
          * Xử lý AI chatbot đồng bộ (không dùng @Async) - dùng cho REST endpoint.
          * Priority: FAQ rules → AI chatbot with DB context → Fallback menu.
          */
+        @Transactional(readOnly = true)
         public String askAiSync(String userMessage, String conversationContext, String dbContext) {
                 try {
                         String canonical = chatbotNlpService.normalize(

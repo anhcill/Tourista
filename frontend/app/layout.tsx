@@ -55,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className={`${inter.variable} ${poppins.variable}`}>
+      <body className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
         <I18nProvider>
           <AppShellClient>{children}</AppShellClient>
         </I18nProvider>

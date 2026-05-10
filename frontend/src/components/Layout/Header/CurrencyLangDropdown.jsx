@@ -35,13 +35,17 @@ export default function CurrencyLangDropdown() {
 
     const handleSelectCurrency = (code) => {
         localStorage.setItem('tourista-currency', code);
+        setCurrentCurrency(code);
         setIsOpen(false);
     };
 
     const currentLang = i18n.language || 'vi';
-    const currentCurrency = typeof window !== 'undefined'
-        ? (localStorage.getItem('tourista-currency') || 'VND')
-        : 'VND';
+    const [currentCurrency, setCurrentCurrency] = useState('VND');
+
+    useEffect(() => {
+        const stored = localStorage.getItem('tourista-currency');
+        if (stored) setCurrentCurrency(stored);
+    }, []);
 
     return (
         <div className={styles.dropdownContainer} ref={dropdownRef}>

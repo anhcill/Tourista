@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import {
   FaCalendarAlt, FaHotel, FaMapMarkerAlt, FaQrcode, FaUsers, FaTimes,
-  FaEdit, FaShareAlt
+  FaEdit, FaShareAlt, FaRedo
 } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react';
 import bookingApi from '@/api/bookingApi';
@@ -40,13 +40,16 @@ const statusClass = {
 
 const encodeQrData = (booking) => {
   const isTourBooking = booking.bookingType === 'TOUR' || (!!booking.tourId && !booking.hotelId);
+  const isComboBooking = booking.bookingType === 'COMBO' || booking.bookingType === 'combo';
 
   const payload = {
     bookingCode: booking.bookingCode || '-',
-    bookingType: booking.bookingType || (isTourBooking ? 'TOUR' : 'HOTEL'),
+    bookingType: booking.bookingType || (isTourBooking ? 'TOUR' : isComboBooking ? 'COMBO' : 'HOTEL'),
     hotelName: isTourBooking
-      ? (booking.tourTitle || 'Tour chua xac dinh')
-      : (booking.hotelName || 'Khach san chua xac dinh'),
+      ? (booking.tourTitle || 'Tour chưa xác định')
+      : isComboBooking
+        ? (booking.hotelName || booking.tourTitle || 'Combo chưa xác định')
+        : (booking.hotelName || 'Khách sạn chưa xác định'),
     roomTypeName: isTourBooking
       ? `Khoi hanh: ${formatDate(booking.departureDate)}`
       : (booking.roomTypeName || '-'),
@@ -269,11 +272,12 @@ function ProfileBookingsContent() {
         <section className={styles.list}>
           {bookings.map((booking) => {
             const isTourBooking = booking.bookingType === 'TOUR' || (!!booking.tourId && !booking.hotelId);
+            const isComboBooking = booking.bookingType === 'COMBO' || booking.bookingType === 'combo';
             const qrData = encodeQrData(booking);
             const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
             const detailUrl = qrData && baseOrigin ? `${baseOrigin}/booking-qr?d=${encodeURIComponent(qrData)}` : '';
             const statusKey = statusClass[booking.status] || 'pending';
-            const bookingTypeLabel = isTourBooking ? 'TOUR' : 'HOTEL';
+            const bookingTypeLabel = isTourBooking ? 'TOUR' : isComboBooking ? 'COMBO' : 'HOTEL';
             const title = isTourBooking
               ? (booking.tourTitle || 'Tour chưa xác định')
               : (booking.hotelName || 'Khách sạn chưa xác định');
@@ -350,6 +354,24 @@ function ProfileBookingsContent() {
                       >
                         Chat với Chủ
                       </button>
+                      {isTourBooking && (
+                        <button
+                          type="button"
+                          className={styles.rebookBtn}
+                          onClick={() => router.push(`/tours/${booking.tourId}`)}
+                        >
+                          <FaRedo /> Đặt lại
+                        </button>
+                      )}
+                      {isComboBooking && (
+                        <button
+                          type="button"
+                          className={styles.rebookBtn}
+                          onClick={() => router.push('/combos')}
+                        >
+                          <FaRedo /> Đặt lại
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -461,7 +483,7 @@ function ProfileBookingsContent() {
 
 export default function ProfileBookingsPage() {
   return (
-    <Suspense fallback={<main className={styles.statusPage}>Dang tai lich su booking...</main>}>
+    <Suspense fallback={<main className={styles.statusPage}>Đang tải lịch sử booking...</main>}>
       <ProfileBookingsContent />
     </Suspense>
   );

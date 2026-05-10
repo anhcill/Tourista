@@ -280,6 +280,28 @@
   transform: translateY(-1px);
 }
 
+.rebookBtn {
+  border: 1.5px solid #86efac;
+  border-radius: 10px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.18s, background 0.18s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rebookBtn:hover {
+  border-color: #16a34a;
+  background: #dcfce7;
+  transform: translateY(-1px);
+}
+
 /* ── Cancel Modal ── */
 .modalOverlay {
   position: fixed;

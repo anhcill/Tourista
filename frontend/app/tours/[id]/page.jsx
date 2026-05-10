@@ -112,9 +112,9 @@ const normalizeSimilarTour = (item) => ({
   city: item?.city || '',
   durationDays: Number(item?.durationDays || 1),
   durationNights: Number(item?.durationNights ?? Math.max(Number(item?.durationDays || 1) - 1, 0)),
-  price: Number(item?.price ?? item?.pricePerAdult ?? 0),
-  rating: Number(item?.rating ?? item?.avgRating ?? 0),
-  image: item?.image || item?.coverImage || null,
+  price: Number(item?.pricePerAdult ?? item?.price ?? 0),
+  rating: Number(item?.avgRating ?? 0),
+  image: item?.coverImage || null,
 });
 
 const formatFileSize = (bytes) => {
@@ -313,8 +313,11 @@ function TourDetailInner() {
 
   const galleryImages = useMemo(() => {
     const imgs = Array.isArray(tour?.images) ? tour.images.filter(Boolean) : [];
-    if (imgs.length >= 4) return imgs;
-    return [...imgs, ...FALLBACK_IMAGES].slice(0, 4);
+    // Prepend coverImage if it exists and isn't already in the gallery
+    const cover = tour?.coverImage;
+    const filtered = cover && !imgs.includes(cover) ? [cover, ...imgs] : imgs;
+    if (filtered.length >= 4) return filtered.slice(0, 4);
+    return [...filtered, ...FALLBACK_IMAGES].slice(0, 4);
   }, [tour]);
 
   const handleBookNow = () => {
@@ -335,7 +338,7 @@ function TourDetailInner() {
     if (tooLarge) {
       setReviewSubmitState((prev) => ({
         ...prev,
-        error: `File ${tooLarge.name} vuot qua gioi han 25MB.`,
+        error: `File ${tooLarge.name} vượt quá giới hạn 25MB.`,
         success: '',
       }));
       return;
@@ -371,7 +374,7 @@ function TourDetailInner() {
 
     const normalizedComment = String(reviewDraft.comment || '').trim();
     if (!normalizedComment && reviewFiles.length === 0) {
-      setReviewSubmitState({ loading: false, error: 'Ban can nhap noi dung hoac dinh kem media.', success: '' });
+      setReviewSubmitState({ loading: false, error: 'Bạn cần nhập nội dung hoặc đính kèm media.', success: '' });
       return;
     }
 
@@ -397,11 +400,11 @@ function TourDetailInner() {
       setReviewDraft({ rating: 5, comment: '' });
       setReviewFiles([]);
       setReviewInputKey((prev) => prev + 1);
-      setReviewSubmitState({ loading: false, error: '', success: 'Da gui danh gia thanh cong.' });
+      setReviewSubmitState({ loading: false, error: '', success: 'Đã gửi đánh giá thành công.' });
     } catch (err) {
       setReviewSubmitState({
         loading: false,
-        error: err?.message || 'Khong the gui danh gia luc nay.',
+        error: err?.message || 'Không thể gửi đánh giá lúc này.',
         success: '',
       });
     }
@@ -605,7 +608,7 @@ function TourDetailInner() {
             {/* Tab 3: FAQ + AI Chat */}
             {activeTab === 3 && (
               <div className={styles.tabPanel}>
-                <h3 className={styles.sectionTitle}>Cau hoi thuong gap</h3>
+                <h3 className={styles.sectionTitle}>Câu hỏi thường gặp</h3>
                 <InlineFaqChat
                     context="TOUR"
                     ownerId={tourPartnerId}
@@ -634,7 +637,7 @@ function TourDetailInner() {
             </div>
 
             <div className={styles.reviewComposeCard}>
-              <p className={styles.reviewComposeTitle}>Chia se trai nghiem chuyen di cua ban</p>
+              <p className={styles.reviewComposeTitle}>Chia sẻ trải nghiệm chuyến đi của bạn</p>
               {!isAuthenticated ? (
                 <div className={styles.reviewAuthPrompt}>
                   <p>Vui lòng <a href="/login" className={styles.reviewAuthLink}>đăng nhập</a> để gửi đánh giá.</p>
@@ -646,7 +649,7 @@ function TourDetailInner() {
               ) : (
                 <>
               <div className={styles.reviewComposeRow}>
-                <label className={styles.reviewComposeLabel} htmlFor="tour-review-rating">Diem danh gia</label>
+                <label className={styles.reviewComposeLabel} htmlFor="tour-review-rating">Điểm đánh giá</label>
                 <select
                   id="tour-review-rating"
                   className={styles.reviewComposeSelect}
@@ -660,12 +663,12 @@ function TourDetailInner() {
               </div>
               <textarea
                 className={styles.reviewComposeTextarea}
-                placeholder="Viet cam nhan sau chuyen di..."
+                placeholder="Viết cảm nhận sau chuyến đi..."
                 value={reviewDraft.comment}
                 onChange={(event) => setReviewDraft((prev) => ({ ...prev, comment: event.target.value }))}
               />
               <div className={styles.reviewComposeRow}>
-                <label className={styles.reviewComposeLabel} htmlFor="tour-review-media">Anh/Video dinh kem</label>
+                <label className={styles.reviewComposeLabel} htmlFor="tour-review-media">Ảnh/Video đính kèm</label>
                 <input
                   key={reviewInputKey}
                   id="tour-review-media"
@@ -697,7 +700,7 @@ function TourDetailInner() {
                           className={styles.reviewComposeRemoveBtn}
                           onClick={() => handleRemoveReviewFile(preview.key)}
                         >
-                          Xoa file
+                          Xóa file
                         </button>
                       </div>
                     </article>
@@ -713,7 +716,7 @@ function TourDetailInner() {
                 onClick={handleSubmitReview}
                 disabled={reviewSubmitState.loading}
               >
-                {reviewSubmitState.loading ? 'Dang gui...' : 'Gui danh gia'}
+                {reviewSubmitState.loading ? 'Đang gửi...' : 'Gửi đánh giá'}
               </button>
                 </>
               )}
@@ -853,7 +856,7 @@ function TourDetailInner() {
                   >
                     <div className={styles.similarImgWrap}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={t.image || t.coverImage || FALLBACK_IMAGES[0]} alt={t.title} className={styles.similarImg} />
+                      <img src={t.image || FALLBACK_IMAGES[0]} alt={t.title} className={styles.similarImg} />
                       <div className={styles.similarOverlay} />
                       <div className={styles.similarRating}>
                         <FaStar size={10} color="#fbbf24" /> {Number(t.rating || t.avgRating || 0).toFixed(1)}

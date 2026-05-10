@@ -70,6 +70,7 @@ export default function AppShellClient({ children }: AppShellClientProps) {
   const isAdminRoute = (pathname || '').startsWith('/admin');
   const isPartnerRoute = (pathname || '').startsWith('/partner');
   const isHotelDetailPage = /^\/hotels\/\d+$/.test(pathname || '');
+  const isAiPlannerPage = (pathname || '').startsWith('/ai-travel-planner');
 
   return (
     <ThemeProvider>
@@ -88,7 +89,7 @@ export default function AppShellClient({ children }: AppShellClientProps) {
             {!isP2PModalOpen && <MobileBottomNav />}
             <Footer />
             <Toast />
-            <BotChatWidget />
+            {!isAiPlannerPage && <BotChatWidget />}
           </div>
         )}
       </ReduxProvider>

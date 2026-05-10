@@ -257,6 +257,11 @@ export default function ComboBookPage() {
     );
   }
 
+  const guestCount = Number(form.guestCount) || 1;
+  const subtotal = (combo.comboPrice || 0) * guestCount;
+  const vatAmount = Math.round(subtotal * 0.10);
+  const totalAmount = subtotal + vatAmount;
+
   const savings = (Number(combo.originalPrice) || 0) - (Number(combo.comboPrice) || 0);
 
   return (
@@ -439,7 +444,7 @@ export default function ComboBookPage() {
                 className={styles.submitBtn}
                 disabled={submitting}
               >
-                {submitting ? 'Đang xử lý...' : `Đặt ngay · ${formatVnd(combo.comboPrice)} VND`}
+                {submitting ? 'Đang xử lý...' : `Đặt ngay · ${formatVnd(totalAmount)} VND`}
               </button>
 
               <p className={styles.termsNote}>
@@ -461,15 +466,23 @@ export default function ComboBookPage() {
               </div>
               <div className={styles.summaryRow}>
                 <span>Số khách</span>
-                <strong>× {form.guestCount || 1}</strong>
+                <strong>× {guestCount}</strong>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>Tổng cộng</span>
+                <strong>{formatVnd(subtotal)} VND</strong>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>Thuế VAT (10%)</span>
+                <strong>{formatVnd(vatAmount)} VND</strong>
               </div>
 
               <div className={styles.summaryDivider} />
 
               <div className={styles.summaryTotal}>
-                <span>Tổng cộng</span>
+                <span>Tổng thanh toán</span>
                 <strong className={styles.totalAmount}>
-                  {formatVnd((combo.comboPrice || 0) * (Number(form.guestCount) || 1))} VND
+                  {formatVnd(totalAmount)} VND
                 </strong>
               </div>
 

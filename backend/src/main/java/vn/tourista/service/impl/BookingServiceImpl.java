@@ -13,19 +13,23 @@ import vn.tourista.dto.response.CreateBookingResponse;
 import vn.tourista.dto.response.CreateTourBookingResponse;
 import vn.tourista.dto.response.MyBookingResponse;
 import vn.tourista.entity.Booking;
+import vn.tourista.entity.BookingCombo;
 import vn.tourista.entity.BookingHotelDetail;
 import vn.tourista.entity.BookingPromotion;
 import vn.tourista.entity.BookingTourDetail;
+import vn.tourista.entity.ComboPackage;
 import vn.tourista.entity.Hotel;
 import vn.tourista.entity.Promotion;
 import vn.tourista.entity.RoomType;
 import vn.tourista.entity.Tour;
 import vn.tourista.entity.TourDeparture;
 import vn.tourista.entity.User;
+import vn.tourista.repository.BookingComboRepository;
 import vn.tourista.repository.BookingHotelDetailRepository;
 import vn.tourista.repository.BookingPromotionRepository;
 import vn.tourista.repository.BookingRepository;
 import vn.tourista.repository.BookingTourDetailRepository;
+import vn.tourista.repository.ComboPackageRepository;
 import vn.tourista.repository.HotelRepository;
 import vn.tourista.repository.PromotionRepository;
 import vn.tourista.repository.RoomTypeRepository;
@@ -88,6 +92,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Autowired
     private BookingPromotionRepository bookingPromotionRepository;
+
+    @Autowired
+    private BookingComboRepository bookingComboRepository;
+
+    @Autowired
+    private ComboPackageRepository comboPackageRepository;
 
     @Autowired
     private IdempotencyService idempotencyService;
@@ -299,6 +309,14 @@ public class BookingServiceImpl implements BookingService {
 
         if (departure.getDepartureDate() != null && departure.getDepartureDate().isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Không thể đặt tour với ngày khởi hành trong quá khứ");
+        }
+
+        // Kiểm tra trùng lặp: cùng user + cùng tour + cùng ngày khởi hành (chưa bị hủy)
+        boolean isDuplicate = bookingRepository.existsActiveTourBookingForUserAndTour(
+                user.getId(), tour.getId(), departure.getDepartureDate());
+        if (isDuplicate) {
+            throw new IllegalArgumentException(
+                    "Bạn đã có booking tour này vào ngày " + departure.getDepartureDate() + " rồi. Vui lòng chọn ngày khởi hành khác.");
         }
 
         int totalGuests = request.getAdults() + request.getChildren();
@@ -666,11 +684,17 @@ public class BookingServiceImpl implements BookingService {
         Map<Long, BookingPromotion> promoByBookingId = bookingPromotionRepository.findByBooking_IdIn(bookingIds).stream()
                 .collect(Collectors.toMap(bp -> bp.getBooking().getId(), Function.identity()));
 
+        // Load combo info
+        Map<Long, BookingCombo> comboDetailsByBookingId = bookingComboRepository.findByBooking_IdIn(bookingIds)
+                .stream()
+                .collect(Collectors.toMap(bc -> bc.getBooking().getId(), Function.identity()));
+
         return bookings.stream()
                 .map(booking -> {
                     BookingHotelDetail detail = detailsByBookingId.get(booking.getId());
                     BookingTourDetail tourDetail = tourDetailsByBookingId.get(booking.getId());
                     BookingPromotion bp = promoByBookingId.get(booking.getId());
+                    BookingCombo comboDetail = comboDetailsByBookingId.get(booking.getId());
 
                     Long ownerId = detail != null && detail.getHotel() != null && detail.getHotel().getOwner() != null
                             ? detail.getHotel().getOwner().getId()
@@ -708,19 +732,27 @@ public class BookingServiceImpl implements BookingService {
                             .roomTypeName(detail != null ? detail.getRoomTypeName() : null)
                             .checkIn(detail != null ? detail.getCheckInDate() : null)
                             .checkOut(detail != null ? detail.getCheckOutDate() : null)
-                            .nights(detail != null ? detail.getNights() : null)
+                            .nights(detail != null ? detail.getNights()
+                                    : (comboDetail != null ? comboDetail.getNights() : null))
                             .rooms(detail != null ? detail.getNumRooms() : null)
                             .adults(detail != null ? detail.getAdults()
-                                    : (tourDetail != null ? tourDetail.getNumAdults() : null))
+                                    : (tourDetail != null ? tourDetail.getNumAdults()
+                                            : (comboDetail != null ? comboDetail.getGuestCount() : null))
+                            )
                             .children(detail != null ? detail.getChildren()
                                     : (tourDetail != null ? tourDetail.getNumChildren() : null))
                             .tourId(tourDetail != null && tourDetail.getTour() != null ? tourDetail.getTour().getId()
                                     : null)
-                            .tourTitle(tourDetail != null ? tourDetail.getTourTitle() : null)
+                            .tourTitle(tourDetail != null ? tourDetail.getTourTitle()
+                                    : (comboDetail != null && comboDetail.getComboPackage() != null
+                                            ? comboDetail.getComboPackage().getName() : null)
+                            )
                             .departureId(tourDetail != null && tourDetail.getDeparture() != null
                                     ? tourDetail.getDeparture().getId()
                                     : null)
-                            .departureDate(tourDetail != null ? tourDetail.getDepartureDate() : null)
+                            .departureDate(tourDetail != null ? tourDetail.getDepartureDate()
+                                    : (comboDetail != null ? comboDetail.getBookingDate() : null)
+                            )
                             .createdAt(booking.getCreatedAt())
                             .promoCode(bp != null && bp.getPromotion() != null ? bp.getPromotion().getCode() : null)
                             .promoName(bp != null && bp.getPromotion() != null ? bp.getPromotion().getName() : null)
@@ -765,6 +797,11 @@ public class BookingServiceImpl implements BookingService {
             BookingHotelDetail hotelDetail = bookingHotelDetailRepository.findByBooking(booking).orElse(null);
             if (hotelDetail != null && hotelDetail.getRoomType() != null) {
                 roomTypeRepository.incrementRoomsAvailable(hotelDetail.getRoomType().getId(), hotelDetail.getNumRooms());
+            }
+        } else if (booking.getBookingType() == Booking.BookingType.COMBO) {
+            BookingCombo comboDetail = bookingComboRepository.findByBooking(booking).orElse(null);
+            if (comboDetail != null && comboDetail.getComboPackage() != null) {
+                comboPackageRepository.incrementSlots(comboDetail.getComboPackage().getId(), 1);
             }
         }
 
@@ -823,12 +860,18 @@ public class BookingServiceImpl implements BookingService {
                 adults = detail.getAdults() != null ? detail.getAdults() : 0;
                 children = detail.getChildren() != null ? detail.getChildren() : 0;
             }
-        } else {
+        } else if ("TOUR".equals(bookingType)) {
             BookingTourDetail detail = bookingTourDetailRepository.findByBooking(booking).orElse(null);
             if (detail != null) {
                 checkIn = detail.getDepartureDate() != null ? detail.getDepartureDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
                 adults = detail.getNumAdults() != null ? detail.getNumAdults() : 0;
                 children = detail.getNumChildren() != null ? detail.getNumChildren() : 0;
+            }
+        } else {
+            BookingCombo detail = bookingComboRepository.findByBooking(booking).orElse(null);
+            if (detail != null) {
+                checkIn = detail.getBookingDate() != null ? detail.getBookingDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "";
+                adults = detail.getGuestCount() != null ? detail.getGuestCount() : 0;
             }
         }
 
@@ -850,10 +893,14 @@ public class BookingServiceImpl implements BookingService {
             return bookingHotelDetailRepository.findByBooking(booking)
                     .map(BookingHotelDetail::getHotelName)
                     .orElse("Khách sạn không xác định");
-        } else {
+        } else if (booking.getBookingType() == Booking.BookingType.TOUR) {
             return bookingTourDetailRepository.findByBooking(booking)
                     .map(BookingTourDetail::getTourTitle)
                     .orElse("Tour không xác định");
+        } else {
+            return bookingComboRepository.findByBooking(booking)
+                    .map(bc -> bc.getComboPackage() != null ? bc.getComboPackage().getName() : "Combo không xác định")
+                    .orElse("Combo không xác định");
         }
     }
 

@@ -266,23 +266,30 @@ public class TourServiceImpl implements TourService {
                 .stream()
                 .collect(Collectors.toMap(Tour::getId, Function.identity()));
 
+        // Batch load all cover images in a single query (fixes N+1)
+        List<Object[]> coverRows = tourImageRepository.findCoverImagesByTourIds(tourIds);
+        Map<Long, String> coverByTourId = tourImageRepository.mapCoverImagesByTourIds(coverRows);
+
+        // Pre-load all nearest departures in a single query
+        Map<Long, TourDeparture> nearestByTourId = new java.util.LinkedHashMap<>();
+        for (Long tourId : tourIds) {
+            TourDeparture nd = tourDepartureRepository
+                    .findFirstByTour_IdAndAvailableSlotsGreaterThanAndDepartureDateGreaterThanEqualOrderByDepartureDateAsc(
+                            tourId, 0, departureFrom)
+                    .orElse(null);
+            nearestByTourId.put(tourId, nd);
+        }
+
         List<TourSummaryResponse> responses = tourIds.stream()
                 .map(toursById::get)
                 .filter(Objects::nonNull)
-                .map(tour -> mapSummary(tour, departureFrom))
+                .map(tour -> mapSummary(tour, nearestByTourId.get(tour.getId()), coverByTourId.get(tour.getId())))
                 .toList();
 
         return sortSummaries(responses, sort);
     }
 
-    private TourSummaryResponse mapSummary(Tour tour, LocalDate departureFrom) {
-        TourDeparture nearestDeparture = tourDepartureRepository
-                .findFirstByTour_IdAndAvailableSlotsGreaterThanAndDepartureDateGreaterThanEqualOrderByDepartureDateAsc(
-                        tour.getId(),
-                        0,
-                        departureFrom)
-                .orElse(null);
-
+    private TourSummaryResponse mapSummary(Tour tour, TourDeparture nearestDeparture, String coverImage) {
         BigDecimal pricePerAdult = nearestDeparture != null && nearestDeparture.getPriceOverride() != null
                 ? nearestDeparture.getPriceOverride()
                 : tour.getPricePerAdult();
@@ -298,7 +305,7 @@ public class TourServiceImpl implements TourService {
                 .difficulty(tour.getDifficulty() != null ? tour.getDifficulty().name() : null)
                 .avgRating(tour.getAvgRating())
                 .reviewCount(tour.getReviewCount())
-                .coverImage(tourImageRepository.findCoverImageByTourId(tour.getId()).orElse(null))
+                .coverImage(coverImage)
                 .pricePerAdult(pricePerAdult)
                 .pricePerChild(tour.getPricePerChild())
                 .nearestDepartureDate(nearestDeparture != null ? nearestDeparture.getDepartureDate() : null)

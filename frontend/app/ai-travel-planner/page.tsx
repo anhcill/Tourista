@@ -4,12 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaWallet,
-    FaUmbrellaBeach, FaMountain, FaUtensils, FaCamera, FaPlane,
     FaRegLightbulb, FaCheck, FaSpinner, FaChevronRight,
-    FaHeart, FaShoppingCart, FaBed, FaCar, FaGem, FaSuitcaseRolling,
-    FaComments
+    FaSuitcaseRolling
 } from 'react-icons/fa';
-import { MdFamilyRestroom, MdBusiness, MdSmartToy } from 'react-icons/md';
 import { IoMdFlash } from 'react-icons/io';
 import { toast } from 'react-toastify';
 import travelPlanApi from '@/api/travelPlanApi';
@@ -34,9 +31,9 @@ const TRIP_TYPES = [
 ];
 
 const BUDGET_OPTIONS = [
-    { value: 'THAP', label: 'Tiết kiệm', sub: '< 2 triệu', icon: '💰' },
-    { value: 'TRUNG_BINH', label: 'Trung bình', sub: '2-10 triệu', icon: '💵' },
-    { value: 'CAO', label: 'Cao cấp', sub: '> 10 triệu', icon: '💎' },
+    { value: 'THAP', label: 'Tiết kiệm', sub: '< 2tr', icon: '💰' },
+    { value: 'TRUNG_BINH', label: 'Trung bình', sub: '2-10tr', icon: '💵' },
+    { value: 'CAO', label: 'Cao cấp', sub: '> 10tr', icon: '💎' },
 ];
 
 const POPULAR_DESTINATIONS = ['Đà Nẵng', 'Hội An', 'Phú Quốc', 'Nha Trang', 'Hà Nội', 'TP HCM', 'Sa Pa', 'Huế'];
@@ -154,46 +151,49 @@ export default function AITravelPlannerPage() {
 
     return (
         <div className={styles.page}>
-            {/* Hero Section */}
-            <div className={styles.heroSection}>
+            {/* Hero */}
+            <div className={styles.hero}>
+                <img
+                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1400&q=80"
+                    alt="Travel"
+                    className={styles.heroBg}
+                />
+                <div className={styles.heroOverlay} />
                 <div className={styles.heroContent}>
-                    <div className={styles.heroIcon}>
-                        <IoMdFlash />
-                    </div>
-                    <h1 className={styles.heroTitle}>AI Travel Planner</h1>
-                    <p className={styles.heroSubtitle}>
-                        Để trí tuệ nhân tạo thiết kế lịch trình hoàn hảo cho bạn — miễn phí, tức thì, cá nhân hóa
-                    </p>
+                    <span className={styles.heroBadge}><IoMdFlash /> AI Travel Planner</span>
+                    <h1 className={styles.heroTitle}>Lên lịch trình du lịch thông minh</h1>
+                    <p className={styles.heroSub}>Miễn phí · Tức thì · Cá nhân hóa</p>
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className={styles.mainContainer}>
-                <div className={styles.layout}>
-                    {/* Left - Form */}
-                    <aside className={styles.formSection}>
-                        <form onSubmit={handleSubmit} className={styles.form}>
-                            <h2 className={styles.formTitle}>Tạo lịch trình của bạn</h2>
+            {/* Main */}
+            <div className={styles.main}>
+                <div className={styles.grid}>
 
+                    {/* FORM CARD */}
+                    <form className={styles.card} onSubmit={handleSubmit}>
+                        <div className={styles.cardHeader}>
+                            <span className={styles.cardTitle}>📋 Tạo lịch trình</span>
+                        </div>
+
+                        <div className={styles.cardBody}>
                             {/* Destination */}
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>
-                                    <FaMapMarkerAlt /> Điểm đến <span className={styles.required}>*</span>
-                                </label>
+                            <div className={styles.field}>
+                                <label className={styles.label}><FaMapMarkerAlt /> Điểm đến <span>*</span></label>
                                 <input
                                     type="text"
                                     className={styles.input}
-                                    placeholder="VD: Đà Nẵng, Hội An, Phú Quốc..."
+                                    placeholder="VD: Đà Nẵng, Hội An..."
                                     value={form.destination}
                                     onChange={(e) => updateField('destination', e.target.value)}
                                     required
                                 />
-                                <div className={styles.quickDest}>
+                                <div className={styles.chips}>
                                     {POPULAR_DESTINATIONS.slice(0, 5).map((d) => (
                                         <button
                                             key={d}
                                             type="button"
-                                            className={`${styles.quickChip} ${form.destination === d ? styles.quickChipActive : ''}`}
+                                            className={`${styles.chip} ${form.destination === d ? styles.chipOn : ''}`}
                                             onClick={() => updateField('destination', d)}
                                         >
                                             {d}
@@ -203,8 +203,8 @@ export default function AITravelPlannerPage() {
                             </div>
 
                             {/* Dates */}
-                            <div className={styles.dateRow}>
-                                <div className={styles.formGroup}>
+                            <div className={styles.row2}>
+                                <div className={styles.field}>
                                     <label className={styles.label}><FaCalendarAlt /> Ngày đi</label>
                                     <input
                                         type="date"
@@ -214,7 +214,7 @@ export default function AITravelPlannerPage() {
                                         onChange={(e) => updateField('checkIn', e.target.value)}
                                     />
                                 </div>
-                                <div className={styles.formGroup}>
+                                <div className={styles.field}>
                                     <label className={styles.label}><FaCalendarAlt /> Ngày về</label>
                                     <input
                                         type="date"
@@ -227,8 +227,8 @@ export default function AITravelPlannerPage() {
                             </div>
 
                             {/* People */}
-                            <div className={styles.peopleRow}>
-                                <div className={styles.formGroup}>
+                            <div className={styles.row2}>
+                                <div className={styles.field}>
                                     <label className={styles.label}><FaUsers /> Người lớn</label>
                                     <div className={styles.counter}>
                                         <button type="button" onClick={() => updateField('adults', Math.max(1, form.adults - 1))}>−</button>
@@ -236,7 +236,7 @@ export default function AITravelPlannerPage() {
                                         <button type="button" onClick={() => updateField('adults', form.adults + 1)}>+</button>
                                     </div>
                                 </div>
-                                <div className={styles.formGroup}>
+                                <div className={styles.field}>
                                     <label className={styles.label}><FaUsers /> Trẻ em</label>
                                     <div className={styles.counter}>
                                         <button type="button" onClick={() => updateField('children', Math.max(0, form.children - 1))}>−</button>
@@ -247,18 +247,18 @@ export default function AITravelPlannerPage() {
                             </div>
 
                             {/* Budget */}
-                            <div className={styles.formGroup}>
+                            <div className={styles.field}>
                                 <label className={styles.label}><FaWallet /> Ngân sách</label>
-                                <div className={styles.budgetGrid}>
+                                <div className={styles.budgetRow}>
                                     {BUDGET_OPTIONS.map((opt) => (
                                         <button
                                             key={opt.value}
                                             type="button"
-                                            className={`${styles.budgetCard} ${form.budget === opt.value ? styles.budgetCardActive : ''}`}
+                                            className={`${styles.budgetOpt} ${form.budget === opt.value ? styles.budgetOn : ''}`}
                                             onClick={() => updateField('budget', opt.value)}
                                         >
-                                            <span className={styles.budgetIcon}>{opt.icon}</span>
-                                            <span className={styles.budgetLabel}>{opt.label}</span>
+                                            <span>{opt.icon}</span>
+                                            <span className={styles.budgetName}>{opt.label}</span>
                                             <span className={styles.budgetSub}>{opt.sub}</span>
                                         </button>
                                     ))}
@@ -266,14 +266,14 @@ export default function AITravelPlannerPage() {
                             </div>
 
                             {/* Trip Type */}
-                            <div className={styles.formGroup}>
+                            <div className={styles.field}>
                                 <label className={styles.label}><FaRegLightbulb /> Loại chuyến đi</label>
-                                <div className={styles.chipGrid}>
+                                <div className={styles.chips}>
                                     {TRIP_TYPES.map((t) => (
                                         <button
                                             key={t.value}
                                             type="button"
-                                            className={`${styles.chip} ${form.tripType === t.value ? styles.chipActive : ''}`}
+                                            className={`${styles.chip} ${form.tripType === t.value ? styles.chipOn : ''}`}
                                             onClick={() => updateField('tripType', t.value)}
                                         >
                                             {t.icon} {t.label}
@@ -283,14 +283,14 @@ export default function AITravelPlannerPage() {
                             </div>
 
                             {/* Interests */}
-                            <div className={styles.formGroup}>
+                            <div className={styles.field}>
                                 <label className={styles.label}><FaRegLightbulb /> Sở thích</label>
-                                <div className={styles.chipGrid}>
+                                <div className={styles.chips}>
                                     {INTEREST_OPTIONS.map((opt) => (
                                         <button
                                             key={opt.value}
                                             type="button"
-                                            className={`${styles.chip} ${form.interests.includes(opt.value) ? styles.chipActive : ''}`}
+                                            className={`${styles.chip} ${form.interests.includes(opt.value) ? styles.chipOn : ''}`}
                                             onClick={() => toggleInterest(opt.value)}
                                         >
                                             {opt.icon} {opt.label}
@@ -298,43 +298,37 @@ export default function AITravelPlannerPage() {
                                     ))}
                                 </div>
                             </div>
+                        </div>
 
-                            <button type="submit" className={styles.submitBtn} disabled={loading}>
-                                {loading ? (
-                                    <><FaSpinner className={styles.spinner} /> Đang tạo lịch trình...</>
-                                ) : (
-                                    <><IoMdFlash /> Tạo lịch trình AI ngay</>
-                                )}
-                            </button>
-                        </form>
-                    </aside>
+                        <button type="submit" className={styles.submitBtn} disabled={loading}>
+                            {loading ? (
+                                <><FaSpinner className={styles.spin} /> Đang tạo...</>
+                            ) : (
+                                <><IoMdFlash /> Tạo lịch trình AI</>
+                            )}
+                        </button>
+                    </form>
 
-                    {/* Right - Results */}
-                    <section className={styles.resultSection}>
+                    {/* RESULTS CARD */}
+                    <div className={styles.resultCard}>
                         {!plan ? (
-                            <div className={styles.emptyState}>
-                                <div className={styles.emptyIcon}>🗺️</div>
-                                <h3>Chưa có lịch trình</h3>
-                                <p>Điền thông tin bên trái và nhấn "Tạo lịch trình AI" để nhận gợi ý lịch trình hoàn hảo cho chuyến đi của bạn.</p>
-                                
-                                {/* Chat CTA */}
-                                <button className={styles.chatCta} onClick={() => setShowChat(true)}>
-                                    <FaComments /> Hoặc chat với AI Assistant
+                            <div className={styles.empty}>
+                                <span className={styles.emptyEmoji}>🗺️</span>
+                                <p className={styles.emptyTitle}>Chưa có lịch trình</p>
+                                <p className={styles.emptyDesc}>Điền thông tin và nhấn <strong>Tạo lịch trình AI</strong> để nhận gợi ý ngay!</p>
+                                <button className={styles.chatBtn} onClick={() => setShowChat(true)}>
+                                    💬 Chat với AI Assistant
                                 </button>
                             </div>
                         ) : (
-                            <div className={styles.planResult}>
-                                {/* Header */}
-                                <div className={styles.planHeader}>
-                                    <div className={styles.planMeta}>
+                            <div className={styles.plan}>
+                                {/* Plan Header */}
+                                <div className={styles.planHead}>
+                                    <div className={styles.planHeadLeft}>
                                         <h2 className={styles.planDest}>{plan.destination}</h2>
-                                        <span className={styles.planDuration}>
-                                            <FaCalendarAlt /> {plan.tripDuration}
-                                        </span>
+                                        <span className={styles.planDur}><FaCalendarAlt /> {plan.tripDuration}</span>
                                     </div>
-                                    {plan.summary && (
-                                        <p className={styles.planSummary}>{plan.summary}</p>
-                                    )}
+                                    {plan.summary && <p className={styles.planSummary}>{plan.summary}</p>}
                                 </div>
 
                                 {/* Day Tabs */}
@@ -343,10 +337,10 @@ export default function AITravelPlannerPage() {
                                         {plan.dayPlans.map((day, idx) => (
                                             <button
                                                 key={idx}
-                                                className={`${styles.dayTab} ${activeDay === idx ? styles.dayTabActive : ''}`}
+                                                className={`${styles.dayTab} ${activeDay === idx ? styles.dayTabOn : ''}`}
                                                 onClick={() => setActiveDay(idx)}
                                             >
-                                                <span className={styles.dayTabNum}>Ngày {day.day || idx + 1}</span>
+                                                <span>Ngày {day.day || idx + 1}</span>
                                                 <span className={styles.dayTabDate}>{day.date}</span>
                                             </button>
                                         ))}
@@ -356,39 +350,22 @@ export default function AITravelPlannerPage() {
                                 {/* Day Content */}
                                 {plan.dayPlans && plan.dayPlans[activeDay] && (
                                     <div className={styles.dayContent}>
-                                        <h3 className={styles.dayTitle}>
-                                            {plan.dayPlans[activeDay].title}
-                                        </h3>
-
-                                        <div className={styles.activitiesList}>
+                                        <h3 className={styles.dayTitle}>{plan.dayPlans[activeDay].title}</h3>
+                                        <div className={styles.acts}>
                                             {(plan.dayPlans[activeDay].activities || []).map((act, idx) => (
-                                                <div key={idx} className={`${styles.activityCard} ${styles[`activity_${act.type || 'sight_seeing'}`]}`}>
-                                                    <div className={styles.activityTime}>{act.time || '--:--'}</div>
-                                                    <div className={styles.activityDot} />
-                                                    <div className={styles.activityBody}>
-                                                        <div className={styles.activityHeader}>
-                                                            <span className={styles.activityTypeIcon}>
-                                                                {ACTIVITY_ICONS[act.type || 'sight_seeing'] || '📸'}
-                                                            </span>
-                                                            <strong className={styles.activityTitle}>{act.title}</strong>
-                                                            {act.estimatedCost != null && act.estimatedCost > 0 && (
-                                                                <span className={styles.activityCost}>
-                                                                    ~{formatVND(act.estimatedCost)}đ
-                                                                </span>
-                                                            )}
+                                                <div key={idx} className={`${styles.act} ${styles[`act_${act.type || 'sight_seeing'}`]}`}>
+                                                    <span className={styles.actTime}>{act.time || '--:--'}</span>
+                                                    <div className={styles.actLine} />
+                                                    <div className={styles.actBody}>
+                                                        <span className={styles.actType}>{ACTIVITY_ICONS[act.type || 'sight_seeing'] || '📸'}</span>
+                                                        <div className={styles.actInfo}>
+                                                            <strong>{act.title}</strong>
+                                                            {act.description && <p>{act.description}</p>}
+                                                            {act.location && <span>📍 {act.location}</span>}
+                                                            {act.tips && <span className={styles.actTip}>💡 {act.tips}</span>}
                                                         </div>
-                                                        {act.description && (
-                                                            <p className={styles.activityDesc}>{act.description}</p>
-                                                        )}
-                                                        {act.location && (
-                                                            <span className={styles.activityLoc}>
-                                                                <FaMapMarkerAlt /> {act.location}
-                                                            </span>
-                                                        )}
-                                                        {act.tips && (
-                                                            <p className={styles.activityTips}>
-                                                                <FaRegLightbulb /> {act.tips}
-                                                            </p>
+                                                        {act.estimatedCost != null && act.estimatedCost > 0 && (
+                                                            <span className={styles.actCost}>~{formatVND(act.estimatedCost)}đ</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -397,17 +374,14 @@ export default function AITravelPlannerPage() {
                                     </div>
                                 )}
 
-                                {/* Packing List */}
+                                {/* Packing */}
                                 {plan.packingList && plan.packingList.length > 0 && (
-                                    <div className={styles.packingSection}>
-                                        <h3 className={styles.sectionTitle}>
-                                            <FaSuitcaseRolling /> Đồ dùng cần mang
-                                        </h3>
-                                        <div className={styles.packingGrid}>
+                                    <div className={styles.packSection}>
+                                        <h4 className={styles.packTitle}>🎒 Đồ dùng cần mang</h4>
+                                        <div className={styles.packGrid}>
                                             {plan.packingList.map((item, idx) => (
-                                                <div key={idx} className={styles.packingItem}>
-                                                    <FaCheck className={styles.checkIcon} />
-                                                    <span>{item}</span>
+                                                <div key={idx} className={styles.packItem}>
+                                                    <FaCheck className={styles.packCheck} /> {item}
                                                 </div>
                                             ))}
                                         </div>
@@ -416,16 +390,16 @@ export default function AITravelPlannerPage() {
 
                                 {/* Tips */}
                                 {(plan.weatherNote || plan.localTips) && (
-                                    <div className={styles.tipsSection}>
+                                    <div className={styles.tips}>
                                         {plan.weatherNote && (
-                                            <div className={styles.tipCard}>
-                                                <h4>🌤️ Thời tiết</h4>
+                                            <div className={styles.tip}>
+                                                <strong>🌤️ Thời tiết</strong>
                                                 <p>{plan.weatherNote}</p>
                                             </div>
                                         )}
                                         {plan.localTips && (
-                                            <div className={styles.tipCard}>
-                                                <h4><FaRegLightbulb /> Mẹo địa phương</h4>
+                                            <div className={styles.tip}>
+                                                <strong>💡 Mẹo</strong>
                                                 <p>{plan.localTips}</p>
                                             </div>
                                         )}
@@ -434,26 +408,25 @@ export default function AITravelPlannerPage() {
 
                                 {/* Actions */}
                                 <div className={styles.planActions}>
-                                    <button className={styles.actionBtnPrimary} onClick={() => router.push(`/tours/search?destination=${encodeURIComponent(plan.destination || '')}`)}>
-                                        <FaChevronRight /> Tìm tour phù hợp
+                                    <button className={styles.actBtnPrimary} onClick={() => router.push(`/tours/search?destination=${encodeURIComponent(plan.destination || '')}`)}>
+                                        <FaChevronRight /> Tìm tour
                                     </button>
-                                    <button className={styles.actionBtnSecondary} onClick={() => router.push(`/hotels/search?destination=${encodeURIComponent(plan.destination || '')}`)}>
-                                        <FaBed /> Tìm khách sạn
+                                    <button className={styles.actBtnSecondary} onClick={() => router.push(`/hotels/search?destination=${encodeURIComponent(plan.destination || '')}`)}>
+                                        🏨 Tìm khách sạn
                                     </button>
                                 </div>
                             </div>
                         )}
-                    </section>
+                    </div>
                 </div>
             </div>
 
-            {/* AI Chat Widget - Floating at corner */}
-            <div className={styles.chatWidgetWrapper}>
+            {/* Chat Widget */}
+            <div className={styles.chatWrapper}>
                 <AIPanel isOpen={showChat} onClose={() => setShowChat(false)} />
                 {!showChat && (
-                    <button className={styles.chatFloatingBtn} onClick={() => setShowChat(true)}>
-                        <FaComments />
-                        <span>Chat với AI</span>
+                    <button className={styles.chatFab} onClick={() => setShowChat(true)}>
+                        💬 Chat AI
                     </button>
                 )}
             </div>

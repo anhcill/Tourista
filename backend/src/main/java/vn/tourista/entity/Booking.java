@@ -93,7 +93,8 @@ public class Booking {
 
     public enum BookingType {
         HOTEL,
-        TOUR
+        TOUR,
+        COMBO
     }
 
     public enum BookingStatus {
