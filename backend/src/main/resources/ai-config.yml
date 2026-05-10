@@ -7,11 +7,11 @@
 
 ai:
   # ----- PROVIDER ĐANG DÙNG -----
-  provider: openai
+  provider: beeknoee
 
   beeknoee:
     enabled: true
-    api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff82a8b5ea082484f63b60d64792af5ef8d}
+    api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff82a8b5ea082484f63b60d64792af5ef8d,sk-bee-d32a3f4bc08544b4945bee85e9bb3ff8a3f8e81d15874c74a7c96074744dd964}
     api-url: https://platform.beeknoee.com/api/v1/chat/completions
     # Models Beeknoee hỗ trợ:
     #   - gemini-3-flash       ⭐ đang dùng

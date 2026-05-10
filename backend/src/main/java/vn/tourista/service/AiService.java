@@ -29,7 +29,9 @@ import jakarta.annotation.PostConstruct;
 public class AiService {
 
     @Value("${ai.beeknoee.api-key:}")
-    private String apiKey;
+    private String apiKeyConfig;
+
+    private String[] apiKeys;
 
     @Value("${ai.beeknoee.api-url:https://platform.beeknoee.com/api/v1/chat/completions}")
     private String apiUrl;
@@ -56,15 +58,29 @@ public class AiService {
     @PostConstruct
     public void init() {
         this.aiSemaphore = new Semaphore(semaphorePermits > 0 ? semaphorePermits : 3);
-        log.info("AiService initialized: provider=beeknoee, model={}, maxTokens={}, timeout={}s, permits={}",
-                model, maxTokens, timeoutSeconds, semaphorePermits);
+        if (apiKeyConfig != null && !apiKeyConfig.isBlank()) {
+            this.apiKeys = apiKeyConfig.split(",");
+            for (int i = 0; i < apiKeys.length; i++) {
+                apiKeys[i] = apiKeys[i].trim();
+            }
+        } else {
+            this.apiKeys = new String[0];
+        }
+        log.info("AiService initialized: provider=beeknoee, model={}, maxTokens={}, timeout={}s, permits={}, keys={}",
+                model, maxTokens, timeoutSeconds, semaphorePermits, apiKeys.length);
     }
 
     /**
      * Check if AI is configured and ready.
      */
     public boolean isEnabled() {
-        return apiKey != null && !apiKey.isBlank();
+        return apiKeys != null && apiKeys.length > 0;
+    }
+
+    private String getRandomApiKey() {
+        if (apiKeys == null || apiKeys.length == 0) return null;
+        if (apiKeys.length == 1) return apiKeys[0];
+        return apiKeys[new java.util.Random().nextInt(apiKeys.length)];
     }
 
     /**
@@ -104,7 +120,7 @@ public class AiService {
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(timeoutSeconds))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Authorization", "Bearer " + getRandomApiKey())
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
