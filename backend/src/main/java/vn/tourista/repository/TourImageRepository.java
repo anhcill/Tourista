@@ -59,4 +59,6 @@ public interface TourImageRepository extends JpaRepository<TourImage, Long> {
     }
 
     List<TourImage> findByTour_IdOrderBySortOrderAscIdAsc(Long tourId);
+
+    void deleteByTour_Id(Long tourId);
 }

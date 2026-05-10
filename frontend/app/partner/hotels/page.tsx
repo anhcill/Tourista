@@ -13,6 +13,7 @@ type HotelType = {
   coverImage?: string;
   imageUrl?: string;
   isActive: boolean;
+  adminStatus?: string;
   avgRating?: number;
   totalBookings?: number;
   totalRevenue?: number;
@@ -28,6 +29,28 @@ type PageData = {
 
 const formatCurrency = (amount: unknown) =>
   `${new Intl.NumberFormat('vi-VN').format(Number(amount || 0))} VND`;
+
+const CITIES = [
+  { id: 1, name: 'Hà Nội' },
+  { id: 2, name: 'Hồ Chí Minh' },
+  { id: 3, name: 'Đà Nẵng' },
+  { id: 4, name: 'Hội An' },
+  { id: 5, name: 'Huế' },
+  { id: 6, name: 'Nha Trang' },
+  { id: 7, name: 'Cần Thơ' },
+  { id: 8, name: 'Đà Lạt' },
+  { id: 9, name: 'Vũng Tàu' },
+  { id: 10, name: 'Phú Quốc' },
+  { id: 11, name: 'Sa Pa' },
+  { id: 12, name: 'Mũi Né' },
+];
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Từ chối',
+  SUSPENDED: 'Đình chỉ',
+};
 
 export default function PartnerHotelsPage() {
   const [hotels, setHotels] = useState<HotelType[]>([]);
@@ -79,7 +102,7 @@ export default function PartnerHotelsPage() {
             <FaSyncAlt className={refreshing ? styles.spinning : ''} />
             {refreshing ? 'Đang tải...' : 'Làm mới'}
           </button>
-          <Link href="/partner/hotels" className={styles.primaryBtn}>
+          <Link href="/partner/hotels/create" className={styles.primaryBtn}>
             <FaPlus /> Thêm khách sạn
           </Link>
         </div>
@@ -92,7 +115,7 @@ export default function PartnerHotelsPage() {
       ) : hotels.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Bạn chưa có khách sạn nào.</p>
-          <Link href="/partner/hotels" className={styles.primaryBtn}>
+          <Link href="/partner/hotels/create" className={styles.primaryBtn}>
             <FaPlus /> Thêm khách sạn đầu tiên
           </Link>
         </div>
@@ -110,6 +133,15 @@ export default function PartnerHotelsPage() {
                     {hotel.isActive ? <FaEye /> : <FaEyeSlash />}
                     {hotel.isActive ? 'Đang hoạt động' : 'Đã ẩn'}
                   </div>
+                  {hotel.adminStatus && hotel.adminStatus !== 'APPROVED' && (
+                    <div className={`${styles.statusBadge} ${
+                      hotel.adminStatus === 'PENDING' ? styles.pending :
+                      hotel.adminStatus === 'REJECTED' ? styles.rejected :
+                      styles.suspended
+                    }`}>
+                      {STATUS_LABELS[hotel.adminStatus] || hotel.adminStatus}
+                    </div>
+                  )}
                 </div>
                 <div className={styles.cardBody}>
                   <h3 className={styles.cardTitle}>{hotel.name}</h3>
@@ -120,8 +152,7 @@ export default function PartnerHotelsPage() {
                     <span>💰 {formatCurrency(hotel.totalRevenue)}</span>
                   </div>
                   <div className={styles.cardActions}>
-                    {/* TODO: Tạo trang partner/hotels/[id]/edit riêng */}
-                    <Link href={`/hotels/${hotel.id}`} className={styles.editBtn}>
+                    <Link href={`/partner/hotels/${hotel.id}/edit`} className={styles.editBtn}>
                       <FaEdit /> Chỉnh sửa
                     </Link>
                     <Link href={`/hotels/${hotel.id}`} className={styles.viewBtn} target="_blank">

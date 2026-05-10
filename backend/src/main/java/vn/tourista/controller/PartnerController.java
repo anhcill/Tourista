@@ -1,11 +1,15 @@
 package vn.tourista.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import vn.tourista.dto.request.partner.PartnerHotelUpsertRequest;
+import vn.tourista.dto.request.partner.PartnerTourUpsertRequest;
 import vn.tourista.dto.response.ApiResponse;
 import vn.tourista.dto.response.partner.PartnerBookingResponse;
 import vn.tourista.dto.response.partner.PartnerHotelResponse;
@@ -109,5 +113,75 @@ public class PartnerController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(ApiResponse.ok("Lay thong ke doanh thu thanh cong",
                 partnerService.getRevenueStats(user.getId(), period)));
+    }
+
+    // ===================== HOTEL CRUD (Partner) =====================
+
+    @PostMapping("/hotels")
+    public ResponseEntity<ApiResponse<PartnerHotelResponse>> createHotel(
+            @Valid @RequestBody PartnerHotelUpsertRequest request,
+            Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PartnerHotelResponse data = partnerService.createHotel(request, user.getId());
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Tao khach san thanh cong. Vui long cho admin duyet.", data));
+    }
+
+    @PutMapping("/hotels/{hotelId}")
+    public ResponseEntity<ApiResponse<PartnerHotelResponse>> updateHotel(
+            @PathVariable Long hotelId,
+            @Valid @RequestBody PartnerHotelUpsertRequest request,
+            Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PartnerHotelResponse data = partnerService.updateHotel(hotelId, request, user.getId());
+        return ResponseEntity.ok(ApiResponse.ok("Cap nhat khach san thanh cong", data));
+    }
+
+    @GetMapping("/hotels/{hotelId}")
+    public ResponseEntity<ApiResponse<PartnerHotelResponse>> getHotelById(
+            @PathVariable Long hotelId,
+            Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PartnerHotelResponse data = partnerService.getPartnerHotelById(hotelId, user.getId());
+        return ResponseEntity.ok(ApiResponse.ok("Lay chi tiet khach san thanh cong", data));
+    }
+
+    // ===================== TOUR CRUD (Partner) =====================
+
+    @PostMapping("/tours")
+    public ResponseEntity<ApiResponse<PartnerTourResponse>> createTour(
+            @Valid @RequestBody PartnerTourUpsertRequest request,
+            Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PartnerTourResponse data = partnerService.createTour(request, user.getId());
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Tao tour thanh cong. Vui long cho admin duyet.", data));
+    }
+
+    @PutMapping("/tours/{tourId}")
+    public ResponseEntity<ApiResponse<PartnerTourResponse>> updateTour(
+            @PathVariable Long tourId,
+            @Valid @RequestBody PartnerTourUpsertRequest request,
+            Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PartnerTourResponse data = partnerService.updateTour(tourId, request, user.getId());
+        return ResponseEntity.ok(ApiResponse.ok("Cap nhat tour thanh cong", data));
+    }
+
+    @GetMapping("/tours/{tourId}")
+    public ResponseEntity<ApiResponse<PartnerTourResponse>> getTourById(
+            @PathVariable Long tourId,
+            Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PartnerTourResponse data = partnerService.getPartnerTourById(tourId, user.getId());
+        return ResponseEntity.ok(ApiResponse.ok("Lay chi tiet tour thanh cong", data));
     }
 }

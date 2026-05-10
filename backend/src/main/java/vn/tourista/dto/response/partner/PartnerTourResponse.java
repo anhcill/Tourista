@@ -22,6 +22,8 @@ public class PartnerTourResponse {
     private BigDecimal avgRating;
     private Integer reviewCount;
     private Boolean isActive;
+    private Integer durationNights;
+    private String adminStatus;
     private Integer totalBookings;
     private BigDecimal totalRevenue;
 }

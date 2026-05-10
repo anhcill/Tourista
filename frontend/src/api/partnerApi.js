@@ -22,10 +22,52 @@ const partnerApi = {
     );
   },
 
+  getHotelById: async (hotelId) => {
+    return safeRequest(
+      () => axiosClient.get(`/partner/hotels/${hotelId}`),
+      'Không thể tải chi tiết khách sạn.',
+    );
+  },
+
+  createHotel: async (payload) => {
+    return safeRequest(
+      () => axiosClient.post('/partner/hotels', payload),
+      'Tạo khách sạn thất bại.',
+    );
+  },
+
+  updateHotel: async (hotelId, payload) => {
+    return safeRequest(
+      () => axiosClient.put(`/partner/hotels/${hotelId}`, payload),
+      'Cập nhật khách sạn thất bại.',
+    );
+  },
+
   getPartnerTours: async () => {
     return safeRequest(
       () => axiosClient.get('/partner/tours'),
       'Không thể tải danh sách tour.',
+    );
+  },
+
+  getTourById: async (tourId) => {
+    return safeRequest(
+      () => axiosClient.get(`/partner/tours/${tourId}`),
+      'Không thể tải chi tiết tour.',
+    );
+  },
+
+  createTour: async (payload) => {
+    return safeRequest(
+      () => axiosClient.post('/partner/tours', payload),
+      'Tạo tour thất bại.',
+    );
+  },
+
+  updateTour: async (tourId, payload) => {
+    return safeRequest(
+      () => axiosClient.put(`/partner/tours/${tourId}`, payload),
+      'Cập nhật tour thất bại.',
     );
   },
 

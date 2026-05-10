@@ -8,18 +8,29 @@ import styles from './page.module.css';
 
 type TourType = {
   id: number;
-  name?: string;
   title?: string;
   city?: string;
   coverImage?: string;
   imageUrl?: string;
   isActive: boolean;
+  adminStatus?: string;
   avgRating?: number;
   totalBookings?: number;
   totalRevenue?: number;
   durationDays?: number;
   durationNights?: number;
+  pricePerAdult?: number;
 };
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Chờ duyệt',
+  APPROVED: 'Đã duyệt',
+  REJECTED: 'Từ chối',
+  SUSPENDED: 'Đình chỉ',
+};
+
+const formatVnd = (amount: number) =>
+  `${new Intl.NumberFormat('vi-VN').format(Number(amount || 0))} VND`;
 
 const formatCurrency = (amount: unknown) =>
   `${new Intl.NumberFormat('vi-VN').format(Number(amount || 0))} VND`;
@@ -63,7 +74,7 @@ export default function PartnerToursPage() {
             <FaSyncAlt className={refreshing ? styles.spinning : ''} />
             {refreshing ? 'Đang tải...' : 'Làm mới'}
           </button>
-          <Link href="/partner/tours" className={styles.primaryBtn}>
+          <Link href="/partner/tours/create" className={styles.primaryBtn}>
             <FaPlus /> Thêm tour
           </Link>
         </div>
@@ -76,7 +87,7 @@ export default function PartnerToursPage() {
       ) : tours.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Bạn chưa có tour nào.</p>
-          <Link href="/partner/tours" className={styles.primaryBtn}>
+          <Link href="/partner/tours/create" className={styles.primaryBtn}>
             <FaPlus /> Thêm tour đầu tiên
           </Link>
         </div>
@@ -93,6 +104,15 @@ export default function PartnerToursPage() {
                   {tour.isActive ? <FaEye /> : <FaEyeSlash />}
                   {tour.isActive ? 'Đang hoạt động' : 'Đã ẩn'}
                 </div>
+                {tour.adminStatus && tour.adminStatus !== 'APPROVED' && (
+                  <div className={`${styles.statusBadge} ${
+                    tour.adminStatus === 'PENDING' ? styles.pending :
+                    tour.adminStatus === 'REJECTED' ? styles.rejected :
+                    styles.suspended
+                  }`}>
+                    {STATUS_LABELS[tour.adminStatus] || tour.adminStatus}
+                  </div>
+                )}
               </div>
               <div className={styles.cardBody}>
                 <h3 className={styles.cardTitle}>{tour.title || tour.name}</h3>
@@ -100,11 +120,10 @@ export default function PartnerToursPage() {
                 <div className={styles.cardStats}>
                   <span>⭐ {Number(tour.avgRating || 0).toFixed(1)}</span>
                   <span>📋 {Number(tour.totalBookings || 0)} đơn</span>
-                  <span>💰 {formatCurrency(tour.totalRevenue)}</span>
+                  <span>💰 {formatVnd(tour.pricePerAdult || 0)}</span>
                 </div>
                 <div className={styles.cardActions}>
-                  {/* TODO: Tạo trang partner/tours/[id]/edit riêng */}
-                  <Link href={`/tours/${tour.id}`} className={styles.editBtn}>
+                  <Link href={`/partner/tours/${tour.id}/edit`} className={styles.editBtn}>
                     <FaEdit /> Chỉnh sửa
                   </Link>
                   <Link href={`/tours/${tour.id}`} className={styles.viewBtn} target="_blank">
