@@ -707,8 +707,9 @@
    ============================================================ */
 .chatWrapper {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  bottom: 24px;
+  right: 24px;
+  left: auto;
   z-index: 9999;
 }
 
