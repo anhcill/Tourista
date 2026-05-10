@@ -98,7 +98,7 @@ export default function PartnerToursPage() {
               <div className={styles.cardImage}>
                 <img
                   src={tour.coverImage || tour.imageUrl || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80'}
-                  alt={tour.title || tour.name}
+                  alt={tour.title}
                 />
                 <div className={`${styles.statusBadge} ${tour.isActive ? styles.active : styles.inactive}`}>
                   {tour.isActive ? <FaEye /> : <FaEyeSlash />}
@@ -115,7 +115,7 @@ export default function PartnerToursPage() {
                 )}
               </div>
               <div className={styles.cardBody}>
-                <h3 className={styles.cardTitle}>{tour.title || tour.name}</h3>
+                <h3 className={styles.cardTitle}>{tour.title}</h3>
                 <p className={styles.cardMeta}>📍 {tour.city || 'N/A'} · {tour.durationDays || 0}N{(tour.durationNights || 0)}D</p>
                 <div className={styles.cardStats}>
                   <span>⭐ {Number(tour.avgRating || 0).toFixed(1)}</span>
