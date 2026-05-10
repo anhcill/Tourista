@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { closeBot } from '../../store/slices/chatSlice';
+import { closeBot, openBot } from '../../store/slices/chatSlice';
 import chatApi from '../../api/chatApi';
+import axiosClient from '../../api/axiosClient';
 import BookingItineraryCard from './BookingItineraryCard/BookingItineraryCard';
 import TourResultCard from './TourResultCard/TourResultCard';
 import styles from './BotChatWidget.module.css';
@@ -21,6 +22,7 @@ const SERVICES = [
     { id: 'cancel',     emoji: '❌', label: 'Hủy/Hoàn tiền',     color: '#8b5cf6', bg: '#f5f3ff' },
     { id: 'contact',    emoji: '📞', label: 'Liên hệ hỗ trợ',   color: '#10b981', bg: '#ecfdf5' },
     { id: 'faq',        emoji: '❓', label: 'Câu hỏi thường gặp', color: '#64748b', bg: '#f8fafc' },
+    { id: 'ai_chat',    emoji: '🤖', label: 'Chat với AI',        color: '#667eea', bg: '#eef2ff' },
 ];
 
 const FAQ_ITEMS = [
@@ -32,7 +34,7 @@ const FAQ_ITEMS = [
 ];
 
 /* ──────────── Status helpers ──────────── */
-type ViewId = 'home' | 'hot_tour' | 'lookup' | 'payment' | 'cancel' | 'contact' | 'faq';
+type ViewId = 'home' | 'hot_tour' | 'lookup' | 'payment' | 'cancel' | 'contact' | 'faq' | 'ai_chat';
 
 interface BookingResult {
     bookingCode: string;
@@ -347,6 +349,199 @@ const FaqView = ({ onBack }: { onBack: () => void }) => {
     );
 };
 
+/* ──────────── AI Chat View ──────────── */
+interface AiMessage {
+    id: string;
+    sender: 'user' | 'bot';
+    content: string;
+    timestamp: string;
+}
+
+const AI_WELCOME = `🌟 Chào bạn! Mình là AI Assistant của Tourista!
+
+Mình có thể giúp bạn:
+🗺️ **Gợi ý Tour** - Nói địa điểm + ngân sách + số người
+🏨 **Tìm Khách sạn** - Nói địa điểm + ngân sách
+🔍 **Tra cứu Booking** - Gửi mã TRS-YYYYMMDD-XXXXXX
+❓ **Hỏi đáp** - Chính sách, thanh toán, liên hệ
+
+Bạn cần gì nào?`;
+
+const AI_QUICK_ACTIONS = [
+    { label: 'Tìm tour', icon: '🗺️', prompt: 'Tìm tour du lịch Đà Nẵng 5 triệu cho 2 người' },
+    { label: 'Tìm khách sạn', icon: '🏨', prompt: 'Tìm khách sạn Đà Nẵng ngân sách 2 triệu' },
+    { label: 'Tra cứu booking', icon: '🔍', prompt: 'Tra cứu booking của tôi' },
+    { label: 'Chính sách hủy', icon: '❌', prompt: 'Chính sách hủy tour như thế nào?' },
+];
+
+/** Safe markdown parser — renders **bold** and `code` via React elements (no XSS) */
+const parseAiContent = (text: string): React.ReactNode[] => {
+    const lines = text.split('\n');
+    return lines.map((line, i) => {
+        const parts: React.ReactNode[] = [];
+        const regex = /(\*\*.*?\*\*|`.*?`)/g;
+        let lastIndex = 0;
+        let match;
+        let partKey = 0;
+        while ((match = regex.exec(line)) !== null) {
+            if (match.index > lastIndex) {
+                parts.push(<span key={partKey++}>{line.slice(lastIndex, match.index)}</span>);
+            }
+            const m = match[0];
+            if (m.startsWith('**') && m.endsWith('**') && m.length > 4) {
+                parts.push(<strong key={partKey++}>{m.slice(2, -2)}</strong>);
+            } else if (m.startsWith('`') && m.endsWith('`') && m.length > 2) {
+                parts.push(<code key={partKey++} style={{background:'rgba(0,0,0,0.08)',padding:'1px 4px',borderRadius:3,fontFamily:'monospace',fontSize:'0.85em'}}>{m.slice(1, -1)}</code>);
+            }
+            lastIndex = regex.lastIndex;
+        }
+        if (lastIndex < line.length) {
+            parts.push(<span key={partKey++}>{line.slice(lastIndex)}</span>);
+        }
+        return (
+            <span key={i}>
+                {parts.length > 0 ? parts : line}
+                {i < lines.length - 1 && <br />}
+            </span>
+        );
+    });
+};
+
+const AIChatView = ({ onBack }: { onBack: () => void }) => {
+    const [messages, setMessages] = useState<AiMessage[]>(() => [{
+        id: 'welcome',
+        sender: 'bot',
+        content: AI_WELCOME,
+        timestamp: new Date().toISOString(),
+    }]);
+    const [input, setInput] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const [conversationId, setConversationId] = useState<number | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const msgIdRef = useRef(0);
+    const nextMsgId = useCallback(() => `msg_${Date.now()}_${++msgIdRef.current}`, []);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const sendMessage = useCallback(async (text: string) => {
+        if (!text.trim()) return;
+        const userMsg: AiMessage = {
+            id: nextMsgId(),
+            sender: 'user',
+            content: text.trim(),
+            timestamp: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, userMsg]);
+        setInput('');
+        setIsTyping(true);
+        try {
+            // Gọi API qua axiosClient (auto token refresh khi 401)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const data: any = await axiosClient.post('/chat/message', {
+                message: text.trim(),
+                conversationId,
+            });
+            let botContent = '';
+            if (data?.success && data?.data) {
+                botContent = data.data.content || '';
+                if (data.data.conversationId && !conversationId) {
+                    setConversationId(data.data.conversationId);
+                }
+            } else if ((data as any)?.message) {
+                botContent = (data as any).message;
+            }
+            if (!botContent || botContent.trim() === '') {
+                botContent = 'Xin lỗi, mình chưa hiểu ý bạn. Bạn thử hỏi cụ thể hơn nhé!';
+            }
+            setMessages(prev => [...prev, {
+                id: nextMsgId(), sender: 'bot', content: botContent, timestamp: new Date().toISOString(),
+            }]);
+        } catch {
+            // Fallback response khi API lỗi
+            const lower = text.toLowerCase();
+            let fb = 'Mình đã ghi nhận câu hỏi của bạn! Liên hệ hotline 1900 1234 để được hỗ trợ nhanh hơn nhé!';
+            if (lower.includes('tour') || lower.includes('đi')) fb = '🎯 Hãy vào trang **Tours** để chọn điểm đến yêu thích nhé!';
+            else if (lower.includes('khách sạn') || lower.includes('hotel')) fb = '🏨 Vào trang **Khách sạn** để tìm nơi lưu trú phù hợp nhé!';
+            else if (lower.includes('TRS') || lower.includes('booking')) fb = '🔍 Đăng nhập và vào **Tài khoản > Lịch sử Booking** để tra cứu nhé!';
+            else if (lower.includes('chào') || lower.includes('hello') || lower.includes('hi')) fb = '👋 Xin chào! Rất vui được hỗ trợ bạn!';
+            setMessages(prev => [...prev, {
+                id: nextMsgId(), sender: 'bot', content: fb, timestamp: new Date().toISOString(),
+            }]);
+        } finally {
+            setIsTyping(false);
+        }
+    }, [conversationId, nextMsgId]);
+
+    const formatTime = (ts: string) => new Date(ts).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+    return (
+        <div className={styles.contentView}>
+            <div className={styles.viewHeader}>
+                <button className={styles.backBtn} onClick={onBack}>←</button>
+                <span className={styles.viewTitle}>🤖 Chat với AI</span>
+            </div>
+            <div className={styles.viewBody} style={{padding: 0, display:'flex', flexDirection:'column', flex:1, overflow:'hidden'}}>
+                {/* Messages */}
+                <div style={{flex:1, overflowY:'auto', padding:'12px', display:'flex', flexDirection:'column', gap:'8px'}}>
+                    {messages.map(msg => {
+                        const isBot = msg.sender === 'bot';
+                        return (
+                            <div key={msg.id} style={{display:'flex',gap:'6px',maxWidth:'88%',alignSelf: isBot ? 'flex-start' : 'flex-end', flexDirection: isBot ? 'row' : 'row-reverse'}}>
+                                <div style={{width:28,height:28,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,flexShrink:0,
+                                    background: isBot ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#e2e8f0',
+                                    color: isBot ? '#fff' : '#64748b'}}>
+                                    {isBot ? '🤖' : '👤'}
+                                </div>
+                                <div style={{padding:'8px 12px',borderRadius:14,fontSize:'0.83rem',lineHeight:1.5,whiteSpace:'pre-wrap',wordBreak:'break-word',
+                                    background: isBot ? '#fff' : 'linear-gradient(135deg,#667eea,#764ba2)',
+                                    color: isBot ? '#1e293b' : '#fff',
+                                    border: isBot ? '1px solid #e2e8f0' : 'none',
+                                    borderTopLeftRadius: isBot ? 4 : 14,
+                                    borderTopRightRadius: isBot ? 14 : 4}}>
+                                    <div>{parseAiContent(msg.content)}</div>
+                                    <div style={{fontSize:'0.6rem',opacity:0.6,marginTop:2,textAlign: isBot ? 'left' : 'right'}}>{formatTime(msg.timestamp)}</div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {isTyping && (
+                        <div style={{display:'flex',gap:6,alignSelf:'flex-start'}}>
+                            <div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,#667eea,#764ba2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,color:'#fff'}}>🤖</div>
+                            <div style={{padding:'10px 14px',background:'#fff',border:'1px solid #e2e8f0',borderRadius:14,borderTopLeftRadius:4,display:'flex',gap:3}}>
+                                {[0,1,2].map(i => <span key={i} style={{width:6,height:6,borderRadius:'50%',background:'#667eea',animation:`bounce 1.4s ease-in-out ${i*0.18}s infinite`}} />)}
+                            </div>
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+                {/* Quick actions (only when welcome) */}
+                {messages.length === 1 && (
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,padding:'8px 12px',borderTop:'1px solid #e2e8f0',background:'#fff'}}>
+                        {AI_QUICK_ACTIONS.map((a, i) => (
+                            <button key={i} onClick={() => sendMessage(a.prompt)}
+                                style={{display:'flex',alignItems:'center',gap:6,padding:'7px 8px',borderRadius:8,border:'1px solid #e2e8f0',background:'#f8fafc',cursor:'pointer',fontSize:'0.76rem',fontWeight:500,color:'#475569',transition:'all 0.2s'}}>
+                                <span>{a.icon}</span><span>{a.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+                {/* Input */}
+                <form onSubmit={e => { e.preventDefault(); if (input.trim()) sendMessage(input); }}
+                    style={{display:'flex',gap:6,padding:'8px 12px',borderTop:'1px solid #e2e8f0',background:'#fff',flexShrink:0}}>
+                    <input type="text" placeholder="Nhắn tin cho AI..." value={input} onChange={e => setInput(e.target.value)}
+                        style={{flex:1,height:36,border:'1.5px solid #e2e8f0',borderRadius:18,padding:'0 12px',fontSize:'0.83rem',outline:'none'}} />
+                    <button type="submit" disabled={!input.trim()}
+                        style={{width:36,height:36,borderRadius:'50%',border:'none',background:'linear-gradient(135deg,#667eea,#764ba2)',color:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,opacity: input.trim() ? 1 : 0.5}}>
+                        ▶
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 /* ──────────── BotChatBox ──────────── */
 const BotChatBox = () => {
     const dispatch = useDispatch();
@@ -391,6 +586,7 @@ const BotChatBox = () => {
                 {view === 'cancel' && <CancelPolicyView onBack={goHome} />}
                 {view === 'contact' && <ContactView onBack={goHome} />}
                 {view === 'faq' && <FaqView onBack={goHome} />}
+                {view === 'ai_chat' && <AIChatView onBack={goHome} />}
             </div>
         </div>
     );
@@ -410,7 +606,7 @@ const BotChatWidget = () => {
             )}
             <button
                 className={`${styles.fab} ${isBotOpen ? styles.fabActive : ''}`}
-                onClick={() => dispatch(isBotOpen ? closeBot() : dispatch({ type: 'chat/openBot' }))}
+                onClick={() => dispatch(isBotOpen ? closeBot() : openBot())}
                 aria-label="Mở hỗ trợ"
             >
                 <span className={styles.fabIcon}>{isBotOpen ? '✕' : '🗺️'}</span>

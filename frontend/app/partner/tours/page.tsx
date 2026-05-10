@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { FaPlane, FaPlus, FaEdit, FaEye, FaEyeSlash, FaSyncAlt } from 'react-icons/fa';
-import { toast } from 'react-toastify';
 import partnerApi from '@/api/partnerApi';
 import styles from './page.module.css';
 
@@ -64,7 +63,7 @@ export default function PartnerToursPage() {
             <FaSyncAlt className={refreshing ? styles.spinning : ''} />
             {refreshing ? 'Đang tải...' : 'Làm mới'}
           </button>
-          <Link href="/admin/tours/create" className={styles.primaryBtn}>
+          <Link href="/partner/tours" className={styles.primaryBtn}>
             <FaPlus /> Thêm tour
           </Link>
         </div>
@@ -77,7 +76,7 @@ export default function PartnerToursPage() {
       ) : tours.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Bạn chưa có tour nào.</p>
-          <Link href="/admin/tours/create" className={styles.primaryBtn}>
+          <Link href="/partner/tours" className={styles.primaryBtn}>
             <FaPlus /> Thêm tour đầu tiên
           </Link>
         </div>
@@ -104,7 +103,8 @@ export default function PartnerToursPage() {
                   <span>💰 {formatCurrency(tour.totalRevenue)}</span>
                 </div>
                 <div className={styles.cardActions}>
-                  <Link href={`/admin/tours/${tour.id}/edit`} className={styles.editBtn}>
+                  {/* TODO: Tạo trang partner/tours/[id]/edit riêng */}
+                  <Link href={`/tours/${tour.id}`} className={styles.editBtn}>
                     <FaEdit /> Chỉnh sửa
                   </Link>
                   <Link href={`/tours/${tour.id}`} className={styles.viewBtn} target="_blank">

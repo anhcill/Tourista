@@ -2,12 +2,14 @@ import axiosClient from './axiosClient';
 
 const safeRequest = async (fn, fallbackMessage) => {
   try {
+    // axiosClient interceptor already returns response.data (the HTTP body)
+    // so we return it directly — no extra .data unwrap needed
     const response = await fn();
-    return response?.data;
+    return response;
   } catch (err) {
-    if (err?.response?.data?.message) {
-      throw new Error(err.response.data.message);
-    }
+    // axiosClient rejects with { message, status, data }
+    const msg = err?.data?.message || err?.message;
+    if (msg) throw new Error(msg);
     throw new Error(fallbackMessage);
   }
 };

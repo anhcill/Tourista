@@ -73,7 +73,6 @@ export default function PartnerMessagesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [convs, setConvs] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [draft, setDraft] = useState('');
   const [sendingIndicator, setSendingIndicator] = useState(false);
@@ -82,8 +81,8 @@ export default function PartnerMessagesPage() {
   const listRef = useRef(null);
 
   const activeConversation = useMemo(
-    () => convs.find((item) => Number(item.id) === Number(activeConversationId)) || null,
-    [activeConversationId, convs],
+    () => conversations.find((item) => Number(item.id) === Number(activeConversationId)) || null,
+    [activeConversationId, conversations],
   );
 
   // Merge API messages + WebSocket messages from Redux store
@@ -95,14 +94,15 @@ export default function PartnerMessagesPage() {
 
   const filteredConversations = useMemo(() => {
     const keyword = String(search || '').trim().toLowerCase();
-    if (!keyword) return convs;
-    return convs.filter((item) => {
+    const p2pConvs = conversations.filter((item) => item.type !== 'BOT');
+    if (!keyword) return p2pConvs;
+    return p2pConvs.filter((item) => {
       const partner = String(item.partnerName || '').toLowerCase();
       const snippet = String(item.lastMessageSnippet || '').toLowerCase();
       const booking = String(item.bookingCode || '').toLowerCase();
       return partner.includes(keyword) || snippet.includes(keyword) || booking.includes(keyword);
     });
-  }, [convs, search]);
+  }, [conversations, search]);
 
   const loadMessages = useCallback(
     async (conversationId) => {
@@ -120,7 +120,6 @@ export default function PartnerMessagesPage() {
       const response = await chatApi.getConversations();
       const list = Array.isArray(response?.data) ? response.data : [];
       const p2pOnly = list.filter((item) => item.type !== 'BOT');
-      setConvs(p2pOnly);
       dispatch(setConversations(p2pOnly));
 
       if (p2pOnly.length > 0) {
@@ -145,9 +144,9 @@ export default function PartnerMessagesPage() {
     loadConversations();
   }, [isAuthenticated, loadConversations]);
 
-  // Reload conversations when WS messages come in (for unread badge update)
+  // We use Redux `conversations` and `wsMessages`, so WS push will automatically update UI.
   useEffect(() => {
-    // Nothing needed here - Redux store is already updated by WS hook
+    // Redux store is updated by WS hook
   }, [wsMessages]);
 
   // Auto-scroll to bottom when messages change
@@ -165,13 +164,6 @@ export default function PartnerMessagesPage() {
     }
 
     dispatch(markConversationRead(conversation.id));
-    setConvs((prev) =>
-      prev.map((item) =>
-        Number(item.id) === Number(conversation.id)
-          ? { ...item, unreadCount: 0 }
-          : item,
-      ),
-    );
     await chatApi.markAsRead(conversation.id);
 
     setTimeout(() => {

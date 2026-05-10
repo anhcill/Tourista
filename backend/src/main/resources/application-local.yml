@@ -29,3 +29,4 @@ server:
 ai:
   provider: gemini
   gemini-api-key: ${GEMINI_API_KEY:}
+  openai-api-key: sk-bee-d32a3f4bc08544b4945bee85e9bb3ff8a3f8e81d15874c74a7c96074744dd964

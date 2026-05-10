@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FaUser, FaTimes, FaComments, FaSpinner } from 'react-icons/fa';
+import { FaUser } from 'react-icons/fa';
 import { MdSmartToy, MdSend } from 'react-icons/md';
 import styles from './AIPanel.module.css';
-import chatApi from '@/api/chatApi';
-import { getAccessToken } from '@/utils/authStorage';
+import axiosClient from '@/api/axiosClient';
 
 interface Message {
     id?: string | number;
@@ -14,10 +13,7 @@ interface Message {
     timestamp?: string;
 }
 
-const WELCOME_BOT = {
-    id: 'welcome',
-    sender: 'bot' as const,
-    content: `🌟 Chào bạn! Mình là AI Assistant của Tourista Studio!
+const WELCOME_BOT_CONTENT = `🌟 Chào bạn! Mình là AI Assistant của Tourista Studio!
 
 Mình có thể giúp bạn:
 
@@ -28,9 +24,7 @@ Mình có thể giúp bạn:
 
 Ví dụ: "Tìm tour Đà Nẵng 5 triệu cho 2 người"
 
-Bạn cần gì nào?`,
-    timestamp: new Date().toISOString(),
-};
+Bạn cần gì nào?`;
 
 const QUICK_ACTIONS = [
     { label: 'Tìm tour', icon: '🗺️', prompt: 'Tìm tour du lịch Đà Nẵng 5 triệu cho 2 người' },
@@ -46,12 +40,19 @@ interface AIPanelProps {
 }
 
 export default function AIPanel({ isOpen = true, onClose, compact = false }: AIPanelProps) {
-    const [messages, setMessages] = useState<Message[]>([WELCOME_BOT]);
+    const [messages, setMessages] = useState<Message[]>(() => [{
+        id: 'welcome',
+        sender: 'bot' as const,
+        content: WELCOME_BOT_CONTENT,
+        timestamp: new Date().toISOString(),
+    }]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [conversationId, setConversationId] = useState<number | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const msgIdRef = useRef(0);
+    const nextMsgId = useCallback(() => `msg_${Date.now()}_${++msgIdRef.current}`, []);
 
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,7 +67,7 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
         if (!text.trim()) return;
 
         const userMsg: Message = {
-            id: Date.now(),
+            id: nextMsgId(),
             sender: 'user',
             content: text.trim(),
             timestamp: new Date().toISOString(),
@@ -77,24 +78,15 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
         setIsTyping(true);
 
         try {
-            // Gọi API /api/chat/message - backend sẽ xử lý AI và trả về response
-            const token = getAccessToken();
-            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-            if (token) headers['Authorization'] = `Bearer ${token}`;
-
-            const response = await fetch('/api/chat/message', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    message: text.trim(),
-                    conversationId: conversationId,
-                }),
+            // Gọi API qua axiosClient (auto token refresh khi 401)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const data: any = await axiosClient.post('/chat/message', {
+                message: text.trim(),
+                conversationId: conversationId,
             });
 
-            const data = await response.json();
-
+            // axiosClient interceptor đã unwrap response.data
             // Backend trả về: { success: true, data: ChatMessageResponse }
-            // ChatMessageResponse: { id, conversationId, content, contentType, createdAt, ... }
             let botContent = '';
 
             if (data?.success && data?.data) {
@@ -103,9 +95,8 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
                 if (data.data.conversationId && !conversationId) {
                     setConversationId(data.data.conversationId);
                 }
-            } else if (data?.message) {
-                // Lỗi có message
-                botContent = data.message;
+            } else if ((data as any)?.message) {
+                botContent = (data as any).message;
             }
 
             if (!botContent || botContent.trim() === '') {
@@ -113,7 +104,7 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
             }
 
             const botMsg: Message = {
-                id: Date.now() + 1,
+                id: nextMsgId(),
                 sender: 'bot',
                 content: botContent,
                 timestamp: new Date().toISOString(),
@@ -125,26 +116,26 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
 
             // Fallback response khi API lỗi
             const lowerText = text.toLowerCase();
-            let response = 'Mình đã ghi nhận câu hỏi của bạn! Bạn có thể liên hệ hotline 1900 1234 để được hỗ trợ nhanh hơn nhé!';
+            let fallback = 'Mình đã ghi nhận câu hỏi của bạn! Liên hệ hotline 1900 1234 để được hỗ trợ nhanh hơn nhé!';
 
             if (lowerText.includes('tour') || lowerText.includes('đi')) {
-                response = '🎯 Bạn muốn tìm tour? Hãy vào trang **Tours** và chọn điểm đến yêu thích nhé! Hoặc mình gợi ý: Đà Nẵng, Phú Quốc, Nha Trang...';
+                fallback = '🎯 Hãy vào trang **Tours** và chọn điểm đến yêu thích nhé!';
             } else if (lowerText.includes('khách sạn') || lowerText.includes('hotel')) {
-                response = '🏨 Mình giới thiệu bạn vào trang **Khách sạn** để tìm nơi lưu trú phù hợp nhé!';
+                fallback = '🏨 Vào trang **Khách sạn** để tìm nơi lưu trú phù hợp nhé!';
             } else if (lowerText.includes('TRS') || lowerText.includes('booking')) {
-                response = '🔍 Để tra cứu booking, bạn cần đăng nhập và vào **Tài khoản > Lịch sử Booking** nhé!';
+                fallback = '🔍 Đăng nhập và vào **Tài khoản > Lịch sử Booking** để tra cứu nhé!';
             } else if (lowerText.includes('hủ') || lowerText.includes('hoàn')) {
-                response = '❌ **Chính sách hủy tour:**\n• Hủy trước 7 ngày → hoàn 80%\n• Hủy 3-7 ngày → hoàn 50%\n• Dưới 3 ngày → không hoàn';
+                fallback = '❌ **Chính sách hủy tour:**\n• Hủy trước 7 ngày → hoàn 80%\n• Hủy 3-7 ngày → hoàn 50%\n• Dưới 3 ngày → không hoàn';
             } else if (lowerText.includes('thanh toán')) {
-                response = '💳 Tourista hỗ trợ thanh toán qua:\n• **VNPay** - thẻ ATM/Visa\n• **Chuyển khoản** ngân hàng\n• **MoMo**, **ZaloPay**';
+                fallback = '💳 Tourista hỗ trợ thanh toán qua:\n• **VNPay** - thẻ ATM/Visa\n• **Chuyển khoản** ngân hàng\n• **MoMo**, **ZaloPay**';
             } else if (lowerText.includes('chào') || lowerText.includes('hello') || lowerText.includes('hi')) {
-                response = '👋 Xin chào! Rất vui được hỗ trợ bạn! Bạn cần tìm gì hôm nay?';
+                fallback = '👋 Xin chào! Rất vui được hỗ trợ bạn! Bạn cần tìm gì hôm nay?';
             }
 
             const botMsg: Message = {
-                id: Date.now() + 1,
+                id: nextMsgId(),
                 sender: 'bot',
-                content: response,
+                content: fallback,
                 timestamp: new Date().toISOString(),
             };
 
@@ -152,7 +143,7 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
         } finally {
             setIsTyping(false);
         }
-    }, [conversationId]);
+    }, [conversationId, nextMsgId]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -169,16 +160,34 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
     const renderMessage = (msg: Message, index: number) => {
         const isBot = msg.sender === 'bot';
         
-        // Simple markdown-like parsing
+        // Safe markdown-like parsing (no dangerouslySetInnerHTML — prevents XSS)
         const parseContent = (text: string) => {
-            return text.split('\n').map((line, i) => {
-                const formatted = line
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/`(.*?)`/g, '<code>$1</code>');
+            const lines = text.split('\n');
+            return lines.map((line, i) => {
+                const parts: React.ReactNode[] = [];
+                const regex = /(\*\*.*?\*\*|`.*?`)/g;
+                let lastIndex = 0;
+                let match;
+                let partKey = 0;
+                while ((match = regex.exec(line)) !== null) {
+                    if (match.index > lastIndex) {
+                        parts.push(<span key={partKey++}>{line.slice(lastIndex, match.index)}</span>);
+                    }
+                    const m = match[0];
+                    if (m.startsWith('**') && m.endsWith('**') && m.length > 4) {
+                        parts.push(<strong key={partKey++}>{m.slice(2, -2)}</strong>);
+                    } else if (m.startsWith('`') && m.endsWith('`') && m.length > 2) {
+                        parts.push(<code key={partKey++}>{m.slice(1, -1)}</code>);
+                    }
+                    lastIndex = regex.lastIndex;
+                }
+                if (lastIndex < line.length) {
+                    parts.push(<span key={partKey++}>{line.slice(lastIndex)}</span>);
+                }
                 return (
                     <span key={i}>
-                        <span dangerouslySetInnerHTML={{ __html: formatted }} />
-                        {i < text.split('\n').length - 1 && <br />}
+                        {parts.length > 0 ? parts : line}
+                        {i < lines.length - 1 && <br />}
                     </span>
                 );
             });
@@ -237,7 +246,7 @@ export default function AIPanel({ isOpen = true, onClose, compact = false }: AIP
                         </button>
                         {onClose && (
                             <button className={styles.closeBtn} onClick={onClose}>
-                                <FaTimes />
+                                ✕
                             </button>
                         )}
                     </div>

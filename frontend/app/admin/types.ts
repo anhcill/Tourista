@@ -43,7 +43,7 @@ export type DashboardOverview = {
     cancelled: number;
     pending: number;
   }>;
-  dataMode: 'live-or-partial' | 'mock';
+  dataMode: 'live' | 'mock';
   hasMockFallback: boolean;
 };
 
@@ -71,7 +71,7 @@ export type AdminUsersOverview = {
     page: number;
     size: number;
   };
-  dataMode: 'live-or-partial' | 'mock';
+  dataMode: 'live' | 'mock';
   hasMockFallback: boolean;
 };
 
@@ -99,7 +99,7 @@ export type AdminHotelsOverview = {
     page: number;
     size: number;
   };
-  dataMode: 'live-or-partial' | 'mock';
+  dataMode: 'live' | 'mock';
   hasMockFallback: boolean;
 };
 
@@ -128,7 +128,7 @@ export type AdminToursOverview = {
     page: number;
     size: number;
   };
-  dataMode: 'live-or-partial' | 'mock';
+  dataMode: 'live' | 'mock';
   hasMockFallback: boolean;
 };
 
@@ -169,7 +169,7 @@ export type AdminBookingsOverview = {
     page: number;
     size: number;
   };
-  dataMode: 'live-or-partial' | 'mock';
+  dataMode: 'live' | 'mock';
   hasMockFallback: boolean;
 };
 
@@ -203,7 +203,7 @@ export type AdminPromotionsOverview = {
     page: number;
     size: number;
   };
-  dataMode: 'live-or-partial' | 'mock';
+  dataMode: 'live' | 'mock';
   hasMockFallback: boolean;
 };
 
@@ -227,7 +227,7 @@ export type AdminAuditLogsOverview = {
     page: number;
     size: number;
   };
-  dataMode: 'live-or-partial' | 'mock';
+  dataMode: 'live' | 'mock';
   hasMockFallback: boolean;
 };
 

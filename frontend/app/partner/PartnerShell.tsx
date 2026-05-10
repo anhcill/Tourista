@@ -113,6 +113,7 @@ export default function PartnerShell({ children }: { children: React.ReactNode }
   const router = useRouter();
   const { user, token, isAuthenticated } = useAppSelector((state) => state.auth);
   const [mounted, setMounted] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -133,7 +134,7 @@ export default function PartnerShell({ children }: { children: React.ReactNode }
   const avatarBg = useMemo(() => getAvatarBg(displayName), [displayName]);
   const initials = useMemo(() => getInitials(displayName), [displayName]);
 
-  const isActive = (href) => {
+  const isActive = (href: string) => {
     if (href === '/partner') return pathname === '/partner';
     return pathname.startsWith(href);
   };
@@ -166,7 +167,16 @@ export default function PartnerShell({ children }: { children: React.ReactNode }
 
   return (
     <div className={styles.shell}>
-      <aside className={styles.sidebar}>
+      {/* Mobile hamburger */}
+      <button
+        className={styles.hamburger}
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle menu"
+      >
+        {sidebarOpen ? '✕' : '☰'}
+      </button>
+      {sidebarOpen && <div className={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)} />}
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
         {/* Brand */}
         <div className={styles.brandBlock}>
           <Link href="/" className={styles.brandLink}>
@@ -196,6 +206,7 @@ export default function PartnerShell({ children }: { children: React.ReactNode }
               key={item.href}
               href={item.href}
               className={`${styles.navItem} ${isActive(item.href) ? styles.navItemActive : ''}`}
+              onClick={() => setSidebarOpen(false)}
             >
               <span className={styles.navIcon}>{item.icon}</span>
               <span className={styles.navLabel}>{item.label}</span>

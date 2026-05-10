@@ -154,19 +154,19 @@ export default function PartnerReviewsPage() {
         </div>
         <div className={`${styles.statCard} ${styles.statHotel}`}>
           <strong>{stats.hotel}</strong>
-          <span>Khách sạn</span>
+          <span>Khách sạn (trang này)</span>
         </div>
         <div className={`${styles.statCard} ${styles.statTour}`}>
           <strong>{stats.tour}</strong>
-          <span>Tour</span>
+          <span>Tour (trang này)</span>
         </div>
         <div className={`${styles.statCard} ${styles.statReplied}`}>
           <strong>{stats.withReply}</strong>
-          <span>Đã phản hồi</span>
+          <span>Đã phản hồi (trang này)</span>
         </div>
         <div className={`${styles.statCard} ${styles.statRating}`}>
           <strong>{stats.avgRating}</strong>
-          <span>Điểm TB / 10</span>
+          <span>Điểm TB (trang này)</span>
         </div>
       </div>
 

@@ -12,6 +12,8 @@ import {
   FaUniversity,
   FaWallet,
   FaMobileAlt,
+  FaPlus,
+  FaMinus,
 } from 'react-icons/fa';
 import hotelApi from '@/api/hotelApi';
 import bookingApi from '@/api/bookingApi';
@@ -202,10 +204,19 @@ function HotelBookingInner() {
 
   const fullName = `${formState.firstName} ${formState.middleName} ${formState.lastName}`.replace(/\s+/g, ' ').trim();
   const roomPrice = Number(selectedRoom?.basePricePerNight || 0);
-  const originalPrice = roomPrice * nights * query.rooms;
+  const originalPrice = roomPrice * localNights * query.rooms;
   const loyaltyDiscount = Math.round(originalPrice * 0.04);
 
   const [appliedPromo, setAppliedPromo] = useState(null);
+
+  // Local editable dates on the booking page
+  const [localCheckIn, setLocalCheckIn] = useState(query.checkIn);
+  const [localCheckOut, setLocalCheckOut] = useState(query.checkOut);
+
+  const localNights = Math.max(
+    1,
+    Math.ceil((new Date(localCheckOut).getTime() - new Date(localCheckIn).getTime()) / (1000 * 60 * 60 * 24)),
+  );
   const promoDiscount = appliedPromo ? Number(appliedPromo.discountAmount || 0) : 0;
   const subtotalAfterDiscount = Math.max(0, originalPrice - loyaltyDiscount - promoDiscount);
   const vatAmount = Math.round(subtotalAfterDiscount * 0.10);
@@ -227,6 +238,65 @@ function HotelBookingInner() {
 
   const onFieldChange = (field, value) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toDateInput = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const addDays = (dateStr, days) => {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + days);
+    return toDateInput(d);
+  };
+
+  const handleExtendNights = () => {
+    const newCheckOut = addDays(localCheckOut, 1);
+    setLocalCheckIn(localCheckIn);
+    setLocalCheckOut(newCheckOut);
+    // Update URL so the change persists if user refreshes
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('checkIn', localCheckIn);
+    params.set('checkOut', newCheckOut);
+    router.replace(`/hotels/${id}/book?${params.toString()}`, { scroll: false });
+  };
+
+  const handleReduceNights = () => {
+    if (localNights <= 1) return;
+    const newCheckOut = addDays(localCheckOut, -1);
+    setLocalCheckOut(newCheckOut);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('checkIn', localCheckIn);
+    params.set('checkOut', newCheckOut);
+    router.replace(`/hotels/${id}/book?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCheckInChange = (newCheckIn) => {
+    const ci = newCheckIn;
+    const co = localCheckOut && new Date(localCheckOut) > new Date(ci)
+      ? localCheckOut
+      : addDays(ci, 1);
+    setLocalCheckIn(ci);
+    setLocalCheckOut(co);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('checkIn', ci);
+    params.set('checkOut', co);
+    router.replace(`/hotels/${id}/book?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCheckOutChange = (newCheckOut) => {
+    if (new Date(newCheckOut) <= new Date(localCheckIn)) return;
+    setLocalCheckOut(newCheckOut);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('checkIn', localCheckIn);
+    params.set('checkOut', newCheckOut);
+    router.replace(`/hotels/${id}/book?${params.toString()}`, { scroll: false });
   };
 
   const validateBeforeSubmit = () => {
@@ -290,8 +360,8 @@ function HotelBookingInner() {
       const payload = {
         hotelId: Number(id),
         roomTypeId: Number(selectedRoom.id),
-        checkIn: query.checkIn,
-        checkOut: query.checkOut,
+        checkIn: localCheckIn,
+        checkOut: localCheckOut,
         adults: query.adults,
         children: query.children,
         rooms: query.rooms,
@@ -655,18 +725,59 @@ function HotelBookingInner() {
 
           <article className={styles.block}>
             <h2>{TEXTS.titleBookingInfo}</h2>
-            <div className={styles.dateGrid}>
+
+            {/* Date picker row */}
+            <div className={styles.dateGrid} style={{ marginBottom: 12 }}>
               <div>
                 <strong>Ngày nhận phòng</strong>
-                <p>{query.checkIn}</p>
+                <input
+                  type="date"
+                  className={styles.dateInput}
+                  value={localCheckIn}
+                  min={toDateInput(new Date())}
+                  onChange={(e) => handleCheckInChange(e.target.value)}
+                />
               </div>
               <div>
                 <strong>Ngày trả phòng</strong>
-                <p>{query.checkOut}</p>
+                <input
+                  type="date"
+                  className={styles.dateInput}
+                  value={localCheckOut}
+                  min={localCheckIn ? toDateInput(addDays(localCheckIn, 1)) : toDateInput(new Date())}
+                  onChange={(e) => handleCheckOutChange(e.target.value)}
+                />
               </div>
             </div>
+
+            {/* +/- nights quick buttons */}
+            <div className={styles.nightsControl}>
+              <span className={styles.nightsLabel}>
+                Thời gian lưu trú: <strong>{localNights} đêm</strong>
+              </span>
+              <div className={styles.nightsBtns}>
+                <button
+                  type="button"
+                  className={styles.nightsBtn}
+                  onClick={handleReduceNights}
+                  disabled={localNights <= 1}
+                  title="Giảm 1 đêm"
+                >
+                  <FaMinus />
+                </button>
+                <button
+                  type="button"
+                  className={styles.nightsBtn}
+                  onClick={handleExtendNights}
+                  title="Ở thêm 1 đêm"
+                >
+                  <FaPlus />
+                </button>
+              </div>
+            </div>
+
             <ul className={styles.metaList}>
-              <li>Thời gian lưu trú: {nights} đêm</li>
+              <li>Thời gian lưu trú: {localNights} đêm</li>
               <li>Số phòng đã chọn: {query.rooms}</li>
               <li>{query.adults} người lớn</li>
               <li>{query.children} trẻ em</li>

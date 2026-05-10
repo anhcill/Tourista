@@ -112,7 +112,7 @@ export default function PartnerPage() {
         setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.data?.content || tourBk?.content || []));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const apiRev = revStats as any;
-        setRevenueStats(apiRev?.data ?? null);
+        setRevenueStats(apiRev?.data ?? apiRev ?? null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu.');
       } finally {
@@ -229,16 +229,19 @@ export default function PartnerPage() {
       .slice(0, 5);
   }, [hotelBookings, tourBookings]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = async (newPeriod?: string) => {
     setRefreshing(true);
     setLoading(true);
+    const targetPeriod = newPeriod || period;
+    if (newPeriod) setPeriod(newPeriod);
+    
     try {
       const [hotelData, tourData, hotelBk, tourBk, revStats] = await Promise.all([
         partnerApi.getPartnerHotels().catch(() => []),
         partnerApi.getPartnerTours().catch(() => []),
         partnerApi.getPartnerHotelBookings({ size: 100 }).catch(() => []),
         partnerApi.getPartnerTourBookings({ size: 100 }).catch(() => []),
-        partnerApi.getRevenueStats(period).catch(() => null),
+        partnerApi.getRevenueStats(targetPeriod).catch(() => null),
       ]);
         setHotels(Array.isArray(hotelData) ? hotelData : (hotelData?.data || []));
         setTours(Array.isArray(tourData) ? tourData : (tourData?.data || []));
@@ -246,7 +249,7 @@ export default function PartnerPage() {
         setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.data?.content || tourBk?.content || []));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const apiRev2 = revStats as any;
-        setRevenueStats(apiRev2?.data ?? null);
+        setRevenueStats(apiRev2?.data ?? apiRev2 ?? null);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -289,24 +292,13 @@ export default function PartnerPage() {
               <button
                 key={p.value}
                 className={`${styles.periodBtn} ${period === p.value ? styles.periodBtnActive : ''}`}
-                onClick={async () => {
-                  setPeriod(p.value);
-                  setLoading(true);
-                  try {
-                    const revStats = await partnerApi.getRevenueStats(p.value).catch(() => null);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const apiRev3 = revStats as any;
-                    setRevenueStats(apiRev3?.data ?? null);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
+                onClick={() => handleRefresh(p.value)}
               >
                 {p.label}
               </button>
             ))}
           </div>
-          <button className={styles.refreshBtn} onClick={handleRefresh} disabled={refreshing}>
+          <button className={styles.refreshBtn} onClick={() => handleRefresh()} disabled={refreshing}>
             <FaSyncAlt className={refreshing ? styles.spinning : ''} />
             {refreshing ? 'Đang tải...' : 'Làm mới'}
           </button>

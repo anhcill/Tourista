@@ -261,4 +261,29 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
             LIMIT :limit
             """, nativeQuery = true)
     List<Long> findBotTrendingHotelIds(@Param("limit") int limit);
+
+    /**
+     * Tim top popular hotels (global fallback when no city detected).
+     */
+    @Query(value = """
+            SELECT
+                h.id,
+                h.name,
+                h.star_rating,
+                COALESCE(c.name_vi, c.name_en) AS city_name,
+                h.avg_rating,
+                h.review_count,
+                (SELECT MIN(rt.base_price_per_night)
+                 FROM room_types rt
+                 WHERE rt.hotel_id = h.id
+                   AND rt.is_active = TRUE
+                   AND rt.base_price_per_night > 0
+                 LIMIT 1) AS min_price
+            FROM hotels h
+            LEFT JOIN cities c ON c.id = h.city_id
+            WHERE h.is_active = TRUE
+            ORDER BY h.avg_rating DESC, h.review_count DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> findPopularHotels(@Param("limit") int limit);
 }

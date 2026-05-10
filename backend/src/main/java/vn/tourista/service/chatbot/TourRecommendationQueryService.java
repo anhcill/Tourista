@@ -12,6 +12,7 @@ import vn.tourista.repository.HotelRepository;
 import vn.tourista.repository.TourImageRepository;
 import vn.tourista.repository.TourRepository;
 import vn.tourista.service.AiService;
+import vn.tourista.service.ai.LocationUnderstandingService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,6 +34,8 @@ public class TourRecommendationQueryService {
     private final CityRepository cityRepository;
     private final HotelRepository hotelRepository;
     private final AiService aiService;
+    private final ChatbotNlpService nlpService;
+    private final LocationUnderstandingService locationService;
 
     /**
      * Tìm tour phù hợp theo budget/travelers/city/duration.
@@ -189,8 +192,17 @@ public class TourRecommendationQueryService {
             }
         }
 
-        // Hotels
-        ChatbotNlpService.CityAlias detectedCity = null;
+        // Hotels - detect city first so we can query by location
+        // parseCityAlias works on canonical (no-accents), locationService works on original
+        ChatbotNlpService.CityAlias detectedCity = nlpService.parseCityAlias(canonical);
+        String parsedLocation = null;
+        if (detectedCity == null) {
+            parsedLocation = locationService.parseLocation(inputText);
+            if (parsedLocation != null) {
+                ctx.append("Địa điểm được nhận diện: ").append(parsedLocation).append(".\n");
+            }
+        }
+
         boolean asksAboutHotel = containsAny(canonical, List.of("khach san", "hotel", "noi that", "nghi duong", "住宿", "cho o", "noi nghi"));
         boolean asksAboutPlace = containsAny(canonical, List.of("di dau", "den dau", "o dau", "nghi o dau", "dia diem", "diem den"));
 
@@ -199,8 +211,11 @@ public class TourRecommendationQueryService {
                 List<Object[]> hotelRows;
                 if (detectedCity != null) {
                     hotelRows = hotelRepository.findPopularHotelsByCityEn(detectedCity.queryValue(), 3);
+                } else if (parsedLocation != null) {
+                    hotelRows = hotelRepository.findPopularHotelsByCityEn(parsedLocation, 3);
                 } else {
-                    hotelRows = List.of();
+                    // Fall back to trending hotels if no city detected
+                    hotelRows = hotelRepository.findPopularHotels(3);
                 }
 
                 if (hotelRows != null && !hotelRows.isEmpty()) {

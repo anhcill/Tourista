@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { FaHotel, FaPlus, FaEdit, FaEye, FaEyeSlash, FaSyncAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { toast } from 'react-toastify';
 import partnerApi from '@/api/partnerApi';
 import styles from './page.module.css';
 
@@ -80,7 +79,7 @@ export default function PartnerHotelsPage() {
             <FaSyncAlt className={refreshing ? styles.spinning : ''} />
             {refreshing ? 'Đang tải...' : 'Làm mới'}
           </button>
-          <Link href="/admin/hotels/create" className={styles.primaryBtn}>
+          <Link href="/partner/hotels" className={styles.primaryBtn}>
             <FaPlus /> Thêm khách sạn
           </Link>
         </div>
@@ -93,7 +92,7 @@ export default function PartnerHotelsPage() {
       ) : hotels.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Bạn chưa có khách sạn nào.</p>
-          <Link href="/admin/hotels/create" className={styles.primaryBtn}>
+          <Link href="/partner/hotels" className={styles.primaryBtn}>
             <FaPlus /> Thêm khách sạn đầu tiên
           </Link>
         </div>
@@ -121,7 +120,8 @@ export default function PartnerHotelsPage() {
                     <span>💰 {formatCurrency(hotel.totalRevenue)}</span>
                   </div>
                   <div className={styles.cardActions}>
-                    <Link href={`/admin/hotels/${hotel.id}/edit`} className={styles.editBtn}>
+                    {/* TODO: Tạo trang partner/hotels/[id]/edit riêng */}
+                    <Link href={`/hotels/${hotel.id}`} className={styles.editBtn}>
                       <FaEdit /> Chỉnh sửa
                     </Link>
                     <Link href={`/hotels/${hotel.id}`} className={styles.viewBtn} target="_blank">

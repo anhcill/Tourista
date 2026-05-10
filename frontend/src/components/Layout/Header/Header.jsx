@@ -132,6 +132,7 @@ const Header = () => {
     const [searchKeyword, setSearchKeyword] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+    const [selectedSearchType, setSelectedSearchType] = useState('');
     const [recentSearches, setRecentSearches] = useState([]);
     const dropdownRef = useRef(null);
 
@@ -259,9 +260,19 @@ const Header = () => {
             return;
         }
         saveRecentSearch(keyword);
-        router.push(`/hotels/search?destination=${encodeURIComponent(keyword)}&adults=2&rooms=1`);
+
+        // If user had selected a Tour suggestion, or the active suggestion is a Tour, route to tours
+        const activeSuggestion = activeSuggestionIndex >= 0 ? mixedSuggestions[activeSuggestionIndex] : null;
+        const resolvedType = activeSuggestion?.type || selectedSearchType || '';
+
+        if (resolvedType === 'Tour') {
+            router.push(`/tours/search?city=${encodeURIComponent(keyword)}`);
+        } else {
+            router.push(`/hotels/search?destination=${encodeURIComponent(keyword)}&adults=2&rooms=1`);
+        }
         setIsSearchFocused(false);
         setActiveSuggestionIndex(-1);
+        setSelectedSearchType('');
     };
 
     const saveRecentSearch = (keyword) => {
@@ -280,6 +291,7 @@ const Header = () => {
     const selectSuggestion = (value, type = 'Điểm đến') => {
         setSearchKeyword(value);
         saveRecentSearch(value);
+        setSelectedSearchType(type);
         if (type === 'Tour') {
             router.push(`/tours/search?city=${encodeURIComponent(value)}`);
         } else {
@@ -287,6 +299,7 @@ const Header = () => {
         }
         setIsSearchFocused(false);
         setActiveSuggestionIndex(-1);
+        setSelectedSearchType('');
     };
 
     const selectRecentSearch = (value) => {
@@ -589,7 +602,12 @@ const Header = () => {
                         <form className={styles.stickySearchForm} onSubmit={(e) => {
                             e.preventDefault();
                             const kw = searchKeyword.trim() || 'Da Nang';
-                            router.push(`/hotels/search?destination=${encodeURIComponent(kw)}&adults=2&rooms=1`);
+                            if (selectedSearchType === 'Tour') {
+                                router.push(`/tours/search?city=${encodeURIComponent(kw)}`);
+                            } else {
+                                router.push(`/hotels/search?destination=${encodeURIComponent(kw)}&adults=2&rooms=1`);
+                            }
+                            setSelectedSearchType('');
                         }}>
                             <FaSearch className={styles.stickySearchIcon} />
                             <input
