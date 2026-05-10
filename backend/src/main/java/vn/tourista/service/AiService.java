@@ -319,12 +319,11 @@ public class AiService {
         sb.append("TRẢ LỜI TỰ NHIÊN:\n");
         sb.append("- Chat như đang nói chuyện với bạn thân, không phải đọc tài liệu\n");
         sb.append("- Dùng emoji phù hợp: 🏖️ biển, 🏨 khách sạn, 🍜 ẩm thực, 🗺️ du lịch\n");
-        sb.append("- Nếu có data thực từ hệ thống → trích dẫn cụ thể: tên, giá, rating\n");
-        sb.append("- Nếu hỏi địa điểm → trả lời về địa điểm đó: thời tiết, ẩm thực, hoạt động\n");
+        sb.append("- ƯU TIÊN SỐ 1: Nếu có 'Khách sạn nổi bật' hoặc 'Tour đang hoạt động' trong DỮ LIỆU HỆ THỐNG → BẮT BUỘC giới thiệu cụ thể: tên, giá, rating, khu vực. KHÔNG được bỏ qua data thật để nói chung chung.\n");
+        sb.append("- Nếu người dùng hỏi tìm khách sạn/tour → gợi ý các lựa chọn cụ thể từ hệ thống, kèm giá và đánh giá\n");
+        sb.append("- Nếu hỏi địa điểm mà KHÔNG có data khách sạn/tour → trả lời về thời tiết, ẩm thực, hoạt động\n");
         sb.append("- Nếu hỏi so sánh → so sánh tự nhiên, nêu ưu nhược từng nơi\n");
-        sb.append("- Nếu hỏi thời tiết → trả lời theo mùa hiện tại và địa điểm cụ thể\n");
-        sb.append("- Nếu câu hỏi lạ → trả lời dựa trên kiến thức du lịch Việt Nam\n");
-        sb.append("- Kết thúc bằng gợi ý hành động cụ thể\n\n");
+        sb.append("- Kết thúc bằng gợi ý hành động cụ thể (ví dụ: 'Bạn muốn mình tìm thêm khách sạn nào không?')\n\n");
 
         return sb.toString();
     }

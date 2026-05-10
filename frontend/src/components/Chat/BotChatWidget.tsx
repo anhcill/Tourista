@@ -425,6 +425,19 @@ const AIChatView = ({ onBack }: { onBack: () => void }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // Reset cuộc trò chuyện — xóa sạch context cũ, bắt đầu phiên mới
+    const resetConversation = useCallback(() => {
+        setConversationId(null);
+        setMessages([{
+            id: 'welcome_reset',
+            sender: 'bot',
+            content: '🔄 Đã bắt đầu cuộc trò chuyện mới!\n\n' + AI_WELCOME,
+            timestamp: new Date().toISOString(),
+        }]);
+        setInput('');
+        setIsTyping(false);
+    }, []);
+
     const sendMessage = useCallback(async (text: string) => {
         if (!text.trim()) return;
         const userMsg: AiMessage = {
@@ -481,6 +494,14 @@ const AIChatView = ({ onBack }: { onBack: () => void }) => {
             <div className={styles.viewHeader}>
                 <button className={styles.backBtn} onClick={onBack}>←</button>
                 <span className={styles.viewTitle}>🤖 Chat với AI</span>
+                <button
+                    className={styles.backBtn}
+                    onClick={resetConversation}
+                    title="Bắt đầu cuộc trò chuyện mới"
+                    style={{ marginLeft: 'auto', fontSize: '0.85rem' }}
+                >
+                    🔄
+                </button>
             </div>
             <div className={styles.viewBody} style={{padding: 0, display:'flex', flexDirection:'column', flex:1, overflow:'hidden'}}>
                 {/* Messages */}

@@ -139,7 +139,11 @@ public class AiChatbotService {
 
     /**
      * Xây dựng context từ lịch sử hội thoại gần đây.
+     * Chỉ lấy tin nhắn trong vòng SESSION_TIMEOUT_MINUTES phút gần nhất
+     * để tránh AI nhớ context cũ không liên quan.
      */
+    private static final int SESSION_TIMEOUT_MINUTES = 30;
+
     public String buildConversationContext(Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId).orElse(null);
         if (conversation == null) {
@@ -154,6 +158,10 @@ public class AiChatbotService {
             return "";
         }
 
+        // Chỉ giữ tin nhắn trong vòng SESSION_TIMEOUT_MINUTES phút gần nhất
+        java.time.LocalDateTime cutoff = java.time.LocalDateTime.now()
+                .minusMinutes(SESSION_TIMEOUT_MINUTES);
+
         List<ChatMessage> chronological = new ArrayList<>(page.getContent());
         Collections.reverse(chronological);
 
@@ -164,6 +172,11 @@ public class AiChatbotService {
             }
 
             if (message.getContentType() == ChatMessage.ContentType.SYSTEM_LOG) {
+                continue;
+            }
+
+            // Bỏ qua tin nhắn cũ hơn SESSION_TIMEOUT_MINUTES phút
+            if (message.getCreatedAt() != null && message.getCreatedAt().isBefore(cutoff)) {
                 continue;
             }
 

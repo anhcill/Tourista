@@ -203,29 +203,51 @@ public class TourRecommendationQueryService {
             }
         }
 
-        boolean asksAboutHotel = containsAny(canonical, List.of("khach san", "hotel", "noi that", "nghi duong", "住宿", "cho o", "noi nghi"));
-        boolean asksAboutPlace = containsAny(canonical, List.of("di dau", "den dau", "o dau", "nghi o dau", "dia diem", "diem den"));
+        boolean asksAboutHotel = containsAny(canonical, List.of(
+                "khach san", "hotel", "noi that", "nghi duong", "cho o", "noi nghi",
+                // Mở rộng: các từ ngữ ngầm ám chỉ tìm khách sạn
+                "phong", "gia phong", "dat phong", "thue phong",
+                "1 dem", "mot dem", "dem", "o lai",
+                "homestay", "resort", "hostel", "motel",
+                "chi phi", "ngan sach", "tam", "gia re", "binh dan",
+                "gan bien", "trung tam", "luu tru"
+        ));
+        boolean asksAboutPlace = containsAny(canonical, List.of(
+                "di dau", "den dau", "o dau", "nghi o dau", "dia diem", "diem den"
+        ));
+
+        // Nếu đã detect được thành phố + KHÔNG phải đang hỏi về tour → mặc định query hotels
+        // (User nói "hà nội ở hoàn kiếm chi phí 500k" → có city nhưng không có keyword tour)
+        boolean cityDetected = detectedCity != null || parsedLocation != null;
+        boolean asksAboutTour = containsAny(canonical, List.of("tour", "du lich", "di dau", "goi y", "de xuat", "lich trinh"));
+        if (cityDetected && !asksAboutHotel && !asksAboutTour) {
+            asksAboutHotel = true; // Mặc định tìm khách sạn khi có city
+        }
 
         if (asksAboutHotel || asksAboutPlace) {
             try {
                 List<Object[]> hotelRows;
                 if (detectedCity != null) {
-                    hotelRows = hotelRepository.findPopularHotelsByCityEn(detectedCity.queryValue(), 3);
+                    hotelRows = hotelRepository.findPopularHotelsByCityEn(detectedCity.queryValue(), 5);
                 } else if (parsedLocation != null) {
-                    hotelRows = hotelRepository.findPopularHotelsByCityEn(parsedLocation, 3);
+                    hotelRows = hotelRepository.findPopularHotelsByCityEn(parsedLocation, 5);
                 } else {
                     // Fall back to trending hotels if no city detected
-                    hotelRows = hotelRepository.findPopularHotels(3);
+                    hotelRows = hotelRepository.findPopularHotels(5);
                 }
 
                 if (hotelRows != null && !hotelRows.isEmpty()) {
-                    ctx.append("Khách sạn nổi bật: ");
+                    ctx.append("Khách sạn nổi bật trong hệ thống Tourista: ");
                     for (int i = 0; i < hotelRows.size(); i++) {
                         Object[] row = hotelRows.get(i);
                         if (i > 0) ctx.append("; ");
                         ctx.append("- \"").append(row[1] != null ? row[1] : "")
                                 .append("\" (").append(row[2] != null ? row[2] : "").append("★)")
                                 .append(", rating ").append(row[4] != null ? row[4] : "N/A").append("★");
+                        // Thêm địa chỉ nếu có (row[3] thường là address/district)
+                        if (row[3] != null && !row[3].toString().isBlank()) {
+                            ctx.append(", khu vực ").append(row[3]);
+                        }
                         if (row[6] != null) {
                             long price = ((Number) row[6]).longValue();
                             ctx.append(", từ ").append(formatVnd(price)).append("/đêm");

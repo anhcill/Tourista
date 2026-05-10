@@ -58,16 +58,27 @@ public class ChatbotNlpService {
 
     private static final List<CityAlias> CITY_ALIASES = List.of(
             new CityAlias("da nang", "Da Nang", List.of("da nang", "đà nẵng")),
-            new CityAlias("da lat", "Da Lat", List.of("da lat", "đà lạt")),
+            new CityAlias("da lat", "Da Lat", List.of("da lat", "đà lạt", "dalat")),
             new CityAlias("phu quoc", "Phu Quoc", List.of("phu quoc", "phú quốc")),
-            new CityAlias("nha trang", "Nha Trang", List.of("nha trang", "nha trang")),
-            new CityAlias("ha noi", "Ha Noi", List.of("ha noi", "hà nội")),
+            new CityAlias("nha trang", "Nha Trang", List.of("nha trang")),
+            new CityAlias("ha noi", "Ha Noi", List.of("ha noi", "hà nội", "hanoi")),
             new CityAlias("sapa", "Sa Pa", List.of("sapa", "sa pa")),
             new CityAlias("hue", "Hue", List.of("hue", "huế")),
-            new CityAlias("hoi an", "Hoi An", List.of("hoi an", "hội an")));
+            new CityAlias("hoi an", "Hoi An", List.of("hoi an", "hội an")),
+            // Bổ sung thêm các thành phố phổ biến
+            new CityAlias("ho chi minh", "Ho Chi Minh", List.of("ho chi minh", "hcm", "tp hcm", "sai gon", "tp.hcm", "saigon")),
+            new CityAlias("vung tau", "Vung Tau", List.of("vung tau", "vũng tàu")),
+            new CityAlias("quy nhon", "Quy Nhon", List.of("quy nhon", "quy nhơn")),
+            new CityAlias("ha long", "Ha Long", List.of("ha long", "hạ long", "quang ninh", "quảng ninh")),
+            new CityAlias("can tho", "Can Tho", List.of("can tho", "cần thơ")),
+            new CityAlias("ninh binh", "Ninh Binh", List.of("ninh binh", "ninh bình", "trang an")),
+            new CityAlias("moc chau", "Moc Chau", List.of("moc chau", "mộc châu")),
+            new CityAlias("phan thiet", "Phan Thiet", List.of("phan thiet", "phan thiết", "mui ne", "mũi né")),
+            new CityAlias("hai phong", "Hai Phong", List.of("hai phong", "hải phòng")));
 
     /**
      * Trích xuất budget (VND) từ text.
+     * Hỗ trợ: "500k", "2tr", "500.000", và cả chữ viết "năm trăm", "hai triệu".
      */
     public Integer parseBudgetVnd(String inputText) {
         if (inputText == null || inputText.isBlank()) {
@@ -101,6 +112,43 @@ public class ChatbotNlpService {
                     return null;
                 }
             }
+        }
+
+        // Fallback: parse chữ tiếng Việt ("năm trăm" = 500k, "hai triệu" = 2tr)
+        Integer wordBudget = parseVietnameseWordBudget(inputText.toLowerCase());
+        if (wordBudget != null) {
+            return wordBudget;
+        }
+
+        return null;
+    }
+
+    /**
+     * Parse budget từ chữ tiếng Việt: "năm trăm" → 500.000, "hai triệu" → 2.000.000
+     */
+    private Integer parseVietnameseWordBudget(String text) {
+        String normalized = canonicalize(text);
+        // Map chữ số tiếng Việt → giá trị
+        int number = -1;
+        if (normalized.contains("mot") || normalized.contains("1")) number = 1;
+        else if (normalized.contains("hai") || normalized.contains("2")) number = 2;
+        else if (normalized.contains("ba") || normalized.contains("3")) number = 3;
+        else if (normalized.contains("bon") || normalized.contains("4")) number = 4;
+        else if (normalized.contains("nam") && !normalized.contains("viet nam")) number = 5;
+        else if (normalized.contains("sau") || normalized.contains("6")) number = 6;
+        else if (normalized.contains("bay") || normalized.contains("7")) number = 7;
+        else if (normalized.contains("tam") || normalized.contains("8")) number = 8;
+        else if (normalized.contains("chin") || normalized.contains("9")) number = 9;
+        else if (normalized.contains("muoi") || normalized.contains("10")) number = 10;
+
+        if (number <= 0) return null;
+
+        // Xác định đơn vị
+        if (normalized.contains("trieu")) {
+            return normalizeBudgetValue((long) number * 1_000_000L);
+        } else if (normalized.contains("tram")) {
+            // "năm trăm" ngầm hiểu = 500.000 VND (500k)
+            return normalizeBudgetValue((long) number * 100_000L);
         }
 
         return null;
