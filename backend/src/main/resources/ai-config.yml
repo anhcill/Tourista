@@ -6,29 +6,22 @@
 # ============================================================
 
 ai:
-  # ----- PROVIDER: BEEKNOEE (OpenAI-compatible, powered by Zhipu/DeepSeek) -----
+  # ----- PROVIDER ĐANG DÙNG -----
   provider: beeknoee
 
   beeknoee:
     enabled: true
-    # API Key - lấy từ https://platform.beeknoee.com
     api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff82a8b5ea082484f63b60d64792af5ef8d}
-    # Endpoint
     api-url: https://platform.beeknoee.com/api/v1/chat/completions
-    # Model - đổi ở đây:
-    #   - deepseek/deepseek-v3
-    #   - deepseek/deepseek-v4-pro
-    #   - glm-4-flash
+    # Models Beeknoee hỗ trợ:
+    #   - gemini-3-flash       ⭐ đang dùng
+    #   - gemini-2.5-flash
     #   - glm-4.7-flash
-    #   - qwen/qwen-2.5-plus
-    #   - gpt-5.4-mini ⭐ (model mới)
-    model: gpt-5.4-mini
-    # Reasoning mode (cho model hỗ trợ): on, off, auto
+    #   - deepseek/deepseek-v3
+    model: gemini-3-flash
     reasoning: off
-    # Timeout & tokens
-    timeout-seconds: 60
+    timeout-seconds: 20
     max-tokens: 2000
-    # Temperature (0= deterministic, 1= creative)
     temperature: 0.7
 
   # ----- PROVIDER: OPENAI (Alternative) -----
@@ -41,14 +34,13 @@ ai:
     max-tokens: 2000
     temperature: 0.7
 
-  # ----- PROVIDER: GEMINI (Google - Alternative) -----
+  # ----- PROVIDER: GEMINI native (tắt - đang dùng qua Beeknoee) -----
   gemini:
     enabled: false
     api-key: ${GEMINI_API_KEY:}
-    # Endpoint format: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
     api-url: https://generativelanguage.googleapis.com/v1beta/models
-    model: gemini-2.0-flash
-    timeout-seconds: 60
+    model: gemini-2.5-flash
+    timeout-seconds: 20
     max-tokens: 2000
 
   # ----- PROVIDER: ANTHROPIC CLAUDE (Alternative) -----
@@ -79,5 +71,5 @@ ai:
   # ----- SEMAPHORE (Concurrency Control) -----
   # Giới hạn request đồng thời (tránh quá tải API)
   semaphore:
-    permits: 1
+    permits: 3
     wait-seconds: 5

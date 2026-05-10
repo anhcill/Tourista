@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic';
 import HeroBanner from '@/components/Home/HeroBanner';
 import TopAnnouncementBar from '@/components/Ads/TopAnnouncementBar';
-import PromoPopup from '@/components/Ads/PromoPopup';
 import FloatingGiftWidget from '@/components/Ads/FloatingGiftWidget';
 
 import styles from './page.module.css';
@@ -84,7 +83,6 @@ export default function Home() {
                 <Newsletter />
 
                 {/* Floating Widgets & Popups */}
-                <PromoPopup />
                 <FloatingGiftWidget />
             </main>
         </div>
