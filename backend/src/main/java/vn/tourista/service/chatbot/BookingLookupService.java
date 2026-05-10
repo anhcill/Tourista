@@ -3,6 +3,7 @@ package vn.tourista.service.chatbot;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.tourista.dto.response.BotBookingResponse;
 import vn.tourista.entity.Booking;
 import vn.tourista.entity.BookingHotelDetail;
@@ -38,6 +39,7 @@ public class BookingLookupService {
      * @param clientEmail Email của user đang hỏi
      * @return BotBookingResponse nếu tìm thấy và user có quyền, null nếu không tìm thấy
      */
+    @Transactional(readOnly = true)
     public LookupResult lookupBooking(String bookingCode, String clientEmail) {
         // 1. Tìm booking theo mã
         Optional<Booking> bookingOpt = bookingRepository.findByBookingCodeIgnoreCase(bookingCode);
@@ -71,6 +73,7 @@ public class BookingLookupService {
         }
     }
 
+    @Transactional(readOnly = true)
     private BotBookingResponse buildTourResponse(Booking booking) {
         BookingTourDetail detail = tourDetailRepository.findByBooking(booking)
                 .orElseThrow(() -> new RuntimeException(
@@ -123,6 +126,7 @@ public class BookingLookupService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     private BotBookingResponse buildHotelResponse(Booking booking) {
         BookingHotelDetail detail = hotelDetailRepository.findByBooking(booking)
                 .orElseThrow(() -> new RuntimeException(
