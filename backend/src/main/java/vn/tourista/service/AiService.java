@@ -39,10 +39,10 @@ public class AiService {
     @Value("${ai.beeknoee.model:glm-4.7-flash}")
     private String model;
 
-    @Value("${ai.beeknoee.timeout-seconds:20}")
+    @Value("${ai.beeknoee.timeout-seconds:30}")
     private int timeoutSeconds;
 
-    @Value("${ai.beeknoee.max-tokens:2000}")
+    @Value("${ai.beeknoee.max-tokens:3500}")
     private int maxTokens;
 
     @Value("${ai.semaphore.permits:3}")
@@ -174,13 +174,14 @@ public class AiService {
 
                 YÊU CẦU:
                 - Viết theo phong cách travel blogger: tự nhiên, gần gũi, có cảm xúc, có cá tính
-                - Mỗi ngày viết 1-2 đoạn văn, mỗi đoạn 3-5 câu
-                - Đề cập các hoạt động chính với thời gian cụ thể
+                - Mỗi ngày viết 2-3 đoạn văn, mỗi đoạn 3-5 câu
+                - Đề cập TOÀN BỘ các hoạt động với thời gian cụ thể
                 - Thêm mẹo nhỏ thực tế phù hợp với MÙA HIỆN TẠI
+                - Mô tả chi tiết thiết thực: điểm đến cụ thể, giá tiền, mẹo tiết kiệm
                 - KHÔNG bịa giá, KHÔNG thêm hoạt động không có trong lịch trình
                 - KHÔNG viết generic tips như "nên mang kem chống nắng"
-                - Tổng độ dài: 4-8 đoạn văn
-                - Trả lời CHỈ bằng văn bản, không dùng markdown phức tạp
+                - Tổng độ dài: 6-10 đoạn văn (đủ chi tiết cho mọi ngày)
+                - Trả lời CHỂ bằng văn bản, không dùng markdown phức tạp
                 - VARIATION: Mỗi ngày có góc nhìn khác nhau (ngày 1: háo hức/check-in, ngày 2: khám phá sâu, ngày cuối: thư giãn/mua sắm)
 
                 Lịch trình:
@@ -342,11 +343,11 @@ public class AiService {
     private String buildRequestBody(String content) {
         return """
                 {
-                  "model": "%s",
+                              "model": "%s",
                   "messages": [
                     {
                       "role": "system",
-                      "content": "Ban la tro ly du lich AI cua nen tang Tourista Studio. Tra loi ngan gon, thân thiên, dung emoji phu hop. Chi tra loi ve du lich, tour, khach san, diem den Viet Nam."
+                      "content": "Ban la travel blogger va chuyen gia du lich Viet Nam. Tra loi chi tiet, cu the, thuc te voi gia ca, dia diem chinh xac. Dung emoji phu hop. Luon co nguon goc thong tin ro rang."
                     },
                     {
                       "role": "user",
@@ -354,7 +355,7 @@ public class AiService {
                     }
                   ],
                   "max_tokens": %d,
-                  "temperature": 0.5
+                  "temperature": 0.7
                 }
                 """.formatted(model, escapeJson(content), maxTokens);
     }

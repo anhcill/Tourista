@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     FaMapMarkerAlt, FaCalendarAlt, FaUsers, FaWallet,
@@ -109,6 +109,27 @@ export default function AITravelPlannerPage() {
             return { ...prev, interests: next };
         });
     };
+
+    const LOADING_MESSAGES = [
+        '🗺️ Đang phân tích địa điểm...',
+        '📅 Lên lịch từng ngày...',
+        '🍜 Tìm ẩm thực đặc sản...',
+        '🏨 Tìm chỗ nghỉ phù hợp...',
+        '✨ AI đang viết lịch trình chi tiết...',
+        '🎒 Chuẩn bị danh sách đồ dùng...',
+        '💡 Tổng hợp mẹo hay...',
+    ];
+    const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
+
+    useEffect(() => {
+        if (!loading) return;
+        setLoadingMsgIdx(0);
+        const interval = setInterval(() => {
+            setLoadingMsgIdx(prev => (prev + 1) % LOADING_MESSAGES.length);
+        }, 2500);
+        return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loading]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -302,7 +323,7 @@ export default function AITravelPlannerPage() {
 
                         <button type="submit" className={styles.submitBtn} disabled={loading}>
                             {loading ? (
-                                <><FaSpinner className={styles.spin} /> Đang tạo...</>
+                                <><FaSpinner className={styles.spin} /> {LOADING_MESSAGES[loadingMsgIdx]}</>
                             ) : (
                                 <><IoMdFlash /> Tạo lịch trình AI</>
                             )}

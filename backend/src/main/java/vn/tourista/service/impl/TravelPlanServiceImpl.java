@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * TravelPlanService — CORE ENGINE + AI LAYER.
@@ -73,18 +74,37 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             // Có trong DB → dùng CORE ENGINE (nhanh, chính xác)
             plan = buildRuleBasedPlan(request, totalDays, destData, budget, tripType, interests);
 
-            // AI viết lại văn phong tự nhiên (song song)
+            // AI viết lại văn phong + gợi ý câu hỏi — chạy SONG SONG để giảm latency
             String dayPlansJson = serializeDayPlans(plan);
-            String rewrittenProse = aiService.rewritePlanToNaturalProse(
-                    plan.getSummary() != null ? plan.getSummary() : "",
-                    dayPlansJson
+            String planSummary = plan.getSummary() != null ? plan.getSummary() : "";
+
+            CompletableFuture<String> proseFuture = CompletableFuture.supplyAsync(() ->
+                    aiService.rewritePlanToNaturalProse(planSummary, dayPlansJson)
             );
+            CompletableFuture<List<String>> suggestionFuture = CompletableFuture.supplyAsync(() ->
+                    aiService.suggestFollowUpQuestions(planSummary, budget, tripType)
+            );
+
+            // Chờ cả 2 hoàn thành
+            String rewrittenProse = null;
+            List<String> suggestions = null;
+            try {
+                rewrittenProse = proseFuture.get(25, java.util.concurrent.TimeUnit.SECONDS);
+                suggestions = suggestionFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                log.warn("TravelPlanService: AI parallel call error — {}", ex.getMessage());
+            }
+
             if (rewrittenProse != null && !rewrittenProse.isBlank()) {
                 plan.setRewrittenProse(rewrittenProse);
             }
+            if (suggestions != null && !suggestions.isEmpty()) {
+                plan.setAiSuggestions(suggestions);
+            }
+            return plan;
         }
 
-        // AI gợi ý câu hỏi tiếp theo
+        // AI gợi ý câu hỏi tiếp theo (cho AI-only plan)
         List<String> suggestions = aiService.suggestFollowUpQuestions(
                 plan.getSummary() != null ? plan.getSummary() : "",
                 budget,
