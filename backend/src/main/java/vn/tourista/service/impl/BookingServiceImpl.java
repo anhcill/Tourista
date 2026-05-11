@@ -157,7 +157,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDate nightDate = request.getCheckIn();
         for (int i = 0; i < nights; i++) {
             var nightlyCalc = pricingService.calculateHotelNightPrice(
-                    roomType.getHotel().getId(), nightDate, request.getAdults());
+                    roomType.getHotel().getId(), nightDate, request.getAdults(), roomType.getId());
             subtotal = subtotal.add(nightlyCalc.getFinalPrice() != null
                     ? nightlyCalc.getFinalPrice()
                     : roomType.getBasePricePerNight());
@@ -518,7 +518,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDate nightDate = request.getCheckIn();
         for (int i = 0; i < nights; i++) {
             var nightlyCalc = pricingService.calculateHotelNightPrice(
-                    roomType.getHotel().getId(), nightDate, request.getAdults());
+                    roomType.getHotel().getId(), nightDate, request.getAdults(), roomType.getId());
             subtotal = subtotal.add(nightlyCalc.getFinalPrice() != null
                     ? nightlyCalc.getFinalPrice()
                     : roomType.getBasePricePerNight());
