@@ -15,4 +15,6 @@ public interface BookingTourDetailRepository extends JpaRepository<BookingTourDe
     Optional<BookingTourDetail> findByBooking(Booking booking);
 
     List<BookingTourDetail> findByTourIdIn(List<Long> tourIds);
+
+    List<BookingTourDetail> findByBookingId(Long bookingId);
 }

@@ -244,3 +244,114 @@
     margin: 0;
     line-height: 1.4;
 }
+
+/* Footer "Xem tất cả" */
+.notifFooter {
+    padding: 10px 16px;
+    border-top: 1px solid #e8f0f4;
+    text-align: center;
+}
+
+.notifFooterLink {
+    font-size: 12px;
+    font-weight: 600;
+    color: #0f7fb6;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.notifFooterLink:hover {
+    color: #0058a6;
+    text-decoration: underline;
+}
+
+/* Spinner animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Dark mode */
+[data-theme="dark"] .triggerBtn {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .triggerBtn:hover {
+    background: #1e293b;
+    border-color: #0f7fb6;
+}
+
+[data-theme="dark"] .dropdown {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .header {
+    background: linear-gradient(135deg, rgba(15, 127, 182, 0.15), rgba(0, 168, 168, 0.1));
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .headerTitle {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .headerAction {
+    color: #38bdf8;
+}
+
+[data-theme="dark"] .notifItem {
+    border-bottom-color: #1e293b;
+}
+
+[data-theme="dark"] .notifItem:hover {
+    background: #273344;
+}
+
+[data-theme="dark"] .notifItem.unread {
+    background: #1a3a4a;
+}
+
+[data-theme="dark"] .notifIcon {
+    background: #1e3a4a;
+    color: #38bdf8;
+}
+
+[data-theme="dark"] .notifTitle {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .notifText {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .notifTime {
+    color: #64748b;
+}
+
+[data-theme="dark"] .emptyState {
+    color: #64748b;
+}
+
+[data-theme="dark"] .notifFooter {
+    border-top-color: #334155;
+}
+
+[data-theme="dark"] .notifFooterLink {
+    color: #38bdf8;
+}
+
+[data-theme="dark"] .menuItem {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .menuItem:hover {
+    background: #273344;
+    color: #38bdf8;
+}
+
+[data-theme="dark"] .divider {
+    background: #334155;
+}

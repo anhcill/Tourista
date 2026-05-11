@@ -15,4 +15,6 @@ public interface BookingHotelDetailRepository extends JpaRepository<BookingHotel
     Optional<BookingHotelDetail> findByBooking(Booking booking); Optional<BookingHotelDetail> findByBooking_Id(Long bookingId);
 
     List<BookingHotelDetail> findByHotelIdIn(List<Long> hotelIds);
+
+    List<BookingHotelDetail> findByBookingId(Long bookingId);
 }
