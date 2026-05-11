@@ -204,8 +204,6 @@ function HotelBookingInner() {
 
   const fullName = `${formState.firstName} ${formState.middleName} ${formState.lastName}`.replace(/\s+/g, ' ').trim();
   const roomPrice = Number(selectedRoom?.basePricePerNight || 0);
-  const originalPrice = roomPrice * localNights * query.rooms;
-  const loyaltyDiscount = Math.round(originalPrice * 0.04);
 
   const [appliedPromo, setAppliedPromo] = useState(null);
 
@@ -217,6 +215,11 @@ function HotelBookingInner() {
     1,
     Math.ceil((new Date(localCheckOut).getTime() - new Date(localCheckIn).getTime()) / (1000 * 60 * 60 * 24)),
   );
+
+  // Derived pricing — must come AFTER localNights is defined
+  const originalPrice = roomPrice * localNights * query.rooms;
+  const loyaltyDiscount = Math.round(originalPrice * 0.04);
+
   const promoDiscount = appliedPromo ? Number(appliedPromo.discountAmount || 0) : 0;
   const subtotalAfterDiscount = Math.max(0, originalPrice - loyaltyDiscount - promoDiscount);
   const vatAmount = Math.round(subtotalAfterDiscount * 0.10);
@@ -224,6 +227,7 @@ function HotelBookingInner() {
   const amountDueNow = totalPrice;
   const amountPayLater = 0;
   const requiresCardForm = formState.paymentMethod === 'card_domestic';
+
 
   const paymentButtonLabelByMethod = {
     vnpay: 'Thanh toán với VNPay',

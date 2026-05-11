@@ -160,6 +160,27 @@ export default function ClientChatModal({ isOpen, onClose, conversationSeed }) {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [chatMessages, isOpen, sendingIndicator]);
 
+  // Polling fallback: fetch new messages every 3s while the modal is open
+  // This ensures messages show up even if WebSocket push is delayed or dropped
+  useEffect(() => {
+    if (!isOpen || !activeP2PConversationId) return;
+
+    const poll = async () => {
+      try {
+        const historyResponse = await chatApi.getMessages(activeP2PConversationId);
+        const history = historyResponse?.data?.content ?? historyResponse?.content ?? [];
+        if (Array.isArray(history) && history.length > 0) {
+          dispatch(setMessages({ conversationId: activeP2PConversationId, messages: history }));
+        }
+      } catch {
+        // Silently fail — WS is the primary channel, polling is just a fallback
+      }
+    };
+
+    const intervalId = setInterval(poll, 3000);
+    return () => clearInterval(intervalId);
+  }, [isOpen, activeP2PConversationId, dispatch]);
+
   const handleSubmit = async (event) => {
     event?.preventDefault?.();
     const trimmed = draft.trim();
