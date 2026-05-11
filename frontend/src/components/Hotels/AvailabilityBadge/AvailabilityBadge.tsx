@@ -43,6 +43,10 @@ export default function AvailabilityBadge({ hotelId, checkIn, checkOut, adults, 
   };
 
   const getOverallAvailability = () => {
+    if (roomTypeId) {
+      const room = availability.find((r) => r.roomTypeId === roomTypeId);
+      return { availableRooms: room?.availableRooms || 0, totalRooms: room?.totalRooms || 0 };
+    }
     const total = availability.reduce((sum, r) => sum + (r.availableRooms || 0), 0);
     const totalRooms = availability.reduce((sum, r) => sum + (r.totalRooms || 0), 0);
     return { availableRooms: total, totalRooms };
@@ -53,16 +57,21 @@ export default function AvailabilityBadge({ hotelId, checkIn, checkOut, adults, 
 
   if (compact) {
     const overall = getOverallAvailability();
-    const level = getUrgencyLevel(overall.availableRooms);
-    if (!level || overall.availableRooms === 0) return null;
+    if (overall.availableRooms === 0) {
+      return (
+        <span className={`${styles.badge} ${styles.badgeHIGH}`}>
+          <FaFire className={styles.iconFire} />
+          Hết phòng!
+        </span>
+      );
+    }
+    
+    // Always show available rooms in compact mode for a specific room
+    const level = overall.availableRooms <= 5 ? getUrgencyLevel(overall.availableRooms) : 'GOOD';
     return (
-      <span className={`${styles.badge} ${styles[`badge${level}`]}`}>
-        <UrgencyIcon level={level} />
-        {overall.availableRooms === 1
-          ? 'Còn 1 phòng!'
-          : overall.availableRooms <= 5
-          ? `Còn ${overall.availableRooms} phòng`
-          : null}
+      <span className={`${styles.badge} ${level === 'GOOD' ? styles.badgeGOOD : styles[`badge${level}`]}`}>
+        {level === 'HIGH' ? <FaFire className={styles.iconFire} /> : <FaCheckCircle className={styles.iconCheck} />}
+        Còn {overall.availableRooms} phòng trống
       </span>
     );
   }

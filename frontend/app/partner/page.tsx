@@ -168,6 +168,7 @@ export default function PartnerPage() {
 
   // Top properties
   const topProperties = useMemo(() => {
+    if (!Array.isArray(hotels) || !Array.isArray(tours)) return [];
     const hotelItems = hotels.map(h => ({
       name: h.name,
       type: 'hotel',
@@ -220,6 +221,7 @@ export default function PartnerPage() {
 
   // Recent bookings
   const recentBookings = useMemo(() => {
+    if (!Array.isArray(hotelBookings) || !Array.isArray(tourBookings)) return [];
     const all: (BookingRecord & { _type: 'hotel' | 'tour'; _name: string })[] = [
       ...hotelBookings.map(b => ({ ...b, _type: 'hotel' as const, _name: b.serviceName || b.hotelName || '' })),
       ...tourBookings.map(b => ({ ...b, _type: 'tour' as const, _name: b.serviceName || b.tourTitle || '' })),
@@ -351,7 +353,9 @@ export default function PartnerPage() {
             <span className={styles.kpiLabel}>Đánh giá TB</span>
             <strong className={styles.kpiValue}>
               {(() => {
-                const allRatings = [...hotels, ...tours].map(i => Number(i.avgRating || 0));
+                const safeHotels = Array.isArray(hotels) ? hotels : [];
+                const safeTours = Array.isArray(tours) ? tours : [];
+                const allRatings = [...safeHotels, ...safeTours].map(i => Number(i.avgRating || 0));
                 const avg = allRatings.length ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length : 0;
                 return avg.toFixed(1);
               })()}
@@ -541,7 +545,7 @@ export default function PartnerPage() {
             <div>
               <strong>{hotels.length}</strong>
               <span>Khách sạn</span>
-              <small>{hotels.filter(h => h.isActive).length} đang hoạt động</small>
+              <small>{(Array.isArray(hotels) ? hotels : []).filter(h => h.isActive).length} đang hoạt động</small>
             </div>
           </div>
           <div className={styles.assetCard}>
@@ -549,7 +553,7 @@ export default function PartnerPage() {
             <div>
               <strong>{tours.length}</strong>
               <span>Tour</span>
-              <small>{tours.filter(t => t.isActive).length} đang hoạt động</small>
+              <small>{(Array.isArray(tours) ? tours : []).filter(t => t.isActive).length} đang hoạt động</small>
             </div>
           </div>
           <div className={styles.assetCard}>

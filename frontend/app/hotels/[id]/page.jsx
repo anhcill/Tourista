@@ -896,7 +896,7 @@ function HotelDetailInner() {
                                             <div className={styles.roomIconWrap}><FaBed /></div>
                                             <div>
                                                 <strong className={styles.roomName}>{rt.name}</strong>
-                                                <p className={styles.roomMeta}>Tối đa {rt.capacity} người lớn · {rt.totalRooms} phòng</p>
+                                                <p className={styles.roomMeta}>Tối đa {rt.capacity} người lớn · (Tổng {rt.totalRooms} phòng của KS)</p>
                                                 {rt.description && <p className={styles.roomDesc}>{rt.description}</p>}
                                                 <AvailabilityBadge
                                                     hotelId={hotel?.id}

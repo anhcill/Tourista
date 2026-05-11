@@ -347,7 +347,8 @@ public class PartnerService {
             saveHotelImages(saved, request.getImageUrls(), request.getCoverImage());
         }
 
-        return toPartnerHotelResponse(saved);
+        List<HotelImage> images = hotelImageRepository.findByHotel_IdOrderBySortOrderAscIdAsc(hotelId);
+        return toPartnerHotelResponseFull(saved, images);
     }
 
     public PartnerHotelResponse getPartnerHotelById(Long hotelId, Long userId) {
@@ -356,7 +357,8 @@ public class PartnerService {
         if (hotel.getOwner() == null || !hotel.getOwner().getId().equals(userId)) {
             throw new SecurityException("Ban khong co quyen xem khach san nay");
         }
-        return toPartnerHotelResponse(hotel);
+        List<HotelImage> images = hotelImageRepository.findByHotel_IdOrderBySortOrderAscIdAsc(hotelId);
+        return toPartnerHotelResponseFull(hotel, images);
     }
 
     // ===================== TOUR CRUD (Partner) =====================
@@ -411,7 +413,11 @@ public class PartnerService {
             saveTourDepartures(saved, request.getDepartureDates());
         }
 
-        return toPartnerTourResponse(saved);
+        List<TourImage> images = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(tourId);
+        List<TourItinerary> itinerary = tourItineraryRepository.findByTour_IdOrderByDayNumberAscIdAsc(tourId);
+        List<TourDeparture> departures = tourDepartureRepository.findByTour_IdOrderByDepartureDateAsc(tourId);
+
+        return toPartnerTourResponseFull(saved, images, itinerary, departures);
     }
 
     @Transactional
@@ -450,7 +456,11 @@ public class PartnerService {
             saveTourImages(saved, request.getImageUrls(), request.getCoverImage());
         }
 
-        return toPartnerTourResponse(saved);
+        List<TourImage> images = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(tourId);
+        List<TourItinerary> itinerary = tourItineraryRepository.findByTour_IdOrderByDayNumberAscIdAsc(tourId);
+        List<TourDeparture> departures = tourDepartureRepository.findByTour_IdOrderByDepartureDateAsc(tourId);
+
+        return toPartnerTourResponseFull(saved, images, itinerary, departures);
     }
 
     public PartnerTourResponse getPartnerTourById(Long tourId, Long userId) {
@@ -459,7 +469,12 @@ public class PartnerService {
         if (tour.getOperator() == null || !tour.getOperator().getId().equals(userId)) {
             throw new SecurityException("Ban khong co quyen xem tour nay");
         }
-        return toPartnerTourResponse(tour);
+
+        List<TourImage> images = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(tourId);
+        List<TourItinerary> itinerary = tourItineraryRepository.findByTour_IdOrderByDayNumberAscIdAsc(tourId);
+        List<TourDeparture> departures = tourDepartureRepository.findByTour_IdOrderByDepartureDateAsc(tourId);
+
+        return toPartnerTourResponseFull(tour, images, itinerary, departures);
     }
 
     // ===================== PRIVATE HELPERS =====================
@@ -560,6 +575,39 @@ public class PartnerService {
                 .build();
     }
 
+    private PartnerHotelResponse toPartnerHotelResponseFull(Hotel h, List<HotelImage> images) {
+        List<String> imageUrls = images.stream()
+                .sorted((a, b) -> Integer.compare(
+                        Integer.compare(a.getSortOrder(), b.getSortOrder()),
+                        Long.compare(a.getId(), b.getId())))
+                .map(HotelImage::getUrl)
+                .toList();
+
+        return PartnerHotelResponse.builder()
+                .id(h.getId())
+                .cityId(h.getCity() != null ? h.getCity().getId() : null)
+                .name(h.getName())
+                .city(h.getCity() != null ? h.getCity().getNameVi() : null)
+                .address(h.getAddress())
+                .starRating(h.getStarRating())
+                .description(h.getDescription())
+                .latitude(h.getLatitude())
+                .longitude(h.getLongitude())
+                .checkInTime(h.getCheckInTime())
+                .checkOutTime(h.getCheckOutTime())
+                .phone(h.getPhone())
+                .email(h.getEmail())
+                .website(h.getWebsite())
+                .avgRating(h.getAvgRating())
+                .reviewCount(h.getReviewCount())
+                .isActive(h.getIsActive())
+                .adminStatus(h.getAdminStatus() != null ? h.getAdminStatus().name() : null)
+                .totalBookings(0)
+                .totalRevenue(BigDecimal.ZERO)
+                .imageUrls(imageUrls)
+                .build();
+    }
+
     private PartnerTourResponse toPartnerTourResponse(Tour t) {
         return PartnerTourResponse.builder()
                 .id(t.getId())
@@ -574,6 +622,69 @@ public class PartnerService {
                 .adminStatus(t.getAdminStatus() != null ? t.getAdminStatus().name() : null)
                 .totalBookings(0)
                 .totalRevenue(BigDecimal.ZERO)
+                .build();
+    }
+
+    private PartnerTourResponse toPartnerTourResponseFull(Tour t, List<TourImage> images,
+            List<TourItinerary> itinerary, List<TourDeparture> departures) {
+        List<String> imageUrls = images.stream()
+                .sorted((a, b) -> Integer.compare(
+                        Integer.compare(a.getSortOrder(), b.getSortOrder()),
+                        Long.compare(a.getId(), b.getId())))
+                .map(TourImage::getUrl)
+                .toList();
+
+        String coverImage = images.stream()
+                .filter(TourImage::getIsCover)
+                .findFirst()
+                .map(TourImage::getUrl)
+                .orElse(imageUrls.isEmpty() ? null : imageUrls.get(0));
+
+        List<PartnerTourResponse.ItineraryItem> itineraryItems = itinerary.stream()
+                .map(it -> PartnerTourResponse.ItineraryItem.builder()
+                        .id(it.getId())
+                        .dayNumber(it.getDayNumber())
+                        .title(it.getTitle())
+                        .description(it.getDescription())
+                        .build())
+                .toList();
+
+        List<PartnerTourResponse.DepartureItem> departureItems = departures.stream()
+                .map(d -> PartnerTourResponse.DepartureItem.builder()
+                        .id(d.getId())
+                        .departureDate(d.getDepartureDate())
+                        .availableSlots(d.getAvailableSlots())
+                        .priceOverride(d.getPriceOverride())
+                        .build())
+                .toList();
+
+        return PartnerTourResponse.builder()
+                .id(t.getId())
+                .categoryId(t.getCategory() != null ? t.getCategory().getId() : null)
+                .cityId(t.getCity() != null ? t.getCity().getId() : null)
+                .title(t.getTitle())
+                .city(t.getCity() != null ? t.getCity().getNameVi() : null)
+                .description(t.getDescription())
+                .highlights(t.getHighlights())
+                .includes(t.getIncludes())
+                .excludes(t.getExcludes())
+                .durationDays(t.getDurationDays())
+                .durationNights(t.getDurationNights())
+                .maxGroupSize(t.getMaxGroupSize())
+                .minGroupSize(t.getMinGroupSize())
+                .difficulty(t.getDifficulty() != null ? t.getDifficulty().name() : null)
+                .pricePerAdult(t.getPricePerAdult())
+                .pricePerChild(t.getPricePerChild())
+                .avgRating(t.getAvgRating())
+                .reviewCount(t.getReviewCount())
+                .isActive(t.getIsActive())
+                .adminStatus(t.getAdminStatus() != null ? t.getAdminStatus().name() : null)
+                .totalBookings(0)
+                .totalRevenue(BigDecimal.ZERO)
+                .imageUrls(imageUrls)
+                .coverImage(coverImage)
+                .itineraryItems(itineraryItems)
+                .departureDates(departureItems)
                 .build();
     }
 
