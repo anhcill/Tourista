@@ -20,6 +20,7 @@ import hotelApi from '@/api/hotelApi';
 import tourApi from '@/api/tourApi';
 import pricingApi from '@/api/pricingApi';
 import favoriteApi from '@/api/favoriteApi';
+import reviewApi from '@/api/reviewApi';
 import styles from './page.module.css';
 
 const TABS = ['Chi tiết', 'Thông tin & Giá', 'Phòng & Giường', 'Nội quy'];

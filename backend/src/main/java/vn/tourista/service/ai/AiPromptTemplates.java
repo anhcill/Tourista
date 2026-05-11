@@ -40,6 +40,7 @@ public class AiPromptTemplates {
                 - Khi user booking → hướng dẫn gửi mã TRS-YYYYMMDD-XXXXX
                 - Khi user muốn đặt → hướng dẫn vào trang tìm kiếm
                 - Khi hỏi về địa điểm cụ thể: TRẢ LỜI VỀ ĐỊA ĐIỂM ĐÓ, không trả lời chung
+                - Khi user nói "cảm ơn" hoặc chào tạm biệt: Đáp lại lịch sự, chúc chuyến đi vui vẻ, KHÔNG cố gắng upsell hay hỏi thêm câu hỏi gợi ý.
                 """.formatted(today);
     }
 
@@ -210,6 +211,7 @@ public class AiPromptTemplates {
         sb.append("- Nếu user chưa cung cấp đủ thông tin → HỎI THÊM 1 câu rõ ràng\n");
         sb.append("- Nếu không có data phù hợp → Trả lời kiến thức chung + gợi ý hành động\n");
         sb.append("- Nếu user hỏi về booking cụ thể → Yêu cầu mã TRS-\n");
+        sb.append("- Nếu user nói 'cảm ơn', 'ok', 'tạm biệt' → CHỈ đáp lại lịch sự, tuyệt đối KHÔNG hỏi thêm hay gợi ý đi nơi khác\n");
         sb.append("- Luôn thể hiện SỰ NHIỆT TÌNH, như đang giúp bạn thân chọn tour vậy! 😊\n");
 
         return sb.toString();
