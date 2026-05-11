@@ -9,8 +9,10 @@ import vn.tourista.dto.response.TourCardItem;
 import vn.tourista.entity.Tour;
 import vn.tourista.repository.CityRepository;
 import vn.tourista.repository.HotelRepository;
+import vn.tourista.repository.TourDepartureRepository;
 import vn.tourista.repository.TourImageRepository;
 import vn.tourista.repository.TourRepository;
+import vn.tourista.entity.TourDeparture;
 import vn.tourista.service.AiService;
 import vn.tourista.service.ai.LocationUnderstandingService;
 
@@ -30,6 +32,7 @@ import java.util.*;
 public class TourRecommendationQueryService {
 
     private final TourRepository tourRepository;
+    private final TourDepartureRepository tourDepartureRepository;
     private final TourImageRepository tourImageRepository;
     private final CityRepository cityRepository;
     private final HotelRepository hotelRepository;
@@ -198,7 +201,7 @@ public class TourRecommendationQueryService {
                     ctx.append(": ");
                     for (int i = 0; i < tours.size(); i++) {
                         Tour t = tours.get(i);
-                        if (i > 0) ctx.append("; ");
+                        if (i > 0) ctx.append(";\n");
                         String cityVi = t.getCity() != null ? t.getCity().getNameVi() : "";
                         ctx.append("- \"").append(t.getTitle()).append("\"")
                                 .append(", ").append(cityVi)
@@ -209,6 +212,23 @@ public class TourRecommendationQueryService {
                         }
                         ctx.append(", ").append(t.getDurationDays()).append(" ngày ")
                                 .append(t.getDurationNights()).append(" đêm");
+                                
+                        // Fetch the next departure for accurate slot info
+                        Optional<TourDeparture> nextDeparture = tourDepartureRepository
+                            .findFirstByTour_IdAndAvailableSlotsGreaterThanAndDepartureDateGreaterThanEqualOrderByDepartureDateAsc(
+                                t.getId(), 0, java.time.LocalDate.now());
+                        
+                        if (nextDeparture.isPresent()) {
+                            TourDeparture dep = nextDeparture.get();
+                            String depDate = dep.getDepartureDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                            ctx.append(". Chuyến gần nhất ngày ").append(depDate)
+                               .append(" CÒN ĐÚNG ").append(dep.getAvailableSlots()).append(" CHỖ");
+                            if (dep.getPriceOverride() != null) {
+                                ctx.append(" (Giá đặc biệt: ").append(formatVnd(dep.getPriceOverride().longValue())).append("/người lớn)");
+                            }
+                        } else {
+                            ctx.append(". Hiện chưa có lịch khởi hành trống chỗ");
+                        }
                     }
                     ctx.append(".\n");
                 } else if (tourCityQuery != null) {

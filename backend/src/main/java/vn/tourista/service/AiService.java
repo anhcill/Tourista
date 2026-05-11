@@ -297,34 +297,41 @@ public class AiService {
         String today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"))
                 .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-        sb.append("Bạn là trợ lý du lịch AI của nền tảng Tourista Studio.\n");
-        sb.append("HÔM NAY: ").append(today).append("\n");
-        sb.append("Nền tảng cho phép đặt tour du lịch và khách sạn tại Việt Nam.\n\n");
+        sb.append("Ban la tro ly du lich AI cua nen tang Tourista Studio.\n");
+        sb.append("HOM NAY: ").append(today).append("\n");
+        sb.append("Nen tang cho phep dat tour du lich va khach san tai Viet Nam.\n\n");
+
+        sb.append("=== QUY TAC TUYET DOI PHAI TUAN THU ===\n");
+        sb.append("1. CHI su dung gia tien, rating, so slot/cho con, ngay khoi hanh TU DU LIEU HE THONG ben duoi. TUYET DOI KHONG tu bịa, uoc tinh, hoac su dung so lieu khac.\n");
+        sb.append("2. Neu DU LIEU HE THONG khong co thong tin ve slot/lich trinh cu the -> noi ro: 'Mình chưa có thông tin về số chỗ trống/lịch khởi hành cụ thể, bạn vui lòng liên hệ hotline hoặc đặt trực tiếp trên website để xác nhận nhé!'\n");
+        sb.append("3. Neu gia trong DU LIEU HE THONG la X -> chi duoc noi gia X, KHONG duoc doi sang so khac.\n");
+        sb.append("4. KHONG duoc noi 'Con X cho cuoi' neu khong co so lieu chinh xac tu DB.\n");
+        sb.append("5. Moi so lieu tu DU LIEU HE THONG la CHINH XAC va PHI BIEN DOI.\n\n");
 
         if (dbContext != null && !dbContext.isBlank()) {
-            sb.append("=== DỮ LIỆU TỪ HỆ THỐNG ===\n");
+            sb.append("=== DU LIEU HE THONG (CHINH XAC, KHONG DUOC THAY DOI) ===\n");
             sb.append(dbContext);
             sb.append("\n\n");
         }
 
         if (conversationContext != null && !conversationContext.isBlank()) {
-            sb.append("=== LỊCH SỬ HỘI THOẠI GẦN ĐÂY ===\n");
+            sb.append("=== LICH SU HOI THOAI GAN DAY ===\n");
             sb.append(conversationContext);
             sb.append("\n\n");
         }
 
-        sb.append("=== CÂU HỎI HIỆN TẠI ===\n");
+        sb.append("=== CAU HOI HIEN TAI ===\n");
         sb.append(userMessage);
         sb.append("\n\n");
 
-        sb.append("TRẢ LỜI TỰ NHIÊN:\n");
-        sb.append("- Chat như đang nói chuyện với bạn thân, không phải đọc tài liệu\n");
-        sb.append("- Dùng emoji phù hợp: 🏖️ biển, 🏨 khách sạn, 🍜 ẩm thực, 🗺️ du lịch\n");
-        sb.append("- ƯU TIÊN SỐ 1: Nếu có 'Khách sạn nổi bật' hoặc 'Tour đang hoạt động' trong DỮ LIỆU HỆ THỐNG → BẮT BUỘC giới thiệu cụ thể: tên, giá, rating, khu vực. KHÔNG được bỏ qua data thật để nói chung chung.\n");
-        sb.append("- Nếu người dùng hỏi tìm khách sạn/tour → gợi ý các lựa chọn cụ thể từ hệ thống, kèm giá và đánh giá\n");
-        sb.append("- Nếu hỏi địa điểm mà KHÔNG có data khách sạn/tour → trả lời về thời tiết, ẩm thực, hoạt động\n");
-        sb.append("- Nếu hỏi so sánh → so sánh tự nhiên, nêu ưu nhược từng nơi\n");
-        sb.append("- Kết thúc bằng gợi ý hành động cụ thể (ví dụ: 'Bạn muốn mình tìm thêm khách sạn nào không?')\n\n");
+        sb.append("TRA LOI TU NHIEN:\n");
+        sb.append("- Chat nhu dang noi chuyen voi ban than, khong phai doc tai lieu\n");
+        sb.append("- Dung emoji phu hop: ben, khach san, am thuc, du lich\n");
+        sb.append("- UU TIEN SO 1: Neu co 'Khach san noi bat' hoac 'Tour dang hoat dong' trong DU LIEU HE THONG -> BAT BUOC gioi thieu cu the: ten, gia CHINH XAC, rating CHINH XAC, khu vuc. KHONG duoc bo qua data that de noi chung chung.\n");
+        sb.append("- Neu nguoi dung hoi tim khach san/tour -> goi y cac lua chon cu the tu he thong, kem gia VA RATING CHINH XAC tu DB\n");
+        sb.append("- Neu hoi dia diem ma KHONG co data khach san/tour -> tra loi ve thoi tiet, am thuc, hoat dong\n");
+        sb.append("- Neu hoi so slot/lich khoi hanh ma KHONG co trong DB -> huong dan lien he ho tro, KHONG duoc tu bịa\n");
+        sb.append("- Ket thuc bang goi y hanh dong cu the\n\n");
 
         return sb.toString();
     }
@@ -343,11 +350,11 @@ public class AiService {
     private String buildRequestBody(String content) {
         return """
                 {
-                              "model": "%s",
+                  "model": "%s",
                   "messages": [
                     {
                       "role": "system",
-                      "content": "Ban la travel blogger va chuyen gia du lich Viet Nam. Tra loi chi tiet, cu the, thuc te voi gia ca, dia diem chinh xac. Dung emoji phu hop. Luon co nguon goc thong tin ro rang."
+                      "content": "Ban la tro ly du lich AI cua Tourista Studio. TUYET DOI KHONG duoc tu sang tac, bịa dat hoac uoc tinh bat ky so lieu nao (gia tien, so slot con, so sao rating, so nguoi di, ngay khoi hanh cu the) neu khong co trong du lieu he thong duoc cung cap. Neu khong co du lieu chinh xac, hay noi ro 'Mình chưa có thông tin chính xác về điều này' va huong dan user lien he ho tro. Chi duoc dung gia, rating, so slot tu DU LIEU HE THONG duoc cung cap trong prompt. Tra loi than thien, dung emoji phu hop, chi ve du lich Viet Nam."
                     },
                     {
                       "role": "user",
