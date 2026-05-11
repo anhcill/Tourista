@@ -12,9 +12,11 @@ const pricingApi = {
     },
 
     // Calculate hotel price per night for a specific check-in date
-    calculateHotelNightPrice: (hotelId, checkIn, adults) => {
+    calculateHotelNightPrice: (hotelId, checkIn, adults, roomTypeId) => {
+        const params = { checkIn, adults };
+        if (roomTypeId) params.roomTypeId = roomTypeId;
         return axiosClient.get(`/pricing/calculate/hotel/${hotelId}/per-night`, {
-            params: { checkIn, adults },
+            params,
         });
     },
 };

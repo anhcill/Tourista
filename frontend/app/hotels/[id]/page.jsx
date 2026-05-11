@@ -383,7 +383,7 @@ function HotelDetailInner() {
                     d.setDate(d.getDate() + i);
                     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                     try {
-                        const res = await pricingApi.calculateHotelNightPrice(hotel.id, dateStr, Number(adults || 2));
+                        const res = await pricingApi.calculateHotelNightPrice(hotel.id, dateStr, Number(adults || 2), targetRoom.id);
                         const price = res?.data?.data?.finalPrice ?? res?.data?.finalPrice;
                         total += Number(price) || Number(targetRoom.basePricePerNight);
                     } catch {

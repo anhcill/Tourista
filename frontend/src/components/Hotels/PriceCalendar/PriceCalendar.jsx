@@ -80,7 +80,7 @@ export default function PriceCalendar({
     setPriceCache((prev) => ({ ...prev, [dateStr]: { price: null, loading: true } }));
 
     try {
-      const res = await pricingApi.calculateHotelNightPrice(hotelId, dateStr, adults);
+      const res = await pricingApi.calculateHotelNightPrice(hotelId, dateStr, adults, roomTypeId);
       const finalPrice = res?.data?.data?.finalPrice ?? res?.data?.finalPrice;
       setPriceCache((prev) => ({
         ...prev,
@@ -92,7 +92,13 @@ export default function PriceCalendar({
         [dateStr]: { price: basePricePerNight, loading: false },
       }));
     }
-  }, [hotelId, priceCache, basePricePerNight, adults, today]);
+  }, [hotelId, priceCache, basePricePerNight, adults, roomTypeId, today]);
+
+  // Reset cache when roomTypeId or basePricePerNight changes (user switched room type)
+  useEffect(() => {
+    setPriceCache({});
+    fetchedMonthsRef.current = new Set();
+  }, [roomTypeId, basePricePerNight]);
 
   // When view month changes, prefetch prices for visible dates
   const [viewDate, setViewDate] = useState(() => {

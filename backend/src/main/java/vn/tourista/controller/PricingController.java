@@ -81,9 +81,10 @@ public class PricingController {
     public ResponseEntity<ApiResponse<PricingCalculationResponse>> calculateHotelNightPrice(
             @PathVariable Long hotelId,
             @RequestParam String checkIn,
-            @RequestParam(required = false) Integer adults) {
+            @RequestParam(required = false) Integer adults,
+            @RequestParam(required = false) Long roomTypeId) {
         PricingCalculationResponse response = pricingService.calculateHotelNightPrice(
-                hotelId, LocalDate.parse(checkIn), adults);
+                hotelId, LocalDate.parse(checkIn), adults, roomTypeId);
         return ResponseEntity.ok(ApiResponse.ok("Tính giá theo đêm thành công", response));
     }
 }

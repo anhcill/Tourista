@@ -9,6 +9,7 @@ import vn.tourista.entity.PricingRule;
 import vn.tourista.repository.PricingRuleRepository;
 import vn.tourista.repository.TourRepository;
 import vn.tourista.repository.HotelRepository;
+import vn.tourista.repository.RoomTypeRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +26,7 @@ public class PricingService {
     private final PricingRuleRepository pricingRuleRepository;
     private final TourRepository tourRepository;
     private final HotelRepository hotelRepository;
+    private final RoomTypeRepository roomTypeRepository;
 
     /**
      * Calculate dynamic price for a Tour.
@@ -87,8 +89,10 @@ public class PricingService {
     /**
      * Calculate dynamic price for a specific check-in date.
      * Used by the frontend PriceCalendar to show per-night prices.
+     * When roomTypeId is provided, uses that room type's specific base price
+     * instead of the hotel's minimum price.
      */
-    public PricingCalculationResponse calculateHotelNightPrice(Long hotelId, LocalDate checkIn, Integer adults) {
+    public PricingCalculationResponse calculateHotelNightPrice(Long hotelId, LocalDate checkIn, Integer adults, Long roomTypeId) {
         if (hotelId == null || checkIn == null) {
             return PricingCalculationResponse.builder()
                     .entityId(hotelId)
@@ -97,7 +101,21 @@ public class PricingService {
                     .build();
         }
 
-        BigDecimal basePricePerNight = hotelRepository.findMinBasePriceByHotelId(hotelId);
+        BigDecimal basePricePerNight = null;
+
+        // If a specific room type is requested, use its base price
+        if (roomTypeId != null) {
+            var roomTypeOpt = roomTypeRepository.findById(roomTypeId);
+            if (roomTypeOpt.isPresent()) {
+                basePricePerNight = roomTypeOpt.get().getBasePricePerNight();
+            }
+        }
+
+        // Fallback to hotel's minimum price if roomTypeId not provided or not found
+        if (basePricePerNight == null) {
+            basePricePerNight = hotelRepository.findMinBasePriceByHotelId(hotelId);
+        }
+
         if (basePricePerNight == null) {
             return PricingCalculationResponse.builder()
                     .entityId(hotelId)
