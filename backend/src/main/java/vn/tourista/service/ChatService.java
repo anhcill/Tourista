@@ -245,8 +245,11 @@ public class ChatService {
                         String canonical = chatbotNlpService.normalize(
                                 chatbotNlpService.canonicalize(userMessage.toLowerCase().trim()));
 
-                        // Bước 1: Thử FAQ rules trước (fast path), skip nếu có từ khóa thời tiết/đồ ăn
-                        boolean skipFaq = containsWeatherOrFoodKeyword(userMessage);
+                        // Bước 1: Thử FAQ rules trước (fast path)
+                        // Skip FAQ nếu user đang hỏi cụ thể về dịch vụ (khách sạn, tour, giá, đặt phòng)
+                        // → để AI query DB thật và trả lời chính xác hơn
+                        boolean skipFaq = containsWeatherOrFoodKeyword(userMessage)
+                                || containsServiceKeyword(canonical);
                         if (!skipFaq) {
                                 String faqAnswer = chatbotFaqService.findMatchingAnswer(canonical);
                                 if (faqAnswer != null && !faqAnswer.isBlank()) {
@@ -280,6 +283,26 @@ public class ChatService {
                        lower.contains("đặc sản") || lower.contains("dac san") ||
                        lower.contains("ăn ngon") || lower.contains("an ngon") ||
                        lower.contains("nhà hàng") || lower.contains("nha hang");
+        }
+
+        /**
+         * Kiểm tra user có đang hỏi cụ thể về dịch vụ (khách sạn, tour, giá, đặt phòng) không.
+         * Nếu có → skip FAQ để AI query DB thật và trả lời chính xác hơn.
+         * Ví dụ: "tìm khách sạn hà nội" → skip FAQ về Hà Nội → AI query hotels ở HN.
+         */
+        private boolean containsServiceKeyword(String canonical) {
+                if (canonical == null) return false;
+                return canonical.contains("khach san") || canonical.contains("hotel")
+                        || canonical.contains("dat phong") || canonical.contains("thue phong")
+                        || canonical.contains("phong") && canonical.contains("gia")
+                        || canonical.contains("tim") && (canonical.contains("khach san") || canonical.contains("hotel"))
+                        || canonical.contains("o dau") || canonical.contains("nghi o")
+                        || canonical.contains("luu tru") || canonical.contains("homestay")
+                        || canonical.contains("resort") || canonical.contains("hostel")
+                        || canonical.contains("dem") && canonical.contains("gia")
+                        || canonical.contains("chi phi") && (canonical.contains("o") || canonical.contains("nghi"))
+                        || canonical.contains("dat tour") || canonical.contains("mua tour")
+                        || canonical.contains("gia tour") || canonical.contains("bao nhieu");
         }
 
         /**
