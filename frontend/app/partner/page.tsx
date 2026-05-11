@@ -124,7 +124,7 @@ export default function PartnerPage() {
 
   // Revenue data from real backend
   const revenueData = useMemo(() => {
-    if (!revenueStats || !revenueStats?.dailyData?.length) {
+    if (!revenueStats || !Array.isArray(revenueStats?.dailyData) || !revenueStats.dailyData.length) {
       // Fallback: generate empty placeholder for the selected period
       const days = period === '7d' ? 7 : period === '90d' ? 90 : period === '1y' ? 365 : 30;
       const now = new Date();
@@ -154,11 +154,11 @@ export default function PartnerPage() {
 
   // Revenue breakdown
   const hotelRevenue = useMemo(() =>
-    hotels.reduce((sum, h) => sum + Number(h.totalRevenue || 0), 0),
+    Array.isArray(hotels) ? hotels.reduce((sum, h) => sum + Number(h.totalRevenue || 0), 0) : 0,
   [hotels]);
 
   const tourRevenue = useMemo(() =>
-    tours.reduce((sum, t) => sum + Number(t.totalRevenue || 0), 0),
+    Array.isArray(tours) ? tours.reduce((sum, t) => sum + Number(t.totalRevenue || 0), 0) : 0,
   [tours]);
 
   const breakdownData = [
