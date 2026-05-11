@@ -106,10 +106,21 @@ export default function PartnerPage() {
           partnerApi.getRevenueStats(period).catch(() => null),
         ]);
 
-        setHotels(Array.isArray(hotelData) ? hotelData : (hotelData?.data || []));
-        setTours(Array.isArray(tourData) ? tourData : (tourData?.data || []));
-        setHotelBookings(Array.isArray(hotelBk) ? hotelBk : (hotelBk?.data?.content || hotelBk?.content || []));
-        setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.data?.content || tourBk?.content || []));
+        const parseContent = (res: any) => {
+          if (!res) return [];
+          if (Array.isArray(res)) return res;
+          if (Array.isArray(res.content)) return res.content;
+          if (res.data) {
+            if (Array.isArray(res.data)) return res.data;
+            if (Array.isArray(res.data.content)) return res.data.content;
+          }
+          return [];
+        };
+
+        setHotels(parseContent(hotelData));
+        setTours(parseContent(tourData));
+        setHotelBookings(parseContent(hotelBk));
+        setTourBookings(parseContent(tourBk));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const apiRev = revStats as any;
         setRevenueStats(apiRev?.data ?? apiRev ?? null);
@@ -245,10 +256,21 @@ export default function PartnerPage() {
         partnerApi.getPartnerTourBookings({ size: 100 }).catch(() => []),
         partnerApi.getRevenueStats(targetPeriod).catch(() => null),
       ]);
-        setHotels(Array.isArray(hotelData) ? hotelData : (hotelData?.data || []));
-        setTours(Array.isArray(tourData) ? tourData : (tourData?.data || []));
-        setHotelBookings(Array.isArray(hotelBk) ? hotelBk : (hotelBk?.data?.content || hotelBk?.content || []));
-        setTourBookings(Array.isArray(tourBk) ? tourBk : (tourBk?.data?.content || tourBk?.content || []));
+        const parseContent = (res: any) => {
+          if (!res) return [];
+          if (Array.isArray(res)) return res;
+          if (Array.isArray(res.content)) return res.content;
+          if (res.data) {
+            if (Array.isArray(res.data)) return res.data;
+            if (Array.isArray(res.data.content)) return res.data.content;
+          }
+          return [];
+        };
+
+        setHotels(parseContent(hotelData));
+        setTours(parseContent(tourData));
+        setHotelBookings(parseContent(hotelBk));
+        setTourBookings(parseContent(tourBk));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const apiRev2 = revStats as any;
         setRevenueStats(apiRev2?.data ?? apiRev2 ?? null);

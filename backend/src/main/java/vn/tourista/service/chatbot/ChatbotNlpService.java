@@ -277,6 +277,15 @@ public class ChatbotNlpService {
     }
 
     /**
+     * Kiểm tra có phải intent gợi ý khách sạn không.
+     * Rất strict: phải có từ khóa khách sạn rõ ràng để tránh nhầm với tour.
+     */
+    public boolean isHotelRecommendationIntent(String canonicalInput) {
+        return containsAny(canonicalInput,
+                List.of("khach san", "khách sạn", "khach san", "hotel", "cho o", "chỗ ở", "lưu trú"));
+    }
+
+    /**
      * Kiểm tra có phải intent refine (lọc thêm) không.
      */
     public boolean isRecommendationFollowUpIntent(String inputText, String canonicalInput) {

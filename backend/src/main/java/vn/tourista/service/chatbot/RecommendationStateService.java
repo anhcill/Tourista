@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.tourista.entity.Conversation;
 import vn.tourista.entity.SessionRecommendationState;
+import vn.tourista.entity.SessionRecommendationState.FlowType;
 import vn.tourista.repository.ConversationRepository;
 import vn.tourista.repository.SessionRecommendationStateRepository;
 
@@ -38,6 +39,7 @@ public class RecommendationStateService {
      * Trạng thái slot-filling cho tour recommendation.
      */
     public record RecommendationState(
+            FlowType flowType,
             Integer budgetVnd,
             Integer travelers,
             String cityQuery,
@@ -62,6 +64,10 @@ public class RecommendationStateService {
 
         if (entity == null) return;
 
+        if (state.flowType() != null) {
+            entity.setFlowType(
+                    SessionRecommendationState.FlowType.valueOf(state.flowType().name()));
+        }
         entity.setBudgetVnd(state.budgetVnd());
         entity.setTravelers(state.travelers());
         entity.setCityQuery(state.cityQuery());
@@ -78,6 +84,7 @@ public class RecommendationStateService {
         return recommendationStateRepository.findByConversationId(conversationId)
                 .filter(e -> !e.isExpired())
                 .map(e -> new RecommendationState(
+                        e.getFlowType(),
                         e.getBudgetVnd(),
                         e.getTravelers(),
                         e.getCityQuery(),
@@ -115,20 +122,21 @@ public class RecommendationStateService {
     /**
      * Tạo RecommendationState mới với thời gian hiện tại.
      */
-    public RecommendationState createState(Integer budgetVnd, Integer travelers,
+    public RecommendationState createState(FlowType flowType, Integer budgetVnd, Integer travelers,
                                           String cityQuery, String cityDisplay,
                                           Integer maxDurationDays) {
-        return new RecommendationState(budgetVnd, travelers, cityQuery, cityDisplay,
+        return new RecommendationState(flowType, budgetVnd, travelers, cityQuery, cityDisplay,
                 maxDurationDays, LocalDateTime.now());
     }
 
     /**
      * Merge trạng thái hiện tại với giá trị mới (partial update).
      */
-    public RecommendationState mergeState(RecommendationState current, Integer budgetVnd,
+    public RecommendationState mergeState(RecommendationState current, FlowType flowType, Integer budgetVnd,
                                          Integer travelers, String cityQuery, String cityDisplay,
                                          Integer maxDurationDays) {
         return new RecommendationState(
+                flowType != null ? flowType : (current != null ? current.flowType() : null),
                 budgetVnd != null ? budgetVnd : (current != null ? current.budgetVnd() : null),
                 travelers != null ? travelers : (current != null ? current.travelers() : null),
                 cityQuery != null ? cityQuery : (current != null ? current.cityQuery() : null),

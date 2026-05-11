@@ -27,6 +27,11 @@ public class SessionRecommendationState {
 
     private static final int TIMEOUT_MINUTES = 20;
 
+    public enum FlowType {
+        TOUR,
+        HOTEL
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,6 +39,10 @@ public class SessionRecommendationState {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversation_id", nullable = false, unique = true)
     private Conversation conversation;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "flow_type", length = 20)
+    private FlowType flowType;
 
     @Column(name = "budget_vnd")
     private Integer budgetVnd;

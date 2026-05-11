@@ -10,6 +10,8 @@ import vn.tourista.dto.response.TourCardItem;
 import vn.tourista.entity.ChatMessage;
 import vn.tourista.service.ChatService;
 
+import vn.tourista.entity.SessionRecommendationState.FlowType;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -46,6 +48,7 @@ public class ChatbotTourFlowService {
         Integer maxDurationDays = stateService.getNlpService().parseMaxDurationDays(inputText);
 
         RecommendationStateService.RecommendationState state = stateService.createState(
+                FlowType.TOUR,
                 budgetVnd, travelers,
                 city != null ? city.queryValue() : null,
                 city != null ? city.displayValue() : null,
@@ -78,6 +81,7 @@ public class ChatbotTourFlowService {
         String cityQuery = currentState.cityQuery();
         String cityDisplay = currentState.cityDisplay();
         Integer maxDurationDays = currentState.maxDurationDays();
+        FlowType flowType = currentState.flowType();
 
         if (stateService.getNlpService().isCancelRecommendationIntent(canonicalInput)) {
             stateService.clearState(conversationId);
@@ -111,7 +115,7 @@ public class ChatbotTourFlowService {
         // Hỏi budget nếu chưa có
         if (budgetVnd == null) {
             RecommendationStateService.RecommendationState updated = stateService.createState(
-                    null, travelers, cityQuery, cityDisplay, maxDurationDays);
+                    flowType, null, travelers, cityQuery, cityDisplay, maxDurationDays);
             stateService.saveState(conversationId, updated);
             pushBotText(conversationId, clientEmail,
                     "💰 Mình chưa đọc được ngân sách. Bạn thử nhập lại theo dạng:\n" +
@@ -122,7 +126,7 @@ public class ChatbotTourFlowService {
         // Hỏi travelers nếu chưa có
         if (travelers == null) {
             RecommendationStateService.RecommendationState updated = stateService.createState(
-                    budgetVnd, null, cityQuery, cityDisplay, maxDurationDays);
+                    flowType, budgetVnd, null, cityQuery, cityDisplay, maxDurationDays);
             stateService.saveState(conversationId, updated);
             pushBotText(conversationId, clientEmail,
                     "👥 Cảm ơn! Bạn cho mình xin **số người đi** (ví dụ: **2 người**, **4 người**) nhé.");
@@ -130,7 +134,7 @@ public class ChatbotTourFlowService {
         }
 
         RecommendationStateService.RecommendationState updatedState = stateService.createState(
-                budgetVnd, travelers, cityQuery, cityDisplay, maxDurationDays);
+                flowType, budgetVnd, travelers, cityQuery, cityDisplay, maxDurationDays);
         stateService.saveState(conversationId, updatedState);
         pushBotText(conversationId, clientEmail, "✨ Mình đang tìm tour phù hợp...");
         pushTourCards(conversationId, clientEmail, updatedState);

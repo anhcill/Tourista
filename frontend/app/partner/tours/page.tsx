@@ -48,8 +48,17 @@ export default function PartnerToursPage() {
       setError('');
 
       const data = await partnerApi.getPartnerTours();
-      const list = Array.isArray(data) ? data : (data?.data || []);
-      setTours(list);
+      const parseContent = (res: any) => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res.content)) return res.content;
+        if (res.data) {
+          if (Array.isArray(res.data)) return res.data;
+          if (Array.isArray(res.data.content)) return res.data.content;
+        }
+        return [];
+      };
+      setTours(parseContent(data));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải danh sách tour.');
     } finally {

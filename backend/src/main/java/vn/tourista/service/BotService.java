@@ -16,6 +16,7 @@ import vn.tourista.entity.Conversation;
 import vn.tourista.repository.*;
 import vn.tourista.service.chatbot.*;
 
+import vn.tourista.entity.SessionRecommendationState.FlowType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +54,7 @@ public class BotService {
     private final BookingLookupService bookingLookupService;
     private final RecommendationStateService recommendationStateService;
     private final ChatbotTourFlowService tourRecommendationFlowService;
+    private final ChatbotHotelFlowService hotelRecommendationFlowService;
     private final AiChatbotService aiChatbotService;
     private final ChatbotNlpService nlpService;
 
@@ -90,9 +92,19 @@ public class BotService {
             }
 
             if (recommendationStateService.hasActiveRecommendation(conversationId)) {
-                tourRecommendationFlowService.continueRecommendation(conversationId, inputText, canonicalInput, clientEmail);
+                RecommendationStateService.RecommendationState state =
+                        recommendationStateService.loadState(conversationId);
+                if (state != null && state.flowType() == FlowType.HOTEL) {
+                    hotelRecommendationFlowService.continueHotelRecommendation(
+                            conversationId, inputText, canonicalInput, clientEmail);
+                } else {
+                    tourRecommendationFlowService.continueRecommendation(
+                            conversationId, inputText, canonicalInput, clientEmail);
+                }
             } else if (nlpService.isRecommendationIntent(canonicalInput)) {
                 tourRecommendationFlowService.startRecommendation(conversationId, inputText, clientEmail);
+            } else if (nlpService.isHotelRecommendationIntent(canonicalInput)) {
+                hotelRecommendationFlowService.startHotelRecommendation(conversationId, inputText, clientEmail);
             } else {
                 // Luồng 4: AI chatbot
                 aiChatbotService.processAiChatbot(conversationId, inputText, clientEmail, previousContext);
@@ -174,6 +186,7 @@ public class BotService {
         String cityQuery = null;
         String cityDisplay = null;
         Integer maxDurationDays = null;
+        FlowType flowType = FlowType.TOUR;
 
         for (ChatMessage message : chronological) {
             if (message.getSender() == null) continue;
@@ -210,7 +223,7 @@ public class BotService {
 
         recommendationStateService.clearState(conversationId);
         RecommendationStateService.RecommendationState restored =
-                recommendationStateService.createState(budgetVnd, travelers, cityQuery, cityDisplay, maxDurationDays);
+                recommendationStateService.createState(flowType, budgetVnd, travelers, cityQuery, cityDisplay, maxDurationDays);
         recommendationStateService.saveState(conversationId, restored);
     }
 

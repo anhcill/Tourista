@@ -74,16 +74,27 @@ export default function PartnerBookingsPage() {
 
         const params = { page: activeTab === 'hotel' ? hotelPage : tourPage, size: pageSize, status: statusFilter || undefined };
 
+        const extractPageInfo = (res: any) => {
+          if (!res) return { content: [], total: 0 };
+          if (Array.isArray(res)) return { content: res, total: res.length };
+          if (Array.isArray(res.content)) return { content: res.content, total: res.totalElements || 0 };
+          if (res.data) {
+            if (Array.isArray(res.data)) return { content: res.data, total: res.data.length };
+            if (Array.isArray(res.data.content)) return { content: res.data.content, total: res.data.totalElements || 0 };
+          }
+          return { content: [], total: 0 };
+        };
+
         if (activeTab === 'hotel') {
           const res = await partnerApi.getPartnerHotelBookings(params);
-          const content = res?.data?.content || res?.content || [];
-          setHotelBookings(content);
-          setHotelTotal(res?.data?.totalElements || res?.totalElements || 0);
+          const pageInfo = extractPageInfo(res);
+          setHotelBookings(pageInfo.content);
+          setHotelTotal(pageInfo.total);
         } else {
           const res = await partnerApi.getPartnerTourBookings(params);
-          const content = res?.data?.content || res?.content || [];
-          setTourBookings(content);
-          setTourTotal(res?.data?.totalElements || res?.totalElements || 0);
+          const pageInfo = extractPageInfo(res);
+          setTourBookings(pageInfo.content);
+          setTourTotal(pageInfo.total);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Không thể tải bookings.');

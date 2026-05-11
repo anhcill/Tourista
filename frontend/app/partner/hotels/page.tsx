@@ -70,13 +70,27 @@ export default function PartnerHotelsPage() {
       setError('');
 
       const data = await partnerApi.getPartnerHotels({ page: pageNum, size: PAGE_SIZE });
-      const pageData: PageData = data?.data?.content !== undefined
-        ? data.data
-        : { content: Array.isArray(data?.data) ? data.data : [], totalElements: 0, totalPages: 0, number: 0, size: PAGE_SIZE };
+      let extractedContent: HotelType[] = [];
+      let extractedTotal = 0;
+      let extractedPages = 0;
 
-      setHotels(pageData.content || []);
-      setTotalElements(pageData.totalElements || 0);
-      setTotalPages(pageData.totalPages || 0);
+      if (data?.data?.content !== undefined) {
+        extractedContent = data.data.content;
+        extractedTotal = data.data.totalElements || 0;
+        extractedPages = data.data.totalPages || 0;
+      } else if (data?.content !== undefined) {
+        extractedContent = data.content;
+        extractedTotal = data.totalElements || 0;
+        extractedPages = data.totalPages || 0;
+      } else if (Array.isArray(data?.data)) {
+        extractedContent = data.data;
+      } else if (Array.isArray(data)) {
+        extractedContent = data;
+      }
+
+      setHotels(extractedContent);
+      setTotalElements(extractedTotal);
+      setTotalPages(extractedPages);
       setPage(pageNum);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải danh sách khách sạn.');
