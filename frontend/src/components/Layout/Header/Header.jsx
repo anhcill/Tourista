@@ -11,7 +11,7 @@ import {
     FaBookmark, FaChevronDown, FaHeart,
     FaHotel, FaMapMarkedAlt,
     FaTimes, FaMapMarkerAlt, FaClock, FaUserShield, FaBookOpen, FaComments,
-    FaMoon, FaSun, FaRegLightbulb, FaUser, FaTag, FaSuitcaseRolling, FaPlaneDeparture
+    FaMoon, FaSun, FaRegLightbulb, FaUser, FaTag, FaSuitcaseRolling
 } from 'react-icons/fa';
 import { logout } from '../../../store/slices/authSlice';
 import authApi from '../../../api/authApi';
@@ -228,7 +228,6 @@ const Header = () => {
     const navigationTabs = [
         { id: 'hotel', label: 'Khách sạn', hint: 'Nghỉ dưỡng', href: '/hotels', icon: FaHotel, color: '#FF6B6B' },
         { id: 'tour', label: 'Tour du lịch', hint: 'Khám phá tự do', href: '/tours', icon: FaMapMarkedAlt, color: '#4ECDC4' },
-        { id: 'bus', label: 'Vé xe khách', hint: 'Vi vu mọi ngả', href: '/bus', icon: FaPlaneDeparture, color: '#45B7D1', isBus: true },
         { id: 'ai', label: 'AI Planner', hint: 'Chuyên gia du lịch', href: '/ai-travel-planner', icon: FaRegLightbulb, color: '#96CEB4' },
         { id: 'promo', label: 'Khuyến mãi', hint: 'Ưu đãi hot', href: '/promotions', icon: FaTag, color: '#F7DC6F' },
         { id: 'combo', label: 'Combo', hint: 'Tiết kiệm hơn', href: '/combos', icon: FaSuitcaseRolling, color: '#BB8FCE' },
