@@ -17,8 +17,8 @@ import java.util.List;
 @Builder
 public class PartnerTourResponse {
     private Long id;
-    private Long categoryId;
-    private Long cityId;
+    private Integer categoryId;
+    private Integer cityId;
     private String title;
     private String city;
     private String description;

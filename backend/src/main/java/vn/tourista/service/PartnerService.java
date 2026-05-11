@@ -413,9 +413,9 @@ public class PartnerService {
             saveTourDepartures(saved, request.getDepartureDates());
         }
 
-        List<TourImage> images = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(tourId);
-        List<TourItinerary> itinerary = tourItineraryRepository.findByTour_IdOrderByDayNumberAscIdAsc(tourId);
-        List<TourDeparture> departures = tourDepartureRepository.findByTour_IdOrderByDepartureDateAsc(tourId);
+        List<TourImage> images = tourImageRepository.findByTour_IdOrderBySortOrderAscIdAsc(saved.getId());
+        List<TourItinerary> itinerary = tourItineraryRepository.findByTour_IdOrderByDayNumberAscIdAsc(saved.getId());
+        List<TourDeparture> departures = tourDepartureRepository.findByTour_IdOrderByDepartureDateAsc(saved.getId());
 
         return toPartnerTourResponseFull(saved, images, itinerary, departures);
     }
@@ -593,8 +593,8 @@ public class PartnerService {
                 .description(h.getDescription())
                 .latitude(h.getLatitude())
                 .longitude(h.getLongitude())
-                .checkInTime(h.getCheckInTime())
-                .checkOutTime(h.getCheckOutTime())
+                .checkInTime(h.getCheckInTime() != null ? h.getCheckInTime().toString() : null)
+                .checkOutTime(h.getCheckOutTime() != null ? h.getCheckOutTime().toString() : null)
                 .phone(h.getPhone())
                 .email(h.getEmail())
                 .website(h.getWebsite())
@@ -660,7 +660,7 @@ public class PartnerService {
 
         return PartnerTourResponse.builder()
                 .id(t.getId())
-                .categoryId(t.getCategory() != null ? t.getCategory().getId() : null)
+                .categoryId(t.getCategory() != null ? t.getCategory().getId().intValue() : null)
                 .cityId(t.getCity() != null ? t.getCity().getId() : null)
                 .title(t.getTitle())
                 .city(t.getCity() != null ? t.getCity().getNameVi() : null)

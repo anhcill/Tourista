@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 public class PartnerHotelResponse {
     private Long id;
-    private Long cityId;
+    private Integer cityId;
     private String name;
     private String city;
     private String address;
