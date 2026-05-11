@@ -52,6 +52,7 @@ const HeroBanner = ({ compact = false }) => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [searchValue, setSearchValue] = useState('');
+    const [activeTab, setActiveTab] = useState('hotel'); // 'hotel' | 'tour'
     const [formData, setFormData] = useState({
         checkIn: '',
         checkOut: '',
@@ -81,20 +82,27 @@ const HeroBanner = ({ compact = false }) => {
         if (!searchValue.trim()) return;
 
         setIsLoading(true);
-        
-        // Simulate brief loading
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        const params = new URLSearchParams({
-            destination: searchValue.trim(),
-            checkIn: formData.checkIn || new Date().toISOString().split('T')[0],
-            checkOut: formData.checkOut || new Date(Date.now() + 86400000).toISOString().split('T')[0],
-            adults: String(formData.guests),
-            children: '0',
-            rooms: '1',
-        });
-
-        router.push(`/hotels/search?${params.toString()}`);
+        if (activeTab === 'tour') {
+            // Tìm Tour → redirect sang /tours/search
+            const params = new URLSearchParams({
+                city: searchValue.trim(),
+                adults: String(formData.guests),
+            });
+            router.push(`/tours/search?${params.toString()}`);
+        } else {
+            // Tìm Khách sạn → redirect sang /hotels/search
+            const params = new URLSearchParams({
+                destination: searchValue.trim(),
+                checkIn: formData.checkIn || new Date().toISOString().split('T')[0],
+                checkOut: formData.checkOut || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                adults: String(formData.guests),
+                children: '0',
+                rooms: '1',
+            });
+            router.push(`/hotels/search?${params.toString()}`);
+        }
         setIsLoading(false);
     };
 
@@ -149,18 +157,23 @@ const HeroBanner = ({ compact = false }) => {
                 {/* Main Search Card - Glassmorphism */}
                 <div className={`${styles.searchCard} ${isSearchFocused ? styles.searchCardFocused : ''}`}>
                     <div className={styles.searchTabs}>
-                        <button className={`${styles.searchTab} ${styles.searchTabActive}`}>
+                        <button
+                            className={`${styles.searchTab} ${activeTab === 'hotel' ? styles.searchTabActive : ''}`}
+                            onClick={() => setActiveTab('hotel')}
+                            type="button"
+                        >
                             <FaHotel /> Khách sạn
                         </button>
-                        <button className={styles.searchTab}>
-                            <FaPlane /> Vé máy bay
-                        </button>
-                        <button className={styles.searchTab}>
+                        <button
+                            className={`${styles.searchTab} ${activeTab === 'tour' ? styles.searchTabActive : ''}`}
+                            onClick={() => setActiveTab('tour')}
+                            type="button"
+                        >
                             <FaUmbrellaBeach /> Tour
                         </button>
                     </div>
 
-                    <form onSubmit={handleSearch} className={styles.searchForm}>
+                    <form onSubmit={handleSearch} className={`${styles.searchForm} ${activeTab === 'tour' ? styles.searchFormTour : ''}`}>
                         {/* Destination */}
                         <div className={styles.searchField}>
                             <label className={styles.fieldLabel}>
@@ -169,7 +182,7 @@ const HeroBanner = ({ compact = false }) => {
                             <div className={styles.autocompleteWrapper}>
                                 <input
                                     type="text"
-                                    placeholder="Bạn muốn đến đâu?"
+                                    placeholder={activeTab === 'tour' ? 'Bạn muốn đi tour ở đâu?' : 'Bạn muốn đến đâu?'}
                                     className={styles.fieldInput}
                                     value={searchValue}
                                     onChange={(e) => setSearchValue(e.target.value)}
@@ -198,39 +211,41 @@ const HeroBanner = ({ compact = false }) => {
                             </div>
                         </div>
 
-                        {/* Date inputs */}
-                        <div className={styles.dateFields}>
-                            <div className={styles.searchField}>
-                                <label className={styles.fieldLabel}>
-                                    <FaCalendarAlt /> Check-in
-                                </label>
-                                <input
-                                    type="date"
-                                    className={styles.fieldInput}
-                                    value={formData.checkIn}
-                                    onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
-                                />
+                        {/* Date inputs — chỉ hiện khi tab Khách sạn */}
+                        {activeTab === 'hotel' && (
+                            <div className={styles.dateFields}>
+                                <div className={styles.searchField}>
+                                    <label className={styles.fieldLabel}>
+                                        <FaCalendarAlt /> Check-in
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className={styles.fieldInput}
+                                        value={formData.checkIn}
+                                        onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
+                                    />
+                                </div>
+                                <div className={styles.dateDivider}>
+                                    <FaChevronDown />
+                                </div>
+                                <div className={styles.searchField}>
+                                    <label className={styles.fieldLabel}>
+                                        <FaCalendarAlt /> Check-out
+                                    </label>
+                                    <input
+                                        type="date"
+                                        className={styles.fieldInput}
+                                        value={formData.checkOut}
+                                        onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
+                                    />
+                                </div>
                             </div>
-                            <div className={styles.dateDivider}>
-                                <FaChevronDown />
-                            </div>
-                            <div className={styles.searchField}>
-                                <label className={styles.fieldLabel}>
-                                    <FaCalendarAlt /> Check-out
-                                </label>
-                                <input
-                                    type="date"
-                                    className={styles.fieldInput}
-                                    value={formData.checkOut}
-                                    onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
-                                />
-                            </div>
-                        </div>
+                        )}
 
                         {/* Guests */}
                         <div className={styles.searchField}>
                             <label className={styles.fieldLabel}>
-                                <FaUsers /> Khách
+                                <FaUsers /> {activeTab === 'tour' ? 'Số người' : 'Khách'}
                             </label>
                             <select
                                 className={styles.fieldSelect}
@@ -238,7 +253,7 @@ const HeroBanner = ({ compact = false }) => {
                                 onChange={(e) => setFormData({ ...formData, guests: parseInt(e.target.value) })}
                             >
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                                    <option key={n} value={n}>{n} {n === 1 ? 'khách' : 'khách'}</option>
+                                    <option key={n} value={n}>{n} {activeTab === 'tour' ? 'người' : 'khách'}</option>
                                 ))}
                             </select>
                         </div>
@@ -248,7 +263,7 @@ const HeroBanner = ({ compact = false }) => {
                             {isLoading ? (
                                 <><FaSpinner className={styles.spinner} /> Đang tìm...</>
                             ) : (
-                                <><FaSearch /> Tìm kiếm</>
+                                <><FaSearch /> {activeTab === 'tour' ? 'Tìm tour' : 'Tìm kiếm'}</>
                             )}
                         </button>
                     </form>

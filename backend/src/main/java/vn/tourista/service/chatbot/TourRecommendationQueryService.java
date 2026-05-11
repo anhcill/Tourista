@@ -166,18 +166,43 @@ public class TourRecommendationQueryService {
             log.debug("Could not load cities for chatbot: {}", e.getMessage());
         }
 
-        // Tours
-        if (containsAny(canonical, List.of("tour", "du lich", "di dau", "goi y", "goi i", "de xuat"))) {
+        // Tours — nếu user hỏi về tour, tìm theo thành phố (nếu có)
+        boolean asksAboutTour = containsAny(canonical, List.of("tour", "du lich", "di dau", "goi y", "goi i", "de xuat", "lich trinh"));
+        if (asksAboutTour) {
             try {
-                List<Long> tourIds = tourRepository.findActiveTourIds(PageRequest.of(0, 5));
+                // Detect city trước để lọc tour theo địa điểm
+                ChatbotNlpService.CityAlias tourCity = nlpService.parseCityAlias(canonical);
+                String tourCityQuery = null;
+                if (tourCity != null) {
+                    tourCityQuery = tourCity.queryValue();
+                } else {
+                    String loc = locationService.parseLocation(inputText);
+                    if (loc != null) tourCityQuery = loc;
+                }
+
+                List<Long> tourIds;
+                if (tourCityQuery != null) {
+                    // Tìm tour theo thành phố cụ thể
+                    tourIds = tourRepository.searchTourIds(
+                            tourCityQuery, null, null, null, null, null, null, null,
+                            null, java.time.LocalDate.now(), PageRequest.of(0, 5));
+                } else {
+                    // Không có city → lấy tour phổ biến nhất
+                    tourIds = tourRepository.findActiveTourIds(PageRequest.of(0, 5));
+                }
+
                 if (tourIds != null && !tourIds.isEmpty()) {
                     List<Tour> tours = tourRepository.findAllById(tourIds);
-                    ctx.append("Tour đang hoạt động: ");
+                    ctx.append("Tour đang hoạt động trên Tourista");
+                    if (tourCityQuery != null) ctx.append(" tại ").append(tourCityQuery);
+                    ctx.append(": ");
                     for (int i = 0; i < tours.size(); i++) {
                         Tour t = tours.get(i);
                         if (i > 0) ctx.append("; ");
+                        String cityVi = t.getCity() != null ? t.getCity().getNameVi() : "";
                         ctx.append("- \"").append(t.getTitle()).append("\"")
-                                .append(" giá từ ").append(formatVnd(t.getPricePerAdult().longValue()))
+                                .append(", ").append(cityVi)
+                                .append(", giá từ ").append(formatVnd(t.getPricePerAdult().longValue()))
                                 .append("/người lớn");
                         if (t.getAvgRating() != null && t.getAvgRating().compareTo(BigDecimal.ZERO) > 0) {
                             ctx.append(", rating ").append(t.getAvgRating()).append("★");
@@ -186,6 +211,8 @@ public class TourRecommendationQueryService {
                                 .append(t.getDurationNights()).append(" đêm");
                     }
                     ctx.append(".\n");
+                } else if (tourCityQuery != null) {
+                    ctx.append("Hiện chưa có tour nào tại ").append(tourCityQuery).append(" trong hệ thống.\n");
                 }
             } catch (Exception e) {
                 log.debug("Could not load tours for chatbot: {}", e.getMessage());
@@ -240,13 +267,16 @@ public class TourRecommendationQueryService {
                     ctx.append("Khách sạn nổi bật trong hệ thống Tourista: ");
                     for (int i = 0; i < hotelRows.size(); i++) {
                         Object[] row = hotelRows.get(i);
+                        // row: [0]=id, [1]=name, [2]=star_rating, [3]=city_name,
+                        //       [4]=avg_rating, [5]=review_count, [6]=min_price, [7]=address
                         if (i > 0) ctx.append("; ");
                         ctx.append("- \"").append(row[1] != null ? row[1] : "")
                                 .append("\" (").append(row[2] != null ? row[2] : "").append("★)")
+                                .append(", ").append(row[3] != null ? row[3] : "")
                                 .append(", rating ").append(row[4] != null ? row[4] : "N/A").append("★");
-                        // Thêm địa chỉ nếu có (row[3] thường là address/district)
-                        if (row[3] != null && !row[3].toString().isBlank()) {
-                            ctx.append(", khu vực ").append(row[3]);
+                        // Địa chỉ cụ thể
+                        if (row.length > 7 && row[7] != null && !row[7].toString().isBlank()) {
+                            ctx.append(", địa chỉ: ").append(row[7]);
                         }
                         if (row[6] != null) {
                             long price = ((Number) row[6]).longValue();

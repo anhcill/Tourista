@@ -240,6 +240,10 @@
   padding: 16px;
 }
 
+.searchFormTour {
+  grid-template-columns: 2fr 1fr auto;
+}
+
 .searchField {
   display: flex;
   flex-direction: column;
@@ -512,7 +516,8 @@
 
 /* ── Responsive ── */
 @media (max-width: 1024px) {
-  .searchForm {
+  .searchForm,
+  .searchFormTour {
     grid-template-columns: 1fr 1fr;
   }
   
@@ -552,7 +557,8 @@
     border-radius: 20px;
   }
   
-  .searchForm {
+  .searchForm,
+  .searchFormTour {
     grid-template-columns: 1fr;
     gap: 12px;
     padding: 12px;

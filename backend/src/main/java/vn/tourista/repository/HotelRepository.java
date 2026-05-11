@@ -142,6 +142,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
     /**
      * Tim khu khach san noi bat theo thanh pho/tinh.
      * Dung de AI chatbot goi y khach san khi user hoi ve dia diem du lich.
+     * Tìm theo name_en, name_vi, hotel name, và address (fuzzy match).
      */
     @Query(value = """
             SELECT
@@ -156,11 +157,17 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
                  WHERE rt.hotel_id = h.id
                    AND rt.is_active = TRUE
                    AND rt.base_price_per_night > 0
-                 LIMIT 1) AS min_price
+                 LIMIT 1) AS min_price,
+                h.address
             FROM hotels h
             LEFT JOIN cities c ON c.id = h.city_id
             WHERE h.is_active = TRUE
-              AND c.name_en = :cityEn
+              AND (
+                  LOWER(c.name_en) LIKE LOWER(CONCAT('%', :cityEn, '%'))
+                  OR LOWER(c.name_vi) LIKE LOWER(CONCAT('%', :cityEn, '%'))
+                  OR LOWER(h.name) LIKE LOWER(CONCAT('%', :cityEn, '%'))
+                  OR LOWER(h.address) LIKE LOWER(CONCAT('%', :cityEn, '%'))
+              )
             ORDER BY h.avg_rating DESC, h.review_count DESC
             LIMIT :limit
             """, nativeQuery = true)

@@ -292,7 +292,8 @@ public class ChatService {
          */
         private boolean containsServiceKeyword(String canonical) {
                 if (canonical == null) return false;
-                return canonical.contains("khach san") || canonical.contains("hotel")
+                // Khách sạn
+                boolean hotelIntent = canonical.contains("khach san") || canonical.contains("hotel")
                         || canonical.contains("dat phong") || canonical.contains("thue phong")
                         || canonical.contains("phong") && canonical.contains("gia")
                         || canonical.contains("tim") && (canonical.contains("khach san") || canonical.contains("hotel"))
@@ -300,9 +301,14 @@ public class ChatService {
                         || canonical.contains("luu tru") || canonical.contains("homestay")
                         || canonical.contains("resort") || canonical.contains("hostel")
                         || canonical.contains("dem") && canonical.contains("gia")
-                        || canonical.contains("chi phi") && (canonical.contains("o") || canonical.contains("nghi"))
-                        || canonical.contains("dat tour") || canonical.contains("mua tour")
-                        || canonical.contains("gia tour") || canonical.contains("bao nhieu");
+                        || canonical.contains("chi phi") && (canonical.contains("o") || canonical.contains("nghi"));
+                // Tour
+                boolean tourIntent = canonical.contains("tour") || canonical.contains("dat tour")
+                        || canonical.contains("mua tour") || canonical.contains("gia tour")
+                        || canonical.contains("du lich") || canonical.contains("lich trinh");
+                // Giá chung
+                boolean priceIntent = canonical.contains("bao nhieu") || canonical.contains("gia ca");
+                return hotelIntent || tourIntent || priceIntent;
         }
 
         /**
