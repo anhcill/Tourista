@@ -246,7 +246,7 @@ public class TourRecommendationQueryService {
         // Nếu đã detect được thành phố + KHÔNG phải đang hỏi về tour → mặc định query hotels
         // (User nói "hà nội ở hoàn kiếm chi phí 500k" → có city nhưng không có keyword tour)
         boolean cityDetected = detectedCity != null || parsedLocation != null;
-        boolean asksAboutTour = containsAny(canonical, List.of("tour", "du lich", "di dau", "goi y", "de xuat", "lich trinh"));
+        asksAboutTour = containsAny(canonical, List.of("tour", "du lich", "di dau", "goi y", "de xuat", "lich trinh"));
         if (cityDetected && !asksAboutHotel && !asksAboutTour) {
             asksAboutHotel = true; // Mặc định tìm khách sạn khi có city
         }
