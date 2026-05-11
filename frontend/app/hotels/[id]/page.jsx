@@ -284,6 +284,49 @@ function HotelDetailInner() {
     const [calendarCheckIn, setCalendarCheckIn] = useState(checkIn || '');
     const [calendarCheckOut, setCalendarCheckOut] = useState(checkOut || '');
 
+    // Local dates for the booking widget — user can adjust without affecting URL until confirmed
+    const [localCheckIn, setLocalCheckIn] = useState(checkIn || '');
+    const [localCheckOut, setLocalCheckOut] = useState(checkOut || '');
+
+    const localNights = localCheckIn && localCheckOut
+        ? Math.max(1, Math.ceil((new Date(localCheckOut) - new Date(localCheckIn)) / 86400000))
+        : 1;
+
+    const toDateInput = (date) => {
+        const d = date ? new Date(date) : new Date();
+        if (Number.isNaN(d.getTime())) return '';
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    const addDays = (dateStr, days) => {
+        const d = new Date(dateStr);
+        d.setDate(d.getDate() + days);
+        return toDateInput(d);
+    };
+
+    const handleExtendNight = () => {
+        const newCheckOut = addDays(localCheckOut, 1);
+        setLocalCheckIn(localCheckIn);
+        setLocalCheckOut(newCheckOut);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('checkIn', localCheckIn);
+        params.set('checkOut', newCheckOut);
+        router.replace(`/hotels/${id}?${params.toString()}`, { scroll: false });
+    };
+
+    const handleReduceNight = () => {
+        if (localNights <= 1) return;
+        const newCheckOut = addDays(localCheckOut, -1);
+        setLocalCheckOut(newCheckOut);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('checkIn', localCheckIn);
+        params.set('checkOut', newCheckOut);
+        router.replace(`/hotels/${id}?${params.toString()}`, { scroll: false });
+    };
+
     const nights = checkIn && checkOut
         ? Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000))
         : 1;
@@ -321,30 +364,30 @@ function HotelDetailInner() {
         if (id) fetchDetail();
     }, [id]);
 
-    // Fetch dynamic price when dates or selected room change
+    // Fetch dynamic price when local dates or selected room change
     useEffect(() => {
-        const fetchDynamicPrice = async () => {
-            if (!checkIn || !checkOut || !selectedRoom || !hotel?.id) {
+        const fetchDynamicPrice = async (targetRoom) => {
+            if (!localCheckIn || !localCheckOut || !targetRoom || !hotel?.id) {
                 setDynamicPrice(null);
                 return;
             }
 
             try {
                 setPriceLoading(true);
-                const numNights = Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000));
+                const targetNights = Math.max(1, Math.ceil((new Date(localCheckOut) - new Date(localCheckIn)) / 86400000));
                 let total = 0;
                 const numRooms = Number(rooms || 1);
 
-                for (let i = 0; i < numNights; i++) {
-                    const d = new Date(checkIn);
+                for (let i = 0; i < targetNights; i++) {
+                    const d = new Date(localCheckIn);
                     d.setDate(d.getDate() + i);
                     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                     try {
                         const res = await pricingApi.calculateHotelNightPrice(hotel.id, dateStr, Number(adults || 2));
                         const price = res?.data?.data?.finalPrice ?? res?.data?.finalPrice;
-                        total += Number(price) || Number(selectedRoom.basePricePerNight);
+                        total += Number(price) || Number(targetRoom.basePricePerNight);
                     } catch {
-                        total += Number(selectedRoom.basePricePerNight);
+                        total += Number(targetRoom.basePricePerNight);
                     }
                 }
 
@@ -356,8 +399,10 @@ function HotelDetailInner() {
             }
         };
 
-        fetchDynamicPrice();
-    }, [checkIn, checkOut, selectedRoom, hotel?.id, adults, rooms]);
+        if (selectedRoom) {
+            fetchDynamicPrice(selectedRoom);
+        }
+    }, [localCheckIn, localCheckOut, selectedRoom, hotel?.id, adults, rooms]);
 
     useEffect(() => {
         const fetchNearbyTours = async () => {
@@ -669,8 +714,8 @@ function HotelDetailInner() {
         const room = overrideRoom || selectedRoom;
         if (!room) return;
         const params = new URLSearchParams({
-            checkIn: checkIn || new Date().toISOString().slice(0, 10),
-            checkOut: checkOut || new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+            checkIn: localCheckIn || new Date().toISOString().slice(0, 10),
+            checkOut: localCheckOut || new Date(Date.now() + 86400000).toISOString().slice(0, 10),
             adults,
             children,
             rooms,
@@ -714,8 +759,8 @@ function HotelDetailInner() {
 
     const goToHotelDetail = (hotelId) => {
         const params = new URLSearchParams({
-            checkIn: checkIn || new Date().toISOString().slice(0, 10),
-            checkOut: checkOut || new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+            checkIn: localCheckIn || new Date().toISOString().slice(0, 10),
+            checkOut: localCheckOut || new Date(Date.now() + 86400000).toISOString().slice(0, 10),
             adults,
             children,
             rooms,
@@ -1376,15 +1421,44 @@ function HotelDetailInner() {
 
                         {/* Stay info */}
                         <p className={styles.stayInfo}>
-                            {adults} Người lớn{Number(children) > 0 ? `, ${children} Trẻ em` : ''} · {nights} đêm · {rooms} phòng
+                            {adults} Người lớn{Number(children) > 0 ? `, ${children} Trẻ em` : ''} · {localNights} đêm · {rooms} phòng
                         </p>
-                        {checkIn && checkOut && (
+                        {localCheckIn && localCheckOut && (
                             <div className={styles.datesRow}>
-                                <div className={styles.dateBox}><span>Check-in</span><strong>{checkIn}</strong></div>
+                                <div className={styles.dateBox}><span>Check-in</span><strong>{localCheckIn}</strong></div>
                                 <span className={styles.dateArrow}>→</span>
-                                <div className={styles.dateBox}><span>Check-out</span><strong>{checkOut}</strong></div>
+                                <div className={styles.dateBox}><span>Check-out</span><strong>{localCheckOut}</strong></div>
                             </div>
                         )}
+
+                        {/* +/- nights controls */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <span style={{ fontSize: 14, color: '#475569' }}>Số đêm</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <button
+                                    onClick={handleReduceNight}
+                                    disabled={localNights <= 1}
+                                    style={{
+                                        width: 32, height: 32, borderRadius: '50%',
+                                        border: '1px solid #d1d5db', background: '#fff',
+                                        cursor: localNights <= 1 ? 'not-allowed' : 'pointer',
+                                        opacity: localNights <= 1 ? 0.4 : 1,
+                                        fontSize: 16, fontWeight: 700, color: '#374151',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
+                                >−</button>
+                                <strong style={{ fontSize: 16, minWidth: 28, textAlign: 'center' }}>{localNights}</strong>
+                                <button
+                                    onClick={handleExtendNight}
+                                    style={{
+                                        width: 32, height: 32, borderRadius: '50%',
+                                        border: '1px solid #d1d5db', background: '#fff',
+                                        cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#374151',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}
+                                >+</button>
+                            </div>
+                        </div>
 
                         <hr className={styles.divider} />
 
@@ -1401,8 +1475,8 @@ function HotelDetailInner() {
                                         <>
                                             <div className={styles.totalPrice}>{formatVND(dynamicPrice)}</div>
                                             <div className={styles.priceNote}>
-                                                {formatVND(selectedRoom.basePricePerNight)} × {nights} đêm × {rooms} phòng
-                                                {(dynamicPrice !== Number(selectedRoom.basePricePerNight) * nights * Number(rooms)) && (
+                                                {formatVND(selectedRoom.basePricePerNight)} × {localNights} đêm × {rooms} phòng
+                                                {(dynamicPrice !== Number(selectedRoom.basePricePerNight) * localNights * Number(rooms)) && (
                                                     <span style={{ color: '#e74c3c', marginLeft: 6 }}>(đã áp dụng giá động)</span>
                                                 )}
                                             </div>
@@ -1410,8 +1484,8 @@ function HotelDetailInner() {
                                         </>
                                     ) : (
                                         <>
-                                            <div className={styles.totalPrice}>{formatVND(Number(selectedRoom.basePricePerNight) * nights * Number(rooms))}</div>
-                                            <div className={styles.priceNote}>{formatVND(selectedRoom.basePricePerNight)} × {nights} đêm × {rooms} phòng</div>
+                                            <div className={styles.totalPrice}>{formatVND(Number(selectedRoom.basePricePerNight) * localNights * Number(rooms))}</div>
+                                            <div className={styles.priceNote}>{formatVND(selectedRoom.basePricePerNight)} × {localNights} đêm × {rooms} phòng</div>
                                             <div className={styles.taxNote}>Đã bao gồm thuế và phí</div>
                                         </>
                                     )}

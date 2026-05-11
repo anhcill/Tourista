@@ -189,7 +189,7 @@ function HotelBookingInner() {
 
         const roomTypes = Array.isArray(data.roomTypes) ? data.roomTypes : [];
         const queryRoom = roomTypes.find((room) => Number(room.id) === query.roomTypeId);
-        setSelectedRoom(queryRoom || roomTypes[0] || null);
+        setSelectedRoom(queryRoom || roomTypes[0] || selectedRoom);
       } catch (err) {
         setError(err?.message || 'Không thể tải dữ liệu đặt phòng.');
       } finally {
