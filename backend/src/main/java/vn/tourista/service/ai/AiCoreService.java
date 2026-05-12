@@ -44,6 +44,7 @@ public class AiCoreService {
 
     /**
      * Gọi AI với prompt + context
+     * Primary: Beeknoee → Fallback: OpenAI
      */
     public String ask(String userMessage, String conversationContext) {
         if (!config.isAnyEnabled()) {
@@ -51,22 +52,33 @@ public class AiCoreService {
             return null;
         }
 
-        // Acquire semaphore (prevent concurrent requests)
         if (!acquireSemaphore()) {
             log.warn("AiCoreService: Could not acquire semaphore (AI busy)");
             return null;
         }
 
+        String content = composeContent(userMessage, conversationContext);
+
         try {
-            String content = composeContent(userMessage, conversationContext);
-            String response = switch (config.getActiveProvider()) {
-                case "beeknoee" -> callBeeknoee(content);
-                case "openai" -> callOpenAI(content);
-                case "gemini" -> callGemini(content);
-                case "claude" -> callClaude(content);
-                default -> null;
-            };
-            return response;
+            // Primary: Beeknoee
+            String response = callBeeknoee(content);
+            if (response != null && !response.isBlank()) {
+                return response;
+            }
+
+            // Fallback: OpenAI
+            if (config.getOpenai().isEnabled()) {
+                log.info("AiCoreService: Beeknoee failed/null, falling back to OpenAI");
+                response = callOpenAI(content);
+                if (response != null && !response.isBlank()) {
+                    return response;
+                }
+            }
+
+            // All failed
+            log.warn("AiCoreService: All AI providers failed, returning static fallback");
+            return promptTemplates.getAiFallback();
+
         } finally {
             semaphore.release();
         }
@@ -142,7 +154,7 @@ public class AiCoreService {
             return parseOpenAIResponse(response.body());
         } catch (Exception e) {
             log.warn("AiCoreService[Beeknoee]: API call failed — {}", e.getMessage());
-            return promptTemplates.getAiFallback();
+            return null;
         }
     }
 
@@ -185,7 +197,7 @@ public class AiCoreService {
             return parseOpenAIResponse(response.body());
         } catch (Exception e) {
             log.warn("AiCoreService[OpenAI]: API call failed — {}", e.getMessage());
-            return promptTemplates.getAiFallback();
+            return null;
         }
     }
 

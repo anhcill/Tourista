@@ -28,21 +28,21 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class AiService {
 
-    @Value("${ai.beeknoee.api-key:}")
+    @Value("${ai.openai.api-key:}")
     private String apiKeyConfig;
 
     private String[] apiKeys;
 
-    @Value("${ai.beeknoee.api-url:https://platform.beeknoee.com/api/v1/chat/completions}")
+    @Value("${ai.openai.api-url:https://api.openai.com/v1/chat/completions}")
     private String apiUrl;
 
-    @Value("${ai.beeknoee.model:glm-4.7-flash}")
+    @Value("${ai.openai.model:gpt-4o-mini}")
     private String model;
 
-    @Value("${ai.beeknoee.timeout-seconds:30}")
+    @Value("${ai.openai.timeout-seconds:30}")
     private int timeoutSeconds;
 
-    @Value("${ai.beeknoee.max-tokens:3500}")
+    @Value("${ai.openai.max-tokens:3500}")
     private int maxTokens;
 
     @Value("${ai.semaphore.permits:3}")
@@ -66,7 +66,7 @@ public class AiService {
         } else {
             this.apiKeys = new String[0];
         }
-        log.info("AiService initialized: provider=beeknoee, model={}, maxTokens={}, timeout={}s, permits={}, keys={}",
+        log.info("AiService initialized: provider=openai, model={}, maxTokens={}, timeout={}s, permits={}, keys={}",
                 model, maxTokens, timeoutSeconds, semaphorePermits, apiKeys.length);
     }
 

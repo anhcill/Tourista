@@ -7,17 +7,12 @@
 
 ai:
   # ----- PROVIDER ĐANG DÙNG -----
-  provider: beeknoee
+  provider:  beeknoee
 
   beeknoee:
     enabled: true
-    api-key: ${BEEKNOEE_API_KEY:sk-bee-d32a3f4bc08544b4945bee85e9bb3ff82a8b5ea082484f63b60d64792af5ef8d,sk-bee-d32a3f4bc08544b4945bee85e9bb3ff8a3f8e81d15874c74a7c96074744dd964}
+    api-key: ${BEEKNOEE_API_KEY}
     api-url: https://platform.beeknoee.com/api/v1/chat/completions
-    # Models Beeknoee hỗ trợ:
-    #   - gemini-3-flash       ⭐ đang dùng
-    #   - gemini-2.5-flash
-    #   - glm-4.7-flash
-    #   - deepseek/deepseek-v3
     model: gemini-3-flash
     reasoning: off
     timeout-seconds: 60
@@ -27,11 +22,11 @@ ai:
   # ----- PROVIDER: OPENAI (Alternative) -----
   openai:
     enabled: true
-    api-key: sk-bee-d32a3f4bc08544b4945bee85e9bb3ff8a3f8e81d15874c74a7c96074744dd964
+    api-key: ${OPENAI_API_KEY}
     api-url: https://api.openai.com/v1/chat/completions
     model: gpt-4o-mini
     timeout-seconds: 60
-    max-tokens: 2000
+    max-tokens: 2500
     temperature: 0.7
 
   # ----- PROVIDER: GEMINI native (tắt - đang dùng qua Beeknoee) -----
