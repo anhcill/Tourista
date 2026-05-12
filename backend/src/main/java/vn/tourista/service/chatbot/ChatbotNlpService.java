@@ -325,8 +325,13 @@ public class ChatbotNlpService {
                 List.of("khach san", "khách sạn", "hotel", "resort", "homestay"));
         if (!hasHotelKeyword) return false;
 
-        // Không phải hotel RECOMMENDATION intent (đang tìm kiếm theo criteria)
-        if (isHotelRecommendationIntent(canonicalInput)) return false;
+        // KHÔNG dùng isHotelRecommendationIntent để block (vì "resort" overlap)
+        // Thay vào đó: nếu có budget + city → đang trong luồng recommendation, KHÔNG phải lookup
+        Integer budgetHere = parseBudgetVnd(inputText);
+        ChatbotNlpService.CityAlias cityHere = parseCityAlias(canonicalInput);
+        if (budgetHere != null && cityHere != null) {
+            return false; // đang trong luồng gợi ý theo tiêu chí
+        }
 
         // Có keyword hỏi thông tin cụ thể
         boolean asksDetail = containsAny(canonicalInput, List.of(
