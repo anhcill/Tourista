@@ -144,8 +144,7 @@ public class ChatbotHotelFlowService {
             BigDecimal minPrice = hotelRepository.findMinBasePriceByHotelId(hotel.getId());
             String cityVi = hotel.getCity() != null ? hotel.getCity().getNameVi() : "";
             String address = hotel.getAddress() != null ? hotel.getAddress() : "Đang cập nhật";
-            BigDecimal ratingBd = hotel.getAvgRating() != null
-                    ? BigDecimal.valueOf(hotel.getAvgRating()) : null;
+            BigDecimal ratingBd = hotel.getAvgRating();
             Integer reviews = hotel.getReviewCount();
             Integer stars = hotel.getStarRating();
 
