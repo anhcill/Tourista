@@ -265,9 +265,9 @@ public class ChatbotNlpService {
      */
     public boolean isRecommendationIntent(String canonicalInput) {
         boolean hasSuggestIntent = containsAny(canonicalInput,
-                List.of("goi y", "goi i", "tu van", "de xuat", "suggest"));
+                List.of("goi y", "goi i", "tu van", "de xuat", "suggest", "muon"));
         boolean hasTourContext = containsAny(canonicalInput,
-                List.of("tour", "du lich", "lich trinh", "di dau", "bien", "nghi duong"));
+                List.of("tour", "du lich", "lich trinh", "di dau", "bien", "nghi duong", "tim", "tours"));
         boolean directBudgetIntent = containsAny(canonicalInput,
                 List.of("ngan sach", "bao nhieu nguoi", "cho 2", "cho 3", "cho 4"));
         boolean directRefineIntent = containsAny(canonicalInput,
