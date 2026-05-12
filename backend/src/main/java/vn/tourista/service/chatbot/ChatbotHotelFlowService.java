@@ -10,7 +10,9 @@ import vn.tourista.dto.response.ChatMessageResponse;
 import vn.tourista.dto.response.HotelCardItem;
 import vn.tourista.entity.ChatMessage;
 import vn.tourista.entity.Hotel;
+import vn.tourista.entity.RoomType;
 import vn.tourista.repository.HotelRepository;
+import vn.tourista.repository.RoomTypeRepository;
 import vn.tourista.service.ChatService;
 
 import java.math.BigDecimal;
@@ -34,6 +36,7 @@ public class ChatbotHotelFlowService {
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
     private final HotelRepository hotelRepository;
+    private final RoomTypeRepository roomTypeRepository;
     private final ObjectMapper objectMapper;
     private final ChatbotNlpService nlpService;
 
@@ -167,6 +170,40 @@ public class ChatbotHotelFlowService {
                 if (row != null && row.length > 1 && row[1] != null) {
                     imageUrl = (String) row[1];
                     break;
+                }
+            }
+
+            // Lấy danh sách phòng + số chỗ trống
+            LocalDate today = LocalDate.now();
+            LocalDate tomorrow = today.plusDays(1);
+            List<RoomType> roomTypes = roomTypeRepository
+                    .findByHotel_IdAndIsActiveTrueOrderByBasePricePerNightAsc(hotel.getId());
+
+            if (!roomTypes.isEmpty()) {
+                detail.append("\n🛏️ **Loại phòng & Chỗ trống:**\n");
+                int availableTotal = 0;
+                for (RoomType rt : roomTypes) {
+                    Integer booked = roomTypeRepository.countBookedRoomsInDateRange(
+                            rt.getId(), today, tomorrow);
+                    int available = rt.getTotalRooms() - (booked != null ? booked : 0);
+                    availableTotal += Math.max(0, available);
+                    String availLabel = available > 0
+                            ? "✅ CÒN " + available + " phòng"
+                            : "❌ Hết phòng";
+                    detail.append("- **").append(rt.getName())
+                            .append("** (").append(rt.getBedType() != null ? rt.getBedType() : "giường").append(")")
+                            .append(" — ").append(formatVnd(rt.getBasePricePerNight().longValue())).append("/đêm")
+                            .append("\n  ").append(availLabel)
+                            .append("\n");
+                }
+                detail.append("\n");
+                if (availableTotal > 0) {
+                    detail.append("✅ **Tổng cộng: Còn ").append(availableTotal)
+                            .append(" phòng trống** (hôm nay ").append(today.format(
+                                    java.time.format.DateTimeFormatter.ofPattern("dd/MM"))).append(")\n");
+                } else {
+                    detail.append("⚠️ **Khách sạn hiện hết phòng trống hôm nay.**\n")
+                            .append("Bạn có thể thử ngày khác hoặc liên hệ hotline để được hỗ trợ.\n");
                 }
             }
 
