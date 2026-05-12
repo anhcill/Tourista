@@ -257,7 +257,7 @@ public class ChatbotNlpService {
                 "(khách sạn|hotel|ks\\b|resort|homestay|hostel)\\s*", " ");
         // Loại bỏ tên thành phố đã biết
         for (CityAlias alias : CITY_ALIASES) {
-            for (String variant : alias.aliases()) {
+            for (String variant : alias.keywords()) {
                 cleaned = cleaned.replaceAll("(?i)" + Pattern.quote(variant), " ");
             }
         }

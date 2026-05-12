@@ -16,6 +16,7 @@ import vn.tourista.repository.RoomTypeRepository;
 import vn.tourista.service.ChatService;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -143,7 +144,8 @@ public class ChatbotHotelFlowService {
             BigDecimal minPrice = hotelRepository.findMinBasePriceByHotelId(hotel.getId());
             String cityVi = hotel.getCity() != null ? hotel.getCity().getNameVi() : "";
             String address = hotel.getAddress() != null ? hotel.getAddress() : "Đang cập nhật";
-            Double rating = hotel.getAvgRating();
+            BigDecimal ratingBd = hotel.getAvgRating() != null
+                    ? BigDecimal.valueOf(hotel.getAvgRating()) : null;
             Integer reviews = hotel.getReviewCount();
             Integer stars = hotel.getStarRating();
 
@@ -154,8 +156,8 @@ public class ChatbotHotelFlowService {
             detail.append("📍 **Địa chỉ:** ").append(address);
             if (!cityVi.isEmpty()) detail.append(", ").append(cityVi);
             detail.append("\n");
-            if (rating != null && rating > 0) {
-                detail.append("⭐ **Rating:** ").append(String.format("%.2f", rating)).append("★");
+            if (ratingBd != null && ratingBd.compareTo(BigDecimal.ZERO) > 0) {
+                detail.append("⭐ **Rating:** ").append(String.format("%.2f", ratingBd.doubleValue())).append("★");
                 if (reviews != null && reviews > 0) detail.append(" (").append(reviews).append(" đánh giá)");
                 detail.append("\n");
             }
@@ -214,7 +216,7 @@ public class ChatbotHotelFlowService {
                     .cityVi(cityVi)
                     .address(address)
                     .starRating(stars)
-                    .avgRating(rating)
+                    .avgRating(ratingBd)
                     .reviewCount(reviews)
                     .minPricePerNight(minPrice)
                     .imageUrl(imageUrl)
