@@ -105,6 +105,8 @@ public class BotService {
                 tourRecommendationFlowService.startRecommendation(conversationId, inputText, clientEmail);
             } else if (nlpService.isHotelRecommendationIntent(canonicalInput)) {
                 hotelRecommendationFlowService.startHotelRecommendation(conversationId, inputText, clientEmail);
+            } else if (nlpService.isSpecificHotelLookupIntent(inputText, canonicalInput)) {
+                hotelRecommendationFlowService.lookupHotelByName(conversationId, inputText, clientEmail);
             } else {
                 // Luồng 4: AI chatbot
                 aiChatbotService.processAiChatbot(conversationId, inputText, clientEmail, previousContext);

@@ -293,4 +293,21 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecific
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> findPopularHotels(@Param("limit") int limit);
+
+    /**
+     * Tìm khách sạn theo tên (fuzzy match).
+     * Dùng khi user hỏi "thông tin khách sạn X" → extract tên X rồi tìm.
+     * Kết quả giới hạn 5 hotel để tránh quá nhiều.
+     */
+    @Query("""
+            SELECT h FROM Hotel h
+            WHERE h.isActive = true
+              AND (LOWER(h.name) LIKE LOWER(CONCAT('%', :name, '%'))
+                   OR LOWER(h.slug) LIKE LOWER(CONCAT('%', :name, '%')))
+            ORDER BY h.avgRating DESC NULLS LAST
+            LIMIT :limit
+            """)
+    List<Hotel> searchHotelsByNameFragment(
+            @Param("name") String name,
+            @Param("limit") int limit);
 }

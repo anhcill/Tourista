@@ -97,6 +97,113 @@ public class ChatbotHotelFlowService {
     }
 
     /**
+     * Tra cứu thông tin khách sạn cụ thể theo tên.
+     * Dùng khi user nhắc tên hotel cụ thể: "thông tin khách sạn X", "X có chỗ trống không".
+     */
+    public void lookupHotelByName(Long conversationId, String inputText, String clientEmail) {
+        String hotelName = nlpService.extractPotentialHotelName(inputText);
+        if (hotelName == null || hotelName.isBlank()) {
+            pushBotText(conversationId, clientEmail,
+                    "Mình chưa hiểu tên khách sạn bạn muốn hỏi. Bạn nhắn rõ tên khách sạn nhé!");
+            return;
+        }
+
+        pushBotText(conversationId, clientEmail, "🔍 Đang tìm thông tin khách sạn \"" + hotelName + "\"...");
+
+        List<Hotel> matches = hotelRepository.searchHotelsByNameFragment(hotelName, 5);
+        if (matches.isEmpty()) {
+            pushBotText(conversationId, clientEmail,
+                    "😕 Mình không tìm thấy khách sạn nào tên **\"" + hotelName + "\"** trong hệ thống.\n\n" +
+                    "Bạn kiểm tra lại chính tả hoặc thử hỏi khách sạn khác nhé!");
+            return;
+        }
+
+        if (matches.size() == 1) {
+            Hotel hotel = matches.get(0);
+            pushSingleHotelDetail(conversationId, clientEmail, hotel);
+            return;
+        }
+
+        // Nhiều kết quả → hiện danh sách cho user chọn
+        List<Long> ids = matches.stream().map(Hotel::getId).toList();
+        List<HotelCardItem> cards = buildHotelCards(ids);
+        pushBotText(conversationId, clientEmail,
+                "🔎 Mình tìm thấy **" + cards.size() + " khách sạn** có thể bạn đang hỏi:");
+        pushHotelCardsMessage(conversationId, clientEmail, cards);
+    }
+
+    /**
+     * Push thông tin chi tiết 1 khách sạn.
+     */
+    private void pushSingleHotelDetail(Long conversationId, String clientEmail, Hotel hotel) {
+        try {
+            BigDecimal minPrice = hotelRepository.findMinBasePriceByHotelId(hotel.getId());
+            String cityVi = hotel.getCity() != null ? hotel.getCity().getNameVi() : "";
+            String address = hotel.getAddress() != null ? hotel.getAddress() : "Đang cập nhật";
+            Double rating = hotel.getAvgRating();
+            Integer reviews = hotel.getReviewCount();
+            Integer stars = hotel.getStarRating();
+
+            StringBuilder detail = new StringBuilder();
+            detail.append("🏨 **").append(hotel.getName()).append("**");
+            if (stars != null && stars > 0) detail.append(" ").append("⭐".repeat(Math.min(stars, 5)));
+            detail.append("\n\n");
+            detail.append("📍 **Địa chỉ:** ").append(address);
+            if (!cityVi.isEmpty()) detail.append(", ").append(cityVi);
+            detail.append("\n");
+            if (rating != null && rating > 0) {
+                detail.append("⭐ **Rating:** ").append(String.format("%.2f", rating)).append("★");
+                if (reviews != null && reviews > 0) detail.append(" (").append(reviews).append(" đánh giá)");
+                detail.append("\n");
+            }
+            if (minPrice != null) {
+                detail.append("💰 **Giá từ:** ").append(formatVnd(minPrice.longValue())).append("/đêm\n");
+            }
+
+            // Lấy ảnh đầu tiên
+            List<Object[]> images = hotelRepository.findCoverImagesByHotelIds(List.of(hotel.getId()));
+            String imageUrl = null;
+            for (Object[] row : images) {
+                if (row != null && row.length > 1 && row[1] != null) {
+                    imageUrl = (String) row[1];
+                    break;
+                }
+            }
+
+            HotelCardItem card = HotelCardItem.builder()
+                    .id(hotel.getId())
+                    .name(hotel.getName())
+                    .slug(hotel.getSlug())
+                    .cityVi(cityVi)
+                    .address(address)
+                    .starRating(stars)
+                    .avgRating(rating)
+                    .reviewCount(reviews)
+                    .minPricePerNight(minPrice)
+                    .imageUrl(imageUrl)
+                    .build();
+
+            String metadataJson = objectMapper.writeValueAsString(List.of(card));
+            ChatMessage saved = chatService.saveBotMessage(
+                    conversationId,
+                    sanitize(detail.toString()),
+                    ChatMessage.ContentType.HOTEL_CARDS,
+                    metadataJson);
+
+            messagingTemplate.convertAndSendToUser(
+                    clientEmail, "/queue/messages", ChatMessageResponse.from(saved));
+
+            pushBotText(conversationId, clientEmail,
+                    "💡 Bạn muốn đặt phòng? Nhắn **\"đặt " + hotel.getName() + "\"** để mình hướng dẫn nhé!");
+
+        } catch (Exception e) {
+            log.error("ChatbotHotelFlowService: Lỗi khi push hotel detail. hotelId={}", hotel.getId(), e);
+            pushBotText(conversationId, clientEmail,
+                    "⚠️ Mình gặp lỗi khi tải thông tin khách sạn. Bạn thử hỏi lại nhé!");
+        }
+    }
+
+    /**
      * Push hotel hot (featured).
      */
     public void pushHotHotels(Long conversationId, String clientEmail) {

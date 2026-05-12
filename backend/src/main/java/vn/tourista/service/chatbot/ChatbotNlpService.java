@@ -239,6 +239,42 @@ public class ChatbotNlpService {
     }
 
     /**
+     * Trích xuất tên khách sạn tiềm năng từ input.
+     * Loại bỏ stopwords, trả phần còn lại làm tên hotel.
+     */
+    public String extractPotentialHotelName(String inputText) {
+        if (inputText == null || inputText.isBlank()) {
+            return null;
+        }
+
+        String lower = inputText.toLowerCase();
+        String cleaned = lower;
+
+        // Loại bỏ các pattern dạng "thông tin khách sạn [X]" hoặc "[X] có chỗ trống không"
+        cleaned = cleaned.replaceAll(
+                "(thông tin|chi tiết|tim|kiem|tìm|kiếm|xem|báo|có|co|không|chỗ|cho|trống|chotrinh|cho tôi|cho mk|cho mình|cho)\\.?\\s*", " ");
+        cleaned = cleaned.replaceAll(
+                "(khách sạn|hotel|ks\\b|resort|homestay|hostel)\\s*", " ");
+        // Loại bỏ tên thành phố đã biết
+        for (CityAlias alias : CITY_ALIASES) {
+            for (String variant : alias.aliases()) {
+                cleaned = cleaned.replaceAll("(?i)" + Pattern.quote(variant), " ");
+            }
+        }
+        // Loại bỏ số sao, rating patterns
+        cleaned = cleaned.replaceAll("\\d+\\s*sao", " ");
+        cleaned = cleaned.replaceAll("[0-9.,]+", " ");
+        // Loại bỏ khoảng trắng thừa
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+
+        if (cleaned.length() < 3) {
+            return null;
+        }
+
+        return cleaned;
+    }
+
+    /**
      * Kiểm tra text có chứa booking code không.
      */
     public boolean containsBookingCode(String inputText) {
@@ -274,6 +310,43 @@ public class ChatbotNlpService {
                 List.of("loc", "diem den", "so ngay"));
 
         return (hasSuggestIntent && hasTourContext) || directBudgetIntent || (directRefineIntent && hasTourContext);
+    }
+
+    /**
+     * Kiểm tra có phải intent hỏi thông tin khách sạn cụ thể không.
+     * Ví dụ: "Prana Boutique Hotel có chỗ trống không", "thông tin khách sạn X".
+     * Khác với hotel recommendation (tìm kiếm khách sạn theo tiêu chí).
+     */
+    public boolean isSpecificHotelLookupIntent(String inputText, String canonicalInput) {
+        if (inputText == null || canonicalInput == null) return false;
+
+        // Có keyword "hotel" nhưng KHÔNG phải tìm kiếm theo tiêu chí
+        boolean hasHotelKeyword = containsAny(canonicalInput,
+                List.of("khach san", "khách sạn", "hotel", "resort", "homestay"));
+        if (!hasHotelKeyword) return false;
+
+        // Không phải hotel RECOMMENDATION intent (đang tìm kiếm theo criteria)
+        if (isHotelRecommendationIntent(canonicalInput)) return false;
+
+        // Có keyword hỏi thông tin cụ thể
+        boolean asksDetail = containsAny(canonicalInput, List.of(
+                "thong tin", "chi tiet", "thông tin", "chi tiết",
+                "cho trong", "cho", " Availability", "avail", "available",
+                "co phong", "có phòng", "co khach", "có khách",
+                "dat phong", "đặt phòng",
+                "gia", "giá", "bao nhieu", "giá bao nhiêu",
+                "dia chi", "địa chỉ", "dia chi",
+                "danh gia", "đánh giá", "rating", "review",
+                "tien ich", "tiện ích", "an sang", "ăn sáng",
+                "lien he", "liên hệ", "so dien thoai", "số điện thoại",
+                "muon", "tim", "tìm", "xem", "hỏi"
+        ));
+
+        // HOẶC: input chứa tên hotel (nhiều từ, dài > 10 ký tự)
+        String extracted = extractPotentialHotelName(inputText);
+        boolean hasHotelName = extracted != null && extracted.length() > 10;
+
+        return asksDetail || hasHotelName;
     }
 
     /**
